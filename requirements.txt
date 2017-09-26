@@ -1,2 +1,3 @@
 pywed
-PyQt5
+IRFMtb
+watchdog
