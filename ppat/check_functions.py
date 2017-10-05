@@ -19,16 +19,12 @@ def WOI_1p1(segmentTRajectory,infile,online_status):
     check_result_array[0].check_fail_values_unit = 'Pa'
     check_result_array[0].check_name = 'A - Total residual pressure'
 
-
-
     if online_status:
-
 
         ttore = pw.tsmat(0,'EXP=T=S;General;TTORE')
         if (np.size(ttore)==3):
 
             TorusP = ttore[0]*10**(ttore[1])
-            #TorusP=ttore
 
             if (TorusP <1e-5):
                 check_result_array[0].check_result_code = 3
