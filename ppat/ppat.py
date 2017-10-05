@@ -1,5 +1,5 @@
 #! /Applications/Python-3.3.5/bin/python3.3
-# /usr/bin/python
+#! /usr/bin/env python
 
 #-*-coding: utf-8 -*-
 from Qt.QtWidgets import QApplication
