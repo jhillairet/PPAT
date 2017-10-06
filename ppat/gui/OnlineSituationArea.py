@@ -1,6 +1,6 @@
 #-*-coding: utf-8 -*-
 #from PyQt4 import QtCore, QtGui
-from Qt import QtCore, QtWidgets, QtGui
+from .Qt import QtCore, QtWidgets, QtGui
 
 import os,sys
 import xml.etree.ElementTree as ET

@@ -1,6 +1,6 @@
 #-*-coding: utf-8 -*-
 #from PyQt4 import QtCore, QtGui
-from Qt import QtWidgets, QtCore, QtGui
+from . Qt import QtWidgets, QtCore, QtGui
 
 import os,sys
 #from xml.dom import minidom

@@ -1,14 +1,12 @@
 #! /Applications/Python-3.3.5/bin/python3.3
 #! /usr/bin/env python
-
 #-*-coding: utf-8 -*-
-from Qt.QtWidgets import QApplication
+from gui.Qt.QtWidgets import QApplication
 
-import matplotlib
-matplotlib.use('Qt4Agg')
+from gui.mainWindow import mainWindow
 
-from mainWindow import mainWindow
-import os,sys,getopt
+import sys
+
 
 def main(argv):
     showMainWindow = True
@@ -21,15 +19,16 @@ def main(argv):
 
     # argv[0] is the path/name of the configuration file (EiC or SL) to be used.
 
-    f=mainWindow("WEST Pre-Pulse Analysis Tools (PPAT)",argv[0])
+    f = mainWindow("WEST Pre-Pulse Analysis Tools (PPAT)", argv[0])
 
     if showMainWindow:
         f.show()
     r = app.exec_()
     return r
 
-if __name__=="__main__":
-    if len(sys.argv) > 1: 
+
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
         main(sys.argv[1:])
     else:
         main(['PPATConfig_EiC.xml'])

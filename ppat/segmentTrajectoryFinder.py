@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-
 def segmentTrajectoryFinder(infile):
     """
     SCENARIO = segmentTrajectoryFinder(FILE)
@@ -75,7 +74,7 @@ def segmentTrajectoryFinder(infile):
     ###  functions are called as below
 
     # Determination of all segments and transition ways
-    arrTargetSeg=set_target_segment(arrMainSeg,arrTargetSeg,root)
+    arrTargetSeg=set_target_segment(arrMainSeg, arrTargetSeg, root)
 
     #print_target_segment(arrTargetSeg)
 
@@ -85,22 +84,18 @@ def segmentTrajectoryFinder(infile):
     arrRows=int(arrTargetSegElements/arrColumns)
     arrTargetSeg = np.reshape(arrTargetSeg,(arrRows,arrColumns))
 
-
     ### create segment data into searchable form with a unique instance of each originating segment
     # in the array.
     arrSearchSeg={}
     arrSearchSeg=create_seg_traj(arrTargetSeg)
 
-
     # Search all possible scenarios
     arrSearch = search_all(arrSearchSeg,'Init','TheEnd')
-
-
 
     # Search the nominal scenario among all possible scenarios
     # The nominal scenario is defined as the one containing the most segments
     # with ID numbers < 100
-
+    choice=[]
     longest=0
     # Loop over all possible scenarios
     for i in range(0,len(arrSearch)):
@@ -113,23 +108,24 @@ def segmentTrajectoryFinder(infile):
             if segment_id<100:
                 count_nominal = count_nominal+1
         shortest = count_nominal
-        if( shortest > longest):
+        if shortest > longest:
             longest = shortest
             choice = i
 
+    if choice:
+        # Select the nominal scenario
+        arrSearch2 = prepare_arrSearch(arrSearch, choice)
+    
+        arrSegment=prepare_arrSegment(arrSearch2, arrTargetSeg)
+    
+        arrSegment=format_arrSegment(arrSegment)
+    
+        return(arrSegment)
+    else:
+        return []
 
-    # Select the nominal scenario
-    arrSearch2 = prepare_arrSearch(arrSearch,choice)
 
-
-    arrSegment=prepare_arrSegment(arrSearch2,arrTargetSeg)
-
-    arrSegment=format_arrSegment(arrSegment)
-
-    return(arrSegment)
-
-
-def set_target_segment(arrMainSeg,arrTargetSeg,root):
+def set_target_segment(arrMainSeg, arrTargetSeg, root):
     segSr=1
     #for SegmentList in root.findall('{http://www.ipp.mpg.de/2004/Schema/SUP_Desc}SegmentList'):
     # Loop on the segment list
@@ -156,16 +152,19 @@ def set_target_segment(arrMainSeg,arrTargetSeg,root):
                 # Avoid redundant scenarios if several jump conditions lead to the same
                 # segments. Note that in reality, their startTime may be different. This
                 # is not taken into account.
-                if not targetSegment in targetList:
-    #adding target segment detail in arrTargetSeg array
-                #if (program == "Watchdog" or program == "StartUp" ):
-                    targetList = np.append(targetList,targetSegment)
-                    arrTargetSeg=np.append(arrTargetSeg,name)
-                    arrTargetSeg=np.append(arrTargetSeg,targetSegment)
-                    arrTargetSeg=np.append(arrTargetSeg,program)
-                    arrTargetSeg=np.append(arrTargetSeg,startTime)
-                    arrTargetSeg=np.append(arrTargetSeg,segSr)
-                    segSr+=1
+                if targetList.size > 0:
+                    if not targetSegment in targetList:
+                        #adding target segment detail in arrTargetSeg array
+                        #if (program == "Watchdog" or program == "StartUp" ):
+                        targetList = np.append(targetList, targetSegment)
+                        arrTargetSeg = np.append(arrTargetSeg, name)
+                        arrTargetSeg = np.append(arrTargetSeg, targetSegment)
+                        arrTargetSeg = np.append(arrTargetSeg, program)
+                        arrTargetSeg = np.append(arrTargetSeg, startTime)
+                        arrTargetSeg = np.append(arrTargetSeg, segSr)
+                        segSr += 1
+
+
     return arrTargetSeg
 
 
@@ -201,7 +200,8 @@ def create_seg_traj(arrTargetSeg):
 
     return arrSearchSeg
 
-def prepare_arrSearch(arrSearch,choice):
+
+def prepare_arrSearch(arrSearch, choice):
     """
     ARRSEARCH2 = prepare_arrSearch(ARRSEARCH,CHOICE)
     Selects a given scenario among the list of possible scenarios

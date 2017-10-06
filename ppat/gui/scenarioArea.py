@@ -1,109 +1,108 @@
 #-*-coding: utf-8 -*-
 #from PyQt4 import QtCore, QtGui
-from Qt import QtWidgets, QtCore, QtGui
-    
-import os,sys
-#from xml.dom import minidom
-import xml.etree.ElementTree as ET
-import pylab as plt
+from .Qt import QtWidgets, QtCore, QtGui
+       
+import os
 import numpy as np
-import time
-import waveform_pack
-import importlib
-#import WOI_1p1_current
-import re
 import os.path
 
-from check_functions import *
-from segmentTrajectoryFinder import *
+from segmentTrajectoryFinder import segmentTrajectoryFinder
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-class MyHandler(FileSystemEventHandler, QtCore.QThread):
-    """
-     Handler class for Watchdog.
-     Inherits from FileSystemEventHandler as a file system monitoring class and from QThread
-     apparently for multithreaded operation within the PyQt.
 
-     IMPORTANT NOTE: for some unknown reason, this watchdog only works if the process
-     which changes the folder or its content runs on the same machine as the watchdog
-     itself. This has issues if Sup.xml and DP.xml files are erased/modified from a
-     process run on deneb, which could be the case after a pulse.
-     Potential solution: run a script hosted on the machine where PPAT is launched
-     through an ssh connection from anywhere.
-    """
-    def __init__(self, foldername):
-        """
-        Overloaded init to be able to pass the watched foldername as argument
-        """
-        super(MyHandler, self).__init__()
-        self.foldername = foldername
+#def debug_trace():
+#    '''Set a tracepoint in the Python debugger that works with Qt'''
+#    from PyQt5.QtCore import pyqtRemoveInputHook
+#
+#    from pdb import set_trace
+#    pyqtRemoveInputHook()
+#    set_trace()
+    
 
-    def on_any_event(self,event):
-        """
-        Method called when any kind of event happens to the monitored folder or its contents.
-        The signal is received
-        """
-        self.emit(QtCore.SIGNAL("FolderModified"))
-
-
-class ModifFolderWatcher(QtCore.QThread):
-    """
-    Watcher class to monitor file changes on DP.xml or Sup.xml
-    Methods:
-    - modified: actions to perform when a folder/file change is detected
-    - resetFolderWatcher: actions to perform when the user changes the folder to be monitored
-    """
-    def __init__(self,parentWidget,folderName):
-        """
-        Overloaded init to be able to pass the parent widget (for addressing purposes)
-        and the folder to be monitored.
-        """
-        super(ModifFolderWatcher, self).__init__()
-        self.folderName = folderName
-        self.parent = parentWidget
-        # Start the observer process (standard way to do it for the watchdog package)
-        self.observer = Observer()
-        self.event_handler = MyHandler(self.folderName)
-        self.observer.schedule(self.event_handler, self.folderName, recursive=True)
-        self.observer.start()
-        # Method called when a change is detected
-        from PyQt4.QtCore import SIGNAL
-        self.connect(self.event_handler, SIGNAL("FolderModified"), self.modified) #PyQt4
-
-
-
-    def modified(self):
-        """
-        Performs actions when a file change is detected.
-        - Stops the watcher to avoid signal saturation.
-        - Resets the results of checks in the checkArea (returns colored squares to black)
-        - Resets the scenario display area
-        - Update the next shot number
-        - Unload the DCS files to prevent any subsequent check or BigPicture by the user
-        - Remove the changetime from the onlineSituation Area (because the DCS file has to be reloaded
-        """
-        #self.emit(QtCore.SIGNAL("fileModified1"))
-        self.observer.stop()
-        self.parent.CheckAreaWidget.resetScenario()
-        self.parent.scenarioAreaWidget.resetScenarioDisplay()
-        self.parent.OnlineSituationAreaWidget.updateNextShot()
-        self.parent.scenarioAreaWidget.unloadDCS()
-        self.parent.OnlineSituationAreaWidget.removeModTime()
-
-    def resetModifFolderWatcher(self,folderName):
-        """
-        Stops the pre-existing watcher and starts a new one with a new folder to be monitored
-        Similar procedure as in the init.
-        """
-        self.observer.stop()
-        self.folderName = folderName
-        self.observer = Observer()
-        self.event_handler = MyHandler(self.folderName)
-        self.observer.schedule(self.event_handler, self.folderName, recursive=True)
-        self.observer.start()
-        self.connect(self.event_handler, QtCore.SIGNAL("FolderModified"), self.modified)
+#class MyHandler(FileSystemEventHandler, QtCore.QThread):
+#    """
+#     Handler class for Watchdog.
+#     Inherits from FileSystemEventHandler as a file system monitoring class and from QThread
+#     apparently for multithreaded operation within the PyQt.
+#
+#     IMPORTANT NOTE: for some unknown reason, this watchdog only works if the process
+#     which changes the folder or its content runs on the same machine as the watchdog
+#     itself. This has issues if Sup.xml and DP.xml files are erased/modified from a
+#     process run on deneb, which could be the case after a pulse.
+#     Potential solution: run a script hosted on the machine where PPAT is launched
+#     through an ssh connection from anywhere.
+#    """
+#    def __init__(self, foldername):
+#        """
+#        Overloaded init to be able to pass the watched foldername as argument
+#        """
+#        super(MyHandler, self).__init__()
+#        self.foldername = foldername
+#
+#    def on_any_event(self,event):
+#        """
+#        Method called when any kind of event happens to the monitored folder or its contents.
+#        The signal is received
+#        """
+#        self.emit(QtCore.Signal("FolderModified"))
+#
+#
+#class ModifFolderWatcher(QtCore.QThread):
+#    """
+#    Watcher class to monitor file changes on DP.xml or Sup.xml
+#    Methods:
+#    - modified: actions to perform when a folder/file change is detected
+#    - resetFolderWatcher: actions to perform when the user changes the folder to be monitored
+#    """
+#    def __init__(self,parentWidget,folderName):
+#        """
+#        Overloaded init to be able to pass the parent widget (for addressing purposes)
+#        and the folder to be monitored.
+#        """
+#        super(ModifFolderWatcher, self).__init__()
+#        self.folderName = folderName
+#        self.parent = parentWidget
+#        # Start the observer process (standard way to do it for the watchdog package)
+#        self.observer = Observer()
+#        self.event_handler = MyHandler(self.folderName)
+#        self.observer.schedule(self.event_handler, self.folderName, recursive=True)
+#        self.observer.start()
+#        # Method called when a change is detected
+#        self.connect(self.event_handler, QtCore.Signal("FolderModified"), self.modified) #PyQt4
+#
+#
+#    def modified(self):
+#        """
+#        Performs actions when a file change is detected.
+#        - Stops the watcher to avoid signal saturation.
+#        - Resets the results of checks in the checkArea (returns colored squares to black)
+#        - Resets the scenario display area
+#        - Update the next shot number
+#        - Unload the DCS files to prevent any subsequent check or BigPicture by the user
+#        - Remove the changetime from the onlineSituation Area (because the DCS file has to be reloaded
+#        """
+#        #self.emit(QtCore.SIGNAL("fileModified1"))
+#        self.observer.stop()
+#        self.parent.CheckAreaWidget.resetScenario()
+#        self.parent.scenarioAreaWidget.resetScenarioDisplay()
+#        self.parent.OnlineSituationAreaWidget.updateNextShot()
+#        self.parent.scenarioAreaWidget.unloadDCS()
+#        self.parent.OnlineSituationAreaWidget.removeModTime()
+#
+#    def resetModifFolderWatcher(self,folderName):
+#        """
+#        Stops the pre-existing watcher and starts a new one with a new folder to be monitored
+#        Similar procedure as in the init.
+#        """
+#        self.observer.stop()
+#        self.folderName = folderName
+#        self.observer = Observer()
+#        self.event_handler = MyHandler(self.folderName)
+#        self.observer.schedule(self.event_handler, self.folderName, recursive=True)
+#        self.observer.start()
+#        self.connect(self.event_handler, QtCore.Signal("FolderModified"), self.modified)
 
 class scenarioArea():
     """
@@ -134,7 +133,7 @@ class scenarioArea():
         self.dpFilename = ''
 
         #Boolean to check that a scenario has been properly loaded.
-        self.isSceanrioLoaded = 0
+        self.isScenarioLoaded = False
 
         #Parent widget should be the centralWidget, parent of all other GUI widgets.
         self.parent = parentWidget
@@ -223,7 +222,7 @@ class scenarioArea():
         # DP.xml and Sup.xml are supposed to be in th same folder.
         self.supFilename = '%s/Sup.xml'%(self.LoadFolderName)
         self.dpFilename = '%s/DP.xml'%(self.LoadFolderName)
-
+    
         # Case if both files have been loaded successfully.
         if (os.path.isfile(self.dpFilename) and os.path.isfile(self.supFilename)):
             # the sequence of segments (=segment trajectory) is retrieved from the Sup.xml file.
@@ -234,15 +233,14 @@ class scenarioArea():
             # Update the scenario display with the nominal scenario
             self.updateScenarioDisplay()
 
-            # Check if a watchdog already exists in order not to create a new one for each folder change
-            try:
-                FolderWatcher = self.FolderWatcher
-            except AttributeError:
-                # No pre existing watchdog
-                self.FolderWatcher = ModifFolderWatcher(self.parent,self.LoadFolderName)
-            else:
-                # preexisting watchdog: stop and recreate a new one.
-                self.FolderWatcher.resetModifFolderWatcher(self.LoadFolderName)
+#            # Check if a watchdog already exists in order not to create a new one for each folder change               
+#            if not hasattr(self, 'FolderWatcher'):
+#                # No pre existing watchdog
+#                self.FolderWatcher = ModifFolderWatcher(self.parent,self.LoadFolderName)
+#                
+#            else:
+#                # preexisting watchdog: stop and recreate a new one.
+#                self.FolderWatcher.resetModifFolderWatcher(self.LoadFolderName)
 
             # Resets text area and colored squares
             self.parent.CheckAreaWidget.resetChecks()
@@ -312,7 +310,7 @@ class scenarioArea():
         Method to display the selected scenario
         """
         #Records that a scenario was properly loaded
-        self.isScenarioLoaded = 1
+        self.isScenarioLoaded = True
 
         # First reset the scenario display area.
         for kk in reversed(range(self.horizontalLayout_Scenario.count())):
@@ -322,7 +320,7 @@ class scenarioArea():
         self.Label_arrowsList = np.array([],dtype='object')
 
         # Loop over the segment list in segmentTrajectory and add them in the scenario display area.
-        for k in range(0,len(self.segmentTrajectory)):
+        for k in range(0, len(self.segmentTrajectory)):
 
             # Add the segment as a drop down menu in the scenario display area array
             self.ComboBox_segmentList = np.append(self.ComboBox_segmentList, QtWidgets.QComboBox())
@@ -344,7 +342,7 @@ class scenarioArea():
 
     def resetScenarioDisplay(self):
         #Records that no scenario is currently loaded (any more)
-        self.isScenarioLoaded = 0
+        self.isScenarioLoaded = False
         for kk in reversed(range(self.horizontalLayout_Scenario.count())):
             self.horizontalLayout_Scenario.itemAt(kk).widget().setParent(None)
         self.ComboBox_segmentList = np.array([],dtype='object')

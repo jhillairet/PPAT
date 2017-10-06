@@ -1,19 +1,15 @@
 # /usr/bin/python
 #-*-coding: utf-8 -*-
 
-from Qt import QtGui, QtWidgets, QtCore
+from .Qt import QtGui, QtWidgets, QtCore
 
-#import os,sys
-#from xml.dom import minidom
-#import pylab as plt
-#import time
-import CheckArea, scenarioArea, statusArea, OnlineSituationArea
-from BigPicture import *
-import pywed as pw
+from . import CheckArea, scenarioArea, statusArea, OnlineSituationArea
+from .BigPicture import *
+
 
 class mainWindow(QtWidgets.QMainWindow):
-    def __init__(self,title,config_file):
-        super(mainWindow, self).__init__() # top-level window creator
+    def __init__(self, title, config_file):
+        super(mainWindow, self).__init__()  # top-level window creator
 
         self.setWindowTitle(title)
 
@@ -24,7 +20,7 @@ class mainWindow(QtWidgets.QMainWindow):
         font = QtGui.QFont()
         self.setFont(font)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("ppat.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("gui/ppat.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.setWindowIcon(icon)
 
         self.setTabShape(QtWidgets.QTabWidget.Rounded)
