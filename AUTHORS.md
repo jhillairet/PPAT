@@ -1,2 +1,2 @@
-Cedric Reux
-Julien Hillairet
+* Cedric Reux
+* Julien Hillairet
