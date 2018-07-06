@@ -1,0 +1,1238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SegmentScheduler_DSC>
+  <Declarations>
+    <ConstList>
+      <Constant name="TEN_PERCENT" type="float">
+        <Value>0.1</Value>
+      </Constant>
+      <Constant name="NINETY_PERCENT" type="float">
+        <Value>0.9</Value>
+      </Constant>
+      <Constant name="TRUE" type="bool">
+        <Value>TRUE</Value>
+      </Constant>
+      <Constant name="FALSE" type="bool">
+        <Value>FALSE</Value>
+      </Constant>
+      <Constant name="ZERO" type="uint32_t">
+        <Value>0</Value>
+      </Constant>
+      <Constant name="NORMAL_OP" type="uint32_t">
+        <Value>0</Value>
+      </Constant>
+      <Constant name="VPE_OP" type="uint32_t">
+        <Value>1</Value>
+      </Constant>
+      <Constant name="PST_OP" type="uint32_t">
+        <Value>2</Value>
+      </Constant>
+      <Constant name="FIVE_CENTIMETERS" type="float">
+        <Value>5.0</Value>
+      </Constant>
+      <Constant name="TWO_CENTIMETERS" type="float">
+        <Value>2.0</Value>
+      </Constant>
+      <Constant name="ONE_UINT" type="uint32_t">
+        <Value>1</Value>
+      </Constant>
+      <Constant name="ZERO_FLOAT" type="float">
+        <Value>0.0</Value>
+      </Constant>
+    </ConstList>
+    <InputList>
+      <Signal name="rts:Adm/Cycle/dt.dp" type="double"/>
+      <Signal name="rts:WEST_PCS/Diagnostics/dmag/ADR_0x6100_SMAG_IP.out" type="float"/>
+      <Signal name="rts:WEST_PCS/Diagnostics/dmag/ADR_0x6440_SMAG_CONFIG.out" type="uint32_t"/>
+      <Signal name="rts:WEST_PCS/Diagnostics/dmag/GMAG_BILAN.val" type="vector&lt;float&gt;" dimension="12"/>
+      <Signal name="rts:WEST_PCS/Diagnostics/dmag/ADR_0xA000_GMAG_TEST.out.val1" type="float"/>
+      <!-- dIpdt treshold overrun test -->
+      <!--<Signal name="rts:WEST_PCS/Plasma/Ip/measure.dol" type="float"/>-->
+      <Signal name="rts:WEST_PCS/Diagnostics/dpolo/ADR_0x1A500_SPOLO_I_G0MES.out" type="float"/>
+      <!--      <Signal name="rts:WEST_PCS/Actuators/Poloidal/U_Gene.val" type="vector&lt;float&gt;" dimension="16"/>-->
+      <Signal name="rts:WEST_PCS/Diagnostics/dpolo/GPOLO_I_BOBMES.val" type="vector&lt;float&gt;" dimension="16"/>
+      <Signal name="rts:WEST_PCS/CS/magnetic_control_failed.cmd" type="uint32_t"/>
+      <Signal name="rts:WEST_PCS/CS/fueling_control_failed.cmd" type="uint32_t"/>
+      <Signal name="rts:WEST_PCS/CS/heating_control_failed.cmd" type="uint32_t"/>
+      <Signal name="rts:Act/Protection/State.val" type="uint32_t"/>
+      <Signal name="rts:Con/Supervision/Mode.dp" type="uint32_t"/>
+      <Signal name="rts:WEST_PCS/TimingSystem/received_Code.val" type="uint32_t"/>
+      <Signal name="rts:WEST_PCS/TimingSystem/Code2Detect_EP1.ref" type="uint32_t"/>
+      <Signal name="rts:WEST_PCS/TimingSystem/Code2Detect_EP2.ref" type="uint32_t"/>
+    </InputList>
+    <OutputList>
+      <Signal name="rts:WEST_PCS/SegManager/PradRatio.val" type="float"/>
+    </OutputList>
+    <ParamList>
+      <Parameter name="par:WEST_PCS/Plasma/IpStart" type="float">
+        <Value>0.03</Value>
+        <!--MA-->
+      </Parameter>
+      <!-- value used to detect plasma current at the startup -->
+      <Parameter name="par:WEST_PCS/Plasma/IpOver" type="float">
+        <Value>0.02</Value>
+        <!-- original value : 0.02-->
+        <!--MA-->
+      </Parameter>
+      <!-- value used to detect when the plasma is over -->
+      <Parameter name="par:WEST_PCS/Poloidal/Params/I0_min" type="float">
+        <Value>-27</Value>
+        <!--kA-->
+      </Parameter>
+      <!-- value used to detect the end of flux (in A) -->
+      <Parameter name="par:WEST_PCS/Plasma/PradRatioMax" type="float">
+        <Value>0.5</Value>
+      </Parameter>
+      <!-- maximal Prad ratio (Prad/Ptot) -->
+      <Parameter name="par:WEST_PCS/zero" type="uint32_t">
+        <Value>0</Value>
+      </Parameter>
+      <!-- ARRPREM code value -->
+      <Parameter name="par:WEST_PCS/TimingSystem/ARRPREM" type="uint32_t">
+        <Value>64</Value>
+      </Parameter>
+      <!-- ARRFORCE code value -->
+      <Parameter name="par:WEST_PCS/TimingSystem/ARRFORCE" type="uint32_t">
+        <Value>61</Value>
+      </Parameter>
+      <!-- DPILOTEHS code value -->
+      <Parameter name="par:WEST_PCS/TimingSystem/DPILOTEHS" type="uint32_t">
+        <Value>111</Value>
+      </Parameter>
+    </ParamList>
+    <VarList>
+      <Variable name="PradRatio" type="float">
+        <Value>0</Value>
+      </Variable>
+      <Variable name="plasmaConfKm1Xpoint2LimTrans" type="uint32_t">
+        <Value>4</Value>
+      </Variable>
+      <Variable name="plasmaConfKm1Lim2XpointTrans" type="uint32_t">
+        <Value>4</Value>
+      </Variable>
+      <Variable name="ExecState" type="uint32_t">
+        <!-- constant "range" -->
+        <Value>0</Value>
+      </Variable>
+    </VarList>
+    <BitgroupList>
+      <!-- for magnetic control AP states -->
+      <Bitgroup name="b:IA_env_overrun" addr="0" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:IA_env_overrun -->
+      <Bitgroup name="b:IBh_env_overrun" addr="1" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:IBh_env_overrun -->
+      <Bitgroup name="b:IDh_env_overrun" addr="2" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:IDh_env_overrun -->
+      <Bitgroup name="b:IEh_env_overrun" addr="3" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:IEh_env_overrun -->
+      <Bitgroup name="b:IFh_env_overrun" addr="4" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:IFh_env_overrun -->
+      <Bitgroup name="b:IFb_env_overrun" addr="5" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:IFb_env_overrun -->
+      <Bitgroup name="b:IEb_env_overrun" addr="6" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:IEb_env_overrun -->
+      <Bitgroup name="b:IDb_env_overrun" addr="7" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:IDb_env_overrun -->
+      <Bitgroup name="b:IBb_env_overrun" addr="8" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:IBb_env_overrun -->
+      <Bitgroup name="b:IXh_env_overrun" addr="9" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:IXh_env_overrun -->
+      <Bitgroup name="b:IXb_env_overrun" addr="10" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:IXb_env_overrun -->
+      <Bitgroup name="b:Za_env_overrun" addr="11" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:Za_env_overrun -->
+      <Bitgroup name="b:R0_env_overrun" addr="12" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:R0_env_overrun -->
+      <Bitgroup name="b:ROG_env_overrun" addr="13" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:ROG_env_overrun -->
+      <Bitgroup name="b:dX_env_overrun" addr="14" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:dX_env_overrun -->
+      <Bitgroup name="b:Ip_env_overrun" addr="15" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:Ip_env_overrun -->
+      <Bitgroup name="b:VG0_env_overrun" addr="16" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:VG0_env_overrun -->
+      <Bitgroup name="b:VG1h_env_overrun" addr="17" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:VG1h_env_overrun -->
+      <Bitgroup name="b:VG2h_env_overrun" addr="18" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:VG2h_env_overrun -->
+      <Bitgroup name="b:VG3h_env_overrun" addr="19" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:VG3h_env_overrun -->
+      <Bitgroup name="b:VG4h_env_overrun" addr="20" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:VG4h_env_overrun -->
+      <Bitgroup name="b:VG4b_env_overrun" addr="21" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:VG4b_env_overrun -->
+      <Bitgroup name="b:VG3b_env_overrun" addr="22" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:VG3b_env_overrun -->
+      <Bitgroup name="b:VG2b_env_overrun" addr="23" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:VG2b_env_overrun -->
+      <Bitgroup name="b:VG1b_env_overrun" addr="24" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:VG1b_env_overrun -->
+      <Bitgroup name="b:VGXh_env_overrun" addr="25" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:VGXh_env_overrun -->
+      <Bitgroup name="b:VGXb_env_overrun" addr="26" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:VGXb_env_overrun -->
+      <Bitgroup name="b:dpolo_error" addr="27" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:dpolo_error -->
+      <Bitgroup name="b:dmag_error" addr="28" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:dmag_error -->
+      <!-- for fueling control AP states -->
+      <Bitgroup name="b:Valve1_env_overrun" addr="0" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:Valve1_env_overrun -->
+      <Bitgroup name="b:Valve2_env_overrun" addr="1" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:Valve2_env_overrun -->
+      <Bitgroup name="b:Valve3_env_overrun" addr="2" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:Valve3_env_overrun -->
+      <Bitgroup name="b:Valve4_env_overrun" addr="3" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:Valve4_env_overrun -->
+      <Bitgroup name="b:Valve5_env_overrun" addr="4" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:Valve5_env_overrun -->
+      <Bitgroup name="b:Valve6_env_overrun" addr="5" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:Valve6_env_overrun -->
+      <Bitgroup name="b:Valve7_env_overrun" addr="6" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:Valve7_env_overrun -->
+      <Bitgroup name="b:Valve8_env_overrun" addr="7" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:Valve8_env_overrun -->
+      <Bitgroup name="b:Valve9_env_overrun" addr="8" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:Valve9_env_overrun -->
+      <Bitgroup name="b:Valve10_env_overrun" addr="9" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:Valve10_env_overrun -->
+      <Bitgroup name="b:Valve11_env_overrun" addr="10" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:Valve11_env_overrun -->
+      <Bitgroup name="b:Ref1_env_overrun" addr="21" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:Ref1_env_overrun -->
+      <Bitgroup name="b:Ref2_env_overrun" addr="22" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:Ref2_env_overrun -->
+      <Bitgroup name="b:Ref3_env_overrun" addr="23" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:Ref3_env_overrun -->
+      <Bitgroup name="b:generic_envelope1_bit_position" addr="24" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:generic_envelope1_bit_position -->
+      <Bitgroup name="b:generic_envelope2_bit_position" addr="25" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:generic_envelope2_bit_position -->
+      <Bitgroup name="b:generic_envelope3_bit_position" addr="26" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:generic_envelope3_bit_position -->
+      <Bitgroup name="b:generic_envelope4_bit_position" addr="27" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:generic_envelope4_bit_position -->
+      <!-- for heating control AP states -->
+      <Bitgroup name="b:pow_LH1_bit_position" addr="0" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:pow_LH1_bit_position -->
+      <Bitgroup name="b:phase_LH1_bit_position" addr="1" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:phase_LH1_bit_position -->
+      <Bitgroup name="b:pow_LH2_bit_position" addr="2" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:pow_LH2_bit_position -->
+      <Bitgroup name="b:phase_LH2_bit_position" addr="3" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:phase_LH2_bit_position -->
+      <Bitgroup name="b:pow_IC1_bit_position" addr="4" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:pow_IC1_bit_position -->
+      <Bitgroup name="b:phase_IC1_bit_position" addr="5" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:phase_IC1_bit_position -->
+      <Bitgroup name="b:pow_IC2_bit_position" addr="6" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:pow_IC2_bit_position -->
+      <Bitgroup name="b:phase_IC2_bit_position" addr="7" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:phase_IC2_bit_position -->
+      <Bitgroup name="b:pow_IC3_bit_position" addr="8" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:pow_IC3_bit_position -->
+      <Bitgroup name="b:phase_IC3_bit_position" addr="9" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- b:phase_IC3_bit_position -->
+      <!-- for plasma configuration states -->
+      <Bitgroup name="b:plasma_configuration" addr="0" len="3">
+        <Value name="limiter" val="0x0"/>
+        <Value name="lowXpoint" val="0x1"/>
+        <Value name="upXpoint" val="0x2"/>
+        <Value name="doublenull" val="0x3"/>
+        <Value name="init" val="0x4"/>
+      </Bitgroup>
+      <!-- b:plasma_configuration -->
+      <!-- for ProtectionState -->
+      <Bitgroup name="loop.PST" addr="0" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- loop.PST -->
+      <Bitgroup name="loop.EPE" addr="1" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- loop.EPE -->
+      <Bitgroup name="cm.PST" addr="2" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- cm.PST -->
+      <Bitgroup name="hk.PST" addr="3" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- hk.PST -->
+      <Bitgroup name="ap.PST" addr="4" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- ap.PST -->
+      <Bitgroup name="ap.EPE" addr="5" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- ap.EPE -->
+      <Bitgroup name="epe.PST" addr="6" len="1">
+        <Value name="on" val="0x1"/>
+        <Value name="off" val="0x0"/>
+      </Bitgroup>
+      <!-- epe.PST -->
+      <Bitgroup name="cm.LATE" addr="7" len="1">
+        <Value name="off" val="0x0"/>
+        <Value name="on" val="0x1"/>
+      </Bitgroup>
+      <!-- cm.LATE -->
+      <Bitgroup name="APE.busy" addr="8" len="1">
+        <Value name="off" val="0x0"/>
+        <Value name="on" val="0x1"/>
+      </Bitgroup>
+      <!-- APE.busy -->
+      <Bitgroup name="pst.END" addr="9" len="1">
+        <Value name="off" val="0x0"/>
+        <Value name="on" val="0x1"/>
+      </Bitgroup>
+      <!-- pst.END -->
+      <!-- Bitgroup for SupervisionMode -->
+      <Bitgroup name="RefSource" addr="0" len="2">
+        <Value name="DP" val="0x0"/>
+        <Value name="APE" val="0x1"/>
+        <Value name="PST" val="0x2"/>
+        <Value name="Rampdown" val="0x3"/>
+      </Bitgroup>
+      <!-- RefSource -->
+    </BitgroupList>
+    <ProgramList>
+      <Program name="Watchdog">
+        <Instruction opCode="LD">
+          <constRef name="TRUE"/>
+        </Instruction>
+      </Program>
+      <!-- Watchdog -->
+      <Program name="PlasmaPhase">
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/Diagnostics/dmag/ADR_0x6100_SMAG_IP.out"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <parRef name="par:WEST_PCS/Plasma/IpStart"/>
+        </Instruction>
+        <Instruction opCode="GT" depth="2"/>
+      </Program>
+      <!-- PlasmaPhase -->
+      <Program name="PlasmaCurrentEnd">
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/Diagnostics/dmag/ADR_0x6100_SMAG_IP.out"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <parRef name="par:WEST_PCS/Plasma/IpOver"/>
+        </Instruction>
+        <Instruction opCode="LT" depth="2"/>
+      </Program>
+      <!-- PlasmaCurrentEnd -->
+      <Program name="PlasmaCurrentControlFailed">
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:Ip_env_overrun" val="on"/>
+        </Instruction>
+      </Program>
+      <!-- PlasmaCurrentControlFailed -->
+      <Program name="MagneticControlFailed">
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:IA_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:IBh_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:IDh_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:IEh_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:IFh_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:IFb_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:IEb_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:IDb_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:IBb_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:IXh_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:IXb_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:Za_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:R0_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:ROG_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:dX_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:VG0_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:VG1h_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:VG2h_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:VG3h_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:VG4h_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:VG4b_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:VG3b_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:VG2b_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:VG1b_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:VGXh_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:VGXb_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:dmag_error" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:dpolo_error" val="on"/>
+        </Instruction>
+        <Instruction opCode="OR" depth="27"/>
+      </Program>
+      <!-- MagneticControlFailed -->
+      <Program name="FuelingControlFailed">
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/fueling_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:Ref1_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/fueling_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:Ref2_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/fueling_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:Ref3_env_overrun" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/fueling_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:generic_envelope1_bit_position" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/fueling_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:generic_envelope2_bit_position" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/fueling_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:generic_envelope3_bit_position" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/fueling_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:generic_envelope4_bit_position" val="on"/>
+        </Instruction>
+        <Instruction opCode="OR" depth="7"/>
+      </Program>
+      <!-- FuelingControlFailed -->
+      <Program name="LHCDSystemFailed">
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/heating_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:pow_LH1_bit_position" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/heating_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:phase_LH1_bit_position" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/heating_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:pow_LH2_bit_position" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/heating_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:phase_LH2_bit_position" val="on"/>
+        </Instruction>
+        <Instruction opCode="OR" depth="4"/>
+      </Program>
+      <!-- LHCDSystemFailed -->
+      <Program name="ICRHSystemFailed">
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/heating_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:pow_IC1_bit_position" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/heating_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:phase_IC1_bit_position" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/heating_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:pow_IC2_bit_position" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/heating_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:phase_IC2_bit_position" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/heating_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:pow_IC3_bit_position" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/heating_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:phase_IC3_bit_position" val="on"/>
+        </Instruction>
+        <Instruction opCode="OR" depth="6"/>
+      </Program>
+      <!-- ICRHSystemFailed -->
+      <Program name="CuHighImpurityLevelDetection">
+        <Instruction opCode="LD">
+          <constRef name="FALSE"/>
+        </Instruction>
+      </Program>
+      <!-- CuHighImpurityLevelDetection -->
+      <Program name="FeHighImpurityLevelDetection">
+        <Instruction opCode="LD">
+          <constRef name="FALSE"/>
+        </Instruction>
+      </Program>
+      <!-- FeHighImpurityLevelDetection -->
+      <Program name="WHighImpurityLevelDetection">
+        <Instruction opCode="LD">
+          <constRef name="FALSE"/>
+        </Instruction>
+      </Program>
+      <!-- WHighImpurityLevelDetection -->
+      <Program name="DisruptionDetection">
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/Diagnostics/dmag/ADR_0xA000_GMAG_TEST.out.val1"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <constRef name="ZERO_FLOAT"/>
+        </Instruction>
+        <Instruction opCode="GT" depth="2"/>
+      </Program>
+      <!-- Pre-disruptionDetection -->
+      <Program name="HighMHDLevel">
+        <Instruction opCode="LD">
+          <constRef name="FALSE"/>
+        </Instruction>
+      </Program>
+      <!-- HighMHDLevele -->
+      <Program name="CalorimetryProtection">
+        <Instruction opCode="LD">
+          <constRef name="FALSE"/>
+        </Instruction>
+      </Program>
+      <!-- CalorimetryProtection -->
+      <Program name="LPAProtection">
+        <Instruction opCode="LD">
+          <constRef name="FALSE"/>
+        </Instruction>
+      </Program>
+      <!-- LPAProtection -->
+      <Program name="ARRPREM">
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/TimingSystem/received_Code.val"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <parRef name="par:WEST_PCS/TimingSystem/ARRPREM"/>
+        </Instruction>
+        <Instruction opCode="EQ" depth="2"/>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/TimingSystem/received_Code.val"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <parRef name="par:WEST_PCS/TimingSystem/ARRFORCE"/>
+        </Instruction>
+        <Instruction opCode="EQ" depth="2"/>
+        <Instruction opCode="OR" depth="2"/>
+      </Program>
+      <!-- ARRPREM -->
+      <Program name="EndOfFlux">
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/Diagnostics/dpolo/ADR_0x1A500_SPOLO_I_G0MES.out"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <parRef name="par:WEST_PCS/Poloidal/Params/I0_min"/>
+        </Instruction>
+        <Instruction opCode="LT" depth="2"/>
+      </Program>
+      <!-- EndOfFlux -->
+      <Program name="PoloidalOverheating">
+        <Instruction opCode="LD">
+          <constRef name="FALSE"/>
+        </Instruction>
+      </Program>
+      <!-- PoloidalOverheating -->
+      <Program name="HighRadiatedPowerRation">
+        <!-- Computation of Prad/Ptot_filter based on GMAG_BILAN signal-->
+        <Instruction opCode="LDX">
+          <Immediate type="uint32_t" value="5"/>
+        </Instruction>
+        <!-- select radiated power -->
+        <Instruction opCode="LD1D">
+          <inRef name="rts:WEST_PCS/Diagnostics/dmag/GMAG_BILAN.val"/>
+        </Instruction>
+        <Instruction opCode="LDX">
+          <Immediate type="uint32_t" value="10"/>
+        </Instruction>
+        <!-- select filtered total power -->
+        <Instruction opCode="LD1D">
+          <inRef name="rts:WEST_PCS/Diagnostics/dmag/GMAG_BILAN.val"/>
+        </Instruction>
+        <Instruction opCode="DIV" depth="2"/>
+        <Instruction opCode="ST">
+          <varRef name="PradRatio"/>
+        </Instruction>
+        <!-- PradRatio > PradRatioMax And Ip > 0 -->
+        <Instruction opCode="LD">
+          <varRef name="PradRatio"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <parRef name="par:WEST_PCS/Plasma/PradRatioMax"/>
+        </Instruction>
+        <Instruction opCode="GT" depth="2"/>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/Diagnostics/dmag/ADR_0x6100_SMAG_IP.out"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <Immediate type="float" value="0"/>
+        </Instruction>
+        <Instruction opCode="GT" depth="2"/>
+        <Instruction opCode="AND" depth="2"/>
+        <!-- Put PradRatio in output for monitoring -->
+        <Instruction opCode="LD">
+          <varRef name="PradRatio"/>
+        </Instruction>
+        <Instruction opCode="ST">
+          <outRef name="rts:WEST_PCS/SegManager/PradRatio.val"/>
+        </Instruction>
+      </Program>
+      <!-- HighRadiatedPowerRation -->
+      <Program name="LimiterToXPointTransition">
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/Diagnostics/dmag/ADR_0x6440_SMAG_CONFIG.out"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:plasma_configuration" val="lowXpoint"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/Diagnostics/dmag/ADR_0x6440_SMAG_CONFIG.out"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:plasma_configuration" val="upXpoint"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/Diagnostics/dmag/ADR_0x6440_SMAG_CONFIG.out"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:plasma_configuration" val="doublenull"/>
+        </Instruction>
+        <Instruction opCode="OR" depth="3"/>
+        <Instruction opCode="LD">
+          <varRef name="plasmaConfKm1Lim2XpointTrans"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:plasma_configuration" val="limiter"/>
+        </Instruction>
+        <Instruction opCode="AND" depth="2"/>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/Diagnostics/dmag/ADR_0x6440_SMAG_CONFIG.out"/>
+        </Instruction>
+        <Instruction opCode="ST">
+          <varRef name="plasmaConfKm1Lim2XpointTrans"/>
+        </Instruction>
+      </Program>
+      <!-- LimiterToXPointTransition -->
+      <Program name="XPointToLimiterTransition">
+        <Instruction opCode="LD">
+          <varRef name="plasmaConfKm1Xpoint2LimTrans"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:plasma_configuration" val="lowXpoint"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <varRef name="plasmaConfKm1Xpoint2LimTrans"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:plasma_configuration" val="upXpoint"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <varRef name="plasmaConfKm1Xpoint2LimTrans"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:plasma_configuration" val="doublenull"/>
+        </Instruction>
+        <Instruction opCode="OR" depth="3"/>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/Diagnostics/dmag/ADR_0x6440_SMAG_CONFIG.out"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:plasma_configuration" val="limiter"/>
+        </Instruction>
+        <Instruction opCode="AND" depth="2"/>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/Diagnostics/dmag/ADR_0x6440_SMAG_CONFIG.out"/>
+        </Instruction>
+        <Instruction opCode="ST">
+          <varRef name="plasmaConfKm1Xpoint2LimTrans"/>
+        </Instruction>
+      </Program>
+      <!-- XPointToLimiterTransition -->
+      <Program name="LToHModeTransition">
+        <Instruction opCode="LD">
+          <constRef name="FALSE"/>
+        </Instruction>
+      </Program>
+      <!-- HToLModeTransition -->
+      <Program name="GenericTimingSystemEvent1">
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/TimingSystem/received_Code.val"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/TimingSystem/Code2Detect_EP1.ref"/>
+        </Instruction>
+        <Instruction opCode="EQ" depth="2"/>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/TimingSystem/Code2Detect_EP1.ref"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <!--<Immediate type="uint32_t" value="0"/>-->
+          <constRef name="ZERO"/>
+        </Instruction>
+        <Instruction opCode="NE" depth="2"/>
+        <Instruction opCode="AND" depth="2"/>
+      </Program>
+      <!-- GenericTimingSystem1 -->
+      <Program name="GenericTimingSystemEvent2">
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/TimingSystem/received_Code.val"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/TimingSystem/Code2Detect_EP2.ref"/>
+        </Instruction>
+        <Instruction opCode="EQ" depth="2"/>
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/TimingSystem/Code2Detect_EP2.ref"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <!--<Immediate type="uint32_t" value="0"/>-->
+          <constRef name="ZERO"/>
+        </Instruction>
+        <Instruction opCode="NE" depth="2"/>
+        <Instruction opCode="AND" depth="2"/>
+      </Program>
+      <!-- GenericTimingSystem2 -->
+      <Program name="GenericSignal">
+        <Instruction opCode="LD">
+          <constRef name="FALSE"/>
+        </Instruction>
+      </Program>
+      <!-- GenericSignal -->
+      <Program name="Alarm PST">
+        <Instruction opCode="LD">
+          <inRef name="rts:Act/Protection/State.val"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="loop.PST" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:Act/Protection/State.val"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="ap.PST" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:Act/Protection/State.val"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="epe.PST" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:Act/Protection/State.val"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="hk.PST" val="on"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:Act/Protection/State.val"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="cm.PST" val="on"/>
+        </Instruction>
+        <Instruction opCode="OR" depth="5"/>
+        <Instruction opCode="LD">
+          <inRef name="rts:Con/Supervision/Mode.dp"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="RefSource" val="DP"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:Con/Supervision/Mode.dp"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="RefSource" val="Rampdown"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <inRef name="rts:Con/Supervision/Mode.dp"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="RefSource" val="APE"/>
+        </Instruction>
+        <Instruction opCode="OR" depth="3"/>
+        <Instruction opCode="AND" depth="2"/>
+      </Program>
+      <!-- Alarm PST -->
+      <Program name="DpiloteHsEvent">
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/TimingSystem/received_Code.val"/>
+        </Instruction>
+        <Instruction opCode="LD">
+          <parRef name="par:WEST_PCS/TimingSystem/DPILOTEHS"/>
+        </Instruction>
+        <Instruction opCode="EQ" depth="2"/>
+      </Program>
+      <!-- DpiloteHsEvent -->
+      <Program name="DpoloHsEvent">
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:dpolo_error" val="on"/>
+        </Instruction>
+      </Program>
+      <!-- DpoloHsEvent -->
+      <Program name="DmagHsEvent">
+        <Instruction opCode="LD">
+          <inRef name="rts:WEST_PCS/CS/magnetic_control_failed.cmd"/>
+        </Instruction>
+        <Instruction opCode="ISVAL">
+          <bitgroupRef name="b:dmag_error" val="on"/>
+        </Instruction>
+      </Program>
+      <!-- DmagHsEvent -->
+    </ProgramList>
+  </Declarations>
+  <SegmentList>
+    <!--Segment 0 Init-->
+    <SEGMENT name="Init" id="0" branchtype="Main" max_repetitions="0">
+      <Control program="Watchdog" type="COND_GOTO" startTime="40.0" targetSegment="TheEnd"/>
+      <Control program="MagneticControlFailed" type="COND_GOTO" startTime="0.0" targetSegment="segment998"/>
+      <Control program="ARRPREM" type="COND_GOTO" startTime="0.0" targetSegment="segment998"/>
+      <Control program="GenericTimingSystemEvent1" type="COND_GOTO" startTime="0.0" targetSegment="segment1"/>
+      <Control program="GenericTimingSystemEvent2" type="COND_GOTO" startTime="0.0" targetSegment="segment997"/>
+    </SEGMENT>
+    <!--End for segment0-->
+    <!--Segment 1 segment1-->
+    <SEGMENT name="segment1" id="1" branchtype="Main" max_repetitions="0">
+      <Control program="Watchdog" type="COND_GOTO" startTime="0.02" targetSegment="segment2"/>
+      <Control program="MagneticControlFailed" type="COND_GOTO" startTime="0.0" targetSegment="segment998"/>
+      <Control program="DisruptionDetection" type="COND_GOTO" startTime="0.0" targetSegment="segment995"/>
+      <Control program="ARRPREM" type="COND_GOTO" startTime="0.0" targetSegment="segment998"/>
+      <Control program="GenericTimingSystemEvent1" type="COND_GOTO" startTime="0.0" targetSegment="TheEnd"/>
+      <Control program="GenericTimingSystemEvent2" type="COND_GOTO" startTime="0.0" targetSegment="segment997"/>
+    </SEGMENT>
+    <!--End for segment1-->
+    <!--Segment 2 segment2-->
+    <SEGMENT name="segment2" id="2" branchtype="Main" max_repetitions="0">
+      <Control program="Watchdog" type="COND_GOTO" startTime="0.05" targetSegment="segment3"/>
+      <Control program="MagneticControlFailed" type="COND_GOTO" startTime="0.0" targetSegment="segment998"/>
+      <Control program="DisruptionDetection" type="COND_GOTO" startTime="0.0" targetSegment="segment995"/>
+      <Control program="ARRPREM" type="COND_GOTO" startTime="0.0" targetSegment="segment998"/>
+      <Control program="GenericTimingSystemEvent1" type="COND_GOTO" startTime="0.0" targetSegment="TheEnd"/>
+      <Control program="GenericTimingSystemEvent2" type="COND_GOTO" startTime="0.0" targetSegment="segment997"/>
+    </SEGMENT>
+    <!--End for segment2-->
+    <!--Segment 3 segment3-->
+    <SEGMENT name="segment3" id="3" branchtype="Main" max_repetitions="0">
+      <Control program="Watchdog" type="COND_GOTO" startTime="3.5" targetSegment="segment996"/>
+      <Control program="PlasmaCurrentControlFailed" type="COND_GOTO" startTime="0.0" targetSegment="segment995"/>
+      <Control program="MagneticControlFailed" type="COND_GOTO" startTime="0.0" targetSegment="segment995"/>
+      <Control program="FuelingControlFailed" type="COND_GOTO" startTime="0.0" targetSegment="segment995"/>
+      <Control program="DisruptionDetection" type="COND_GOTO" startTime="0.0" targetSegment="segment995"/>
+      <Control program="ARRPREM" type="COND_GOTO" startTime="0.0" targetSegment="segment998"/>
+      <Control program="PlasmaCurrentEnd" type="COND_GOTO" startTime="0.0" targetSegment="segment996"/>
+      <Control program="GenericTimingSystemEvent1" type="COND_GOTO" startTime="0.0" targetSegment="TheEnd"/>
+      <Control program="GenericTimingSystemEvent2" type="COND_GOTO" startTime="0.0" targetSegment="segment997"/>
+    </SEGMENT>
+    <!--End for segment3-->
+    <!--Segment 5 segment5-->
+    <SEGMENT name="segment5" id="5" branchtype="Main" max_repetitions="0">
+      <Control program="Watchdog" type="COND_GOTO" startTime="6.5" targetSegment="segment6"/>
+      <Control program="PlasmaCurrentControlFailed" type="COND_GOTO" startTime="0.0" targetSegment="segment6"/>
+      <Control program="MagneticControlFailed" type="COND_GOTO" startTime="0.0" targetSegment="segment995"/>
+      <Control program="FuelingControlFailed" type="COND_GOTO" startTime="0.0" targetSegment="segment6"/>
+      <Control program="DisruptionDetection" type="COND_GOTO" startTime="0.0" targetSegment="segment995"/>
+      <Control program="ARRPREM" type="COND_GOTO" startTime="0.0" targetSegment="segment998"/>
+      <Control program="PlasmaCurrentEnd" type="COND_GOTO" startTime="0.0" targetSegment="segment996"/>
+      <Control program="EndOfFlux" type="COND_GOTO" startTime="0.0" targetSegment="segment6"/>
+      <Control program="GenericTimingSystemEvent1" type="COND_GOTO" startTime="0.0" targetSegment="TheEnd"/>
+      <Control program="GenericTimingSystemEvent2" type="COND_GOTO" startTime="0.0" targetSegment="segment997"/>
+    </SEGMENT>
+    <!--End for segment5-->
+    <!--Segment 6 segment6-->
+    <SEGMENT name="segment6" id="6" branchtype="Main" max_repetitions="0">
+      <Control program="Watchdog" type="COND_GOTO" startTime="3.0" targetSegment="segment996"/>
+      <Control program="PlasmaCurrentControlFailed" type="COND_GOTO" startTime="0.0" targetSegment="segment995"/>
+      <Control program="MagneticControlFailed" type="COND_GOTO" startTime="0.0" targetSegment="segment995"/>
+      <Control program="DisruptionDetection" type="COND_GOTO" startTime="0.0" targetSegment="segment995"/>
+      <Control program="ARRPREM" type="COND_GOTO" startTime="0.0" targetSegment="segment998"/>
+      <Control program="PlasmaCurrentEnd" type="COND_GOTO" startTime="0.0" targetSegment="segment996"/>
+      <Control program="GenericTimingSystemEvent1" type="COND_GOTO" startTime="0.0" targetSegment="TheEnd"/>
+      <Control program="GenericTimingSystemEvent2" type="COND_GOTO" startTime="0.0" targetSegment="segment997"/>
+    </SEGMENT>
+    <!--End for segment6-->
+    <!--Segment 7 segment7-->
+    <SEGMENT name="segment7" id="7" branchtype="Main" max_repetitions="0">
+      <Control program="Watchdog" type="COND_GOTO" startTime="2.5" targetSegment="segment996"/>
+      <Control program="PlasmaCurrentControlFailed" type="COND_GOTO" startTime="0.0" targetSegment="segment995"/>
+      <Control program="MagneticControlFailed" type="COND_GOTO" startTime="0.0" targetSegment="segment995"/>
+      <Control program="DisruptionDetection" type="COND_GOTO" startTime="0.0" targetSegment="segment995"/>
+      <Control program="ARRPREM" type="COND_GOTO" startTime="0.0" targetSegment="segment998"/>
+      <Control program="PlasmaCurrentEnd" type="COND_GOTO" startTime="0.0" targetSegment="segment996"/>
+      <Control program="GenericTimingSystemEvent1" type="COND_GOTO" startTime="0.0" targetSegment="TheEnd"/>
+      <Control program="GenericTimingSystemEvent2" type="COND_GOTO" startTime="0.0" targetSegment="segment997"/>
+    </SEGMENT>
+    <!--End for segment7-->
+    <!--Segment 998 segment998-->
+    <SEGMENT name="segment998" id="998" branchtype="Main" max_repetitions="0">
+      <Control program="Watchdog" type="COND_GOTO" startTime="5.0" targetSegment="TheEnd"/>
+      <Control program="GenericTimingSystemEvent1" type="COND_GOTO" startTime="0.0" targetSegment="TheEnd"/>
+      <Control program="GenericTimingSystemEvent2" type="COND_GOTO" startTime="0.0" targetSegment="segment997"/>
+    </SEGMENT>
+    <!--End for segment998-->
+    <!--Segment 997 segment997-->
+    <SEGMENT name="segment997" id="997" branchtype="Main" max_repetitions="0">
+      <Control program="Watchdog" type="COND_GOTO" startTime="40.0" targetSegment="TheEnd"/>
+      <Control program="GenericTimingSystemEvent1" type="COND_GOTO" startTime="0.0" targetSegment="TheEnd"/>
+    </SEGMENT>
+    <!--End for segment997-->
+    <!--Segment 996 segment996-->
+    <SEGMENT name="segment996" id="996" branchtype="Main" max_repetitions="0">
+      <Control program="Watchdog" type="COND_GOTO" startTime="5.0" targetSegment="segment998"/>
+      <Control program="ARRPREM" type="COND_GOTO" startTime="0.0" targetSegment="segment998"/>
+      <Control program="GenericTimingSystemEvent1" type="COND_GOTO" startTime="0.0" targetSegment="TheEnd"/>
+    </SEGMENT>
+    <!--End for segment996-->
+    <!--Segment 995 segment995-->
+    <SEGMENT name="segment995" id="995" branchtype="Main" max_repetitions="0">
+      <Control program="Watchdog" type="COND_GOTO" startTime="0.2" targetSegment="segment996"/>
+      <Control program="MagneticControlFailed" type="COND_GOTO" startTime="0.0" targetSegment="segment998"/>
+      <Control program="ARRPREM" type="COND_GOTO" startTime="0.0" targetSegment="segment998"/>
+      <Control program="PlasmaCurrentEnd" type="COND_GOTO" startTime="0.0" targetSegment="segment996"/>
+      <Control program="GenericTimingSystemEvent1" type="COND_GOTO" startTime="0.0" targetSegment="TheEnd"/>
+    </SEGMENT>
+    <!--End for segment995-->
+    <SEGMENT name="TheEnd" id="65535"/>
+  </SegmentList>
+</SegmentScheduler_DSC>
