@@ -6,7 +6,7 @@ import os
 import numpy as np
 import os.path
 
-from segmentTrajectoryFinder import segmentTrajectoryFinder
+from . import segmentTrajectoryFinder as segmentTrajectoryFinder
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler

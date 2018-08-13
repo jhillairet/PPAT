@@ -1,9 +1,5 @@
-#! /Applications/Python-3.3.5/bin/python3.3
-#! /usr/bin/env python
-#-*-coding: utf-8 -*-
-from gui.Qt.QtWidgets import QApplication
-
-from gui.mainWindow import mainWindow
+from pppat.ui.Qt.QtWidgets import QApplication
+from pppat.ui.mainWindow import mainWindow
 
 import sys
 

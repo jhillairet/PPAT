@@ -1,18 +1,12 @@
-#! /Applications/Python-3.3.5/bin/python3.3
-# /usr/bin/python
-
-import os,sys
 from xml.dom import minidom
 import numpy as np
-import re
-import check_result
-import waveform_pack
-from waveformBuilder import *
+
+from . import waveformBuilder
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.collections import PatchCollection
 from matplotlib import gridspec
-from itertools import cycle
+
 
 def BigPicture_disp(segmentTrajectory,dpFile):
 

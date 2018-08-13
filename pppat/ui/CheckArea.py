@@ -1,19 +1,8 @@
-#-*-coding: utf-8 -*-
-#from PyQt4 import QtCore, QtGui
 from . Qt import QtWidgets, QtCore, QtGui
-
-import os,sys
-#from xml.dom import minidom
 import xml.etree.ElementTree as ET
-import pylab as plt
 import numpy as np
-import time
-import waveform_pack
-import importlib
-#import WOI_1p1_current
-import re
-sys.path.append("./Check_Scripts/")
-from check_functions import *
+from . import waveform_pack
+from .check_functions import *
 
 # Class defining the central area of the GUI: colored squares, output text area
 # and check button. Launches the tests.
