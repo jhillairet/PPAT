@@ -1,4 +1,6 @@
-pywed
-IRFMtb
+pyqt5
 watchdog
 pyqtgraph
+pywed
+IRFMtb
+
