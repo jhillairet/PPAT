@@ -5,7 +5,7 @@ from qtpy.QtGui import QIcon
 from qtpy.QtCore import Qt
 from pppat.ui.reminder import EiCReminderWidget
 from pppat.ui.console import ConsoleWidget
-from pppat.ui.collapsibleToolBox import QCollapsibleToolbox
+from pppat.ui.collapsible_toolbox import QCollapsibleToolbox
 
 import logging
 logger = logging.getLogger(__name__)
@@ -91,25 +91,6 @@ class MainWindow(QMainWindow):
 #        """
 #
 #        self.tbx.setStyleSheet(StyleSheet)
-#        
-#        self.tbx.setMinimumWidth(self.width())
-#        self.tbx.addItem(EiCReminderWidget(), '&Rappels')
-#        self.tbx.addItem(QWidget(), 'Pre-Pulse &Analysis')
-#        self.tbx.addItem(QWidget(), 'Pre-Pulse Setup &Display')
-#        self.tbx.addItem(QWidget(), '&Post-Pulse Analysis')
-#        self.tbx.addItem(QWidget(), '&Log')
-#        self.console = ConsoleWidget()
-#        self.tbx.addItem(self.console, '&Console')       
-#        
-#        # Horizontal layout allow resizing widget in the horizontal direction
-#        # keeping vertical size constant
-#        hbox = QHBoxLayout()
-#        hbox.setSpacing(0)    
-#        hbox.addWidget(self.tbx)      
-#        self.setLayout(hbox)
-#        
-#        # the central widget only corresponds to the tool box for now
-#        self.central_widget = self.tbx
         
         # Rappels aux EiC
         rappels = QCollapsibleToolbox(child=EiCReminderWidget(), title='Rappels aux EiC')
