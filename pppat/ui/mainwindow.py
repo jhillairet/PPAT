@@ -2,10 +2,11 @@ from qtpy.QtWidgets import (QMainWindow, QApplication, QToolBox, QWidget,
                             QHBoxLayout, QVBoxLayout, QAction, qApp, 
                             QScrollArea, QTextBrowser, QFrame)
 from qtpy.QtGui import QIcon
-from qtpy.QtCore import Qt
+# PPPAT's ui
 from pppat.ui.reminder import EiCReminderWidget
 from pppat.ui.console import ConsoleWidget
 from pppat.ui.collapsible_toolbox import QCollapsibleToolbox
+from pppat.ui.pre_pulse import PrePulseAnalysisWidget
 
 import logging
 logger = logging.getLogger(__name__)
@@ -36,6 +37,10 @@ class MainWindow(QMainWindow):
         # Application icon
         self.setWindowIcon(QIcon('resources/icons/pppat.png'))
 
+        # open some panels at startup
+        #self.panel_rappels.toggleButton.click()
+        self.panel_pre_pulse.toggleButton.click()
+        
     def menu_bar(self):
         self.menuBar = self.menuBar()
 
@@ -46,82 +51,40 @@ class MainWindow(QMainWindow):
         action_file_exit.triggered.connect(qApp.quit)
         file_menu.addAction(action_file_exit)
 
-
     def generate_central_widget(self):
         """
-        Define the central widget, which contain the main GUI of the app, 
+        Define the central widget, which contain the main GUI of the app,
         mostly the various tools.
         """
-#        # Qt ToolBox setup
-#        self.tbx = QToolBox(parent=self)
-#        StyleSheet = """
-#        
-#        /* Window{background: #b8cdee;}*/
-#        
-#        QToolBox::tab {
-#            /* border-image: url(resources/95_Alu_gebuerstet.jpg); */
-#            border: 1px solid #C4C4C3;
-#            color: black;
-#            font-size:12pt;
-#            font: bold;
-#            background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,
-#                                        stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,
-#                                        stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);
-#
-#        }
-#        
-#        QToolBox::tab:first {
-#            background: #4ade00;
-#            color: black;
-#        }
-#        
-#        QToolBox::tab:last {
-#            background: #f95300;
-#            color: black;
-#        }
-#        
-#        QToolBox::tab:selected { /* italicize selected tabs */
-#            font: italic bold;
-#            color: white;
-#            /* border-image: url(resources/brushed_aluminium_dark.jpg); */
-#            /*     background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-#                                 stop: 0 #E1E1E1, stop: 0.4 #DDDDDD,
-#                                 stop: 0.5 #D8D8D8, stop: 1.0 #D3D3D3);*/
-#        }
-#        """
-#
-#        self.tbx.setStyleSheet(StyleSheet)
+        # Define the various collabsible panels
+        self.panel_rappels = QCollapsibleToolbox(child=EiCReminderWidget(), title='Cahier de liaison des EiC / EiC\'s Notebook')
+        self.panel_pre_pulse = QCollapsibleToolbox(child=PrePulseAnalysisWidget(), title='Pre-pulse Analysis')
+        self.panel_post_pulse = QCollapsibleToolbox(child=QTextBrowser(), title='Post-pulse Analysis')
+        self.panel_pulse_display = QCollapsibleToolbox(child=QTextBrowser(), title='Pre-pulse Display')
+        self.panel_log = QCollapsibleToolbox(child=QTextBrowser(), title='Logs')
+        self.panel_console = QCollapsibleToolbox(child=ConsoleWidget(), title='Python Console')
         
-        # Rappels aux EiC
-        rappels = QCollapsibleToolbox(child=EiCReminderWidget(), title='Rappels aux EiC')
-        pre_pulse = QCollapsibleToolbox(child=None, title='Pre-pulse Analysis')
-        post_pulse = QCollapsibleToolbox(child=None, title='Post-pulse Analysis')
-        pulse_display = QCollapsibleToolbox(child=None, title='Pre-pulse Display')
-        log = QCollapsibleToolbox(child=QTextBrowser(), title='Logs')
-        console = QCollapsibleToolbox(child=ConsoleWidget(), title='Console')
-        
-        # stacking the collapsible panels
+        # stacking the collapsible panels vertically
         vbox = QVBoxLayout()
-        vbox.addWidget(rappels)
-        vbox.addWidget(pre_pulse)
-        vbox.addWidget(pulse_display)
-        vbox.addWidget(post_pulse)
-        vbox.addWidget(log)
-        vbox.addWidget(console)
+        vbox.addWidget(self.panel_rappels)
+        vbox.addWidget(self.panel_pre_pulse)
+        vbox.addWidget(self.panel_pulse_display)
+        vbox.addWidget(self.panel_post_pulse)
+        vbox.addWidget(self.panel_log)
+        vbox.addWidget(self.panel_console)
 
         # making the whole panels scrollable
         # The scrollbar should be set for a widget, here a dummy one
         collaps = QWidget()
-        collaps.setLayout(vbox)        
+        collaps.setLayout(vbox)
         scroll = QScrollArea(self)
         scroll.setWidget(collaps)
-        scroll.setWidgetResizable(True) # do not forget !
+        scroll.setWidgetResizable(True)
         self.central_widget = scroll
-        
-        # open some panels at startup
-        rappels.toggleButton.click() 
-        
-                    
+
+
+
+         
 #     def __init__(self, title, config_file):       
 #        super(mainWindow, self).__init__()  # top-level window creator
 #
