@@ -79,6 +79,7 @@ class QCollapsibleToolbox(QWidget):
         if child:
             default_layout = QHBoxLayout()
             default_layout.addWidget(child)
+            self.widget = child
             self.setContentLayout(default_layout)
 
     def setContentLayout(self, contentLayout):

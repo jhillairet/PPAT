@@ -1,7 +1,10 @@
+import os.path
 from qtpy.QtWidgets import (QMainWindow, QApplication, QToolBox, QWidget,
-                            QHBoxLayout, QVBoxLayout, QAction, qApp, 
-                            QScrollArea, QTextBrowser, QFrame)
+                            QHBoxLayout, QVBoxLayout, QAction, qApp,
+                            QScrollArea, QTextBrowser, QFrame, QTextEdit,
+                            QFileDialog)
 from qtpy.QtGui import QIcon
+from qtpy.QtCore import QDir
 # PPPAT's ui
 from pppat.ui.reminder import EiCReminderWidget
 from pppat.ui.console import ConsoleWidget
@@ -13,8 +16,14 @@ logger = logging.getLogger(__name__)
 
 MINIMUM_WIDTH = 800
 
+#class GuiLogger(logging.Handler):
+#    def emit(self, record):
+#        self.log.setText(self.format(record))  # implementation of append_line omitted
 
 class MainWindow(QMainWindow):
+    """
+    Central class which serves as Controller
+    """
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)  # initialize the window
         # Window properties
@@ -27,9 +36,13 @@ class MainWindow(QMainWindow):
         # Menu Bar
         self.menu_bar()
 
-        # Set the toolBox as the central Widget
+        # Set the various PPPAT tools as the central Widget
         self.generate_central_widget()
         self.setCentralWidget(self.central_widget)
+        
+        # connect the various button to their controller
+        self.panel_pre_pulse.widget.push_load.clicked.connect(self.load_pulse_setting)
+        self.panel_pre_pulse.widget.push_browse.clicked.connect(self.browse_pulse_setting_directory)
 
         # Status Bar
         self.statusBar().showMessage('PPPAT')
@@ -57,13 +70,14 @@ class MainWindow(QMainWindow):
         mostly the various tools.
         """
         # Define the various collabsible panels
+        self.log = QTextEdit()
         self.panel_rappels = QCollapsibleToolbox(child=EiCReminderWidget(), title='Cahier de liaison des EiC / EiC\'s Notebook')
         self.panel_pre_pulse = QCollapsibleToolbox(child=PrePulseAnalysisWidget(), title='Pre-pulse Analysis')
         self.panel_post_pulse = QCollapsibleToolbox(child=QTextBrowser(), title='Post-pulse Analysis')
         self.panel_pulse_display = QCollapsibleToolbox(child=QTextBrowser(), title='Pre-pulse Display')
-        self.panel_log = QCollapsibleToolbox(child=QTextBrowser(), title='Logs')
+        self.panel_log = QCollapsibleToolbox(child=self.log, title='Logs')
         self.panel_console = QCollapsibleToolbox(child=ConsoleWidget(), title='Python Console')
-        
+
         # stacking the collapsible panels vertically
         vbox = QVBoxLayout()
         vbox.addWidget(self.panel_rappels)
@@ -82,9 +96,50 @@ class MainWindow(QMainWindow):
         scroll.setWidgetResizable(True)
         self.central_widget = scroll
 
+    def load_pulse_setting(self):
+        print('load pulse setting')
 
 
+    def browse_pulse_setting_directory(self):
+        """
+        Open a file dialog to select the directory which contains the sup.xml 
+        and dp.xml files. 
+        
+        # TODO : also deals with zip or tar.gz file containing the .xml files
+        """
+        # if user click on the 'browse' button, then automatically select
+        # the "file" mode
+        self.panel_pre_pulse.widget.radio_file.setChecked(True)
+        # open file dialog
+        _pulse_setting_dir = \
+            QFileDialog.getExistingDirectory(self,
+                                             'Select XML/DCS files directory',
+                                             directory=QDir.currentPath()
+                                             )
+        _pulse_setting_files = {
+                'sup': f'{_pulse_setting_dir}/Sup.xml',
+                'dp': f'{_pulse_setting_dir}/DP.xml'
+                }
+
+        # test if both file dp.xml and sup.xml exist. If not -> error msg   
+        if os.path.isfile(_pulse_setting_files['dp']) and \
+            os.path.isfile(_pulse_setting_files['sup']):
+            
+            self.pulse_setting_dir = _pulse_setting_dir
+            self.pulse_setting_files  = _pulse_setting_files
+            logger.info(f'Pulse setting dir set to {self.pulse_setting_dir}')
+            logger.info(f'Pulse settinf file exist into {self.pulse_setting_dir}')
+        else:
+            self.pulse_setting_dir = None
+            self.pulse_setting_files = None
+            logger.error("One of the pulse setting file does not exist!" )
+            
+#        h = GuiLogger()
+#        h.edit = self.log 
+#        logging.getLogger().addHandler(h)
          
+            
+            
 #     def __init__(self, title, config_file):       
 #        super(mainWindow, self).__init__()  # top-level window creator
 #
