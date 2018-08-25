@@ -2,7 +2,7 @@ import os.path
 from qtpy.QtWidgets import (QMainWindow, QApplication, QToolBox, QWidget,
                             QHBoxLayout, QVBoxLayout, QAction, qApp,
                             QScrollArea, QTextBrowser, QFrame, QTextEdit,
-                            QFileDialog)
+                            QFileDialog, QPlainTextEdit)
 from qtpy.QtGui import QIcon
 from qtpy.QtCore import QDir
 # PPPAT's ui
@@ -10,15 +10,15 @@ from pppat.ui.reminder import EiCReminderWidget
 from pppat.ui.console import ConsoleWidget
 from pppat.ui.collapsible_toolbox import QCollapsibleToolbox
 from pppat.ui.pre_pulse import PrePulseAnalysisWidget
+from pppat.ui.log import QPlainTextEditLogger
+# PPPAT's other stuffs
+from pppat.pulse_setting import PulseSetting
 
 import logging
 logger = logging.getLogger(__name__)
 
 MINIMUM_WIDTH = 800
 
-#class GuiLogger(logging.Handler):
-#    def emit(self, record):
-#        self.log.setText(self.format(record))  # implementation of append_line omitted
 
 class MainWindow(QMainWindow):
     """
@@ -48,11 +48,15 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage('PPPAT')
 
         # Application icon
-        self.setWindowIcon(QIcon('resources/icons/pppat.png'))
+        self.setWindowIcon(QIcon('resources/icons/pppat.png'))        
 
         # open some panels at startup
         #self.panel_rappels.toggleButton.click()
         self.panel_pre_pulse.toggleButton.click()
+        self.panel_log.toggleButton.click()
+        
+        PulseSetting()
+        logger.info('Starting PPPAT')
         
     def menu_bar(self):
         self.menuBar = self.menuBar()
@@ -70,12 +74,12 @@ class MainWindow(QMainWindow):
         mostly the various tools.
         """
         # Define the various collabsible panels
-        self.log = QTextEdit()
+
         self.panel_rappels = QCollapsibleToolbox(child=EiCReminderWidget(), title='Cahier de liaison des EiC / EiC\'s Notebook')
         self.panel_pre_pulse = QCollapsibleToolbox(child=PrePulseAnalysisWidget(), title='Pre-pulse Analysis')
         self.panel_post_pulse = QCollapsibleToolbox(child=QTextBrowser(), title='Post-pulse Analysis')
         self.panel_pulse_display = QCollapsibleToolbox(child=QTextBrowser(), title='Pre-pulse Display')
-        self.panel_log = QCollapsibleToolbox(child=self.log, title='Logs')
+        self.panel_log = QCollapsibleToolbox(child=QPlainTextEditLogger(), title='Logs')
         self.panel_console = QCollapsibleToolbox(child=ConsoleWidget(), title='Python Console')
 
         # stacking the collapsible panels vertically

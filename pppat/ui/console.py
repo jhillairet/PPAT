@@ -5,7 +5,6 @@ Taken from https://github.com/jupyter/qtconsole/blob/master/examples/embed_qtcon
 from qtconsole.rich_jupyter_widget import RichJupyterWidget
 from qtconsole.manager import QtKernelManager
 
-
 # The ID of an installed kernel, e.g. 'bash' or 'ir'.
 USE_KERNEL = 'python3'
 
