@@ -1,4 +1,5 @@
 import os.path
+from getpass import getuser
 from qtpy.QtWidgets import (QMainWindow, QApplication, QToolBox, QWidget,
                             QHBoxLayout, QVBoxLayout, QAction, qApp,
                             QScrollArea, QTextBrowser, QFrame, QTextEdit,
@@ -44,8 +45,7 @@ class MainWindow(QMainWindow):
         self.panel_pre_pulse.widget.push_load.clicked.connect(self.load_pulse_setting)
         self.panel_pre_pulse.widget.push_browse.clicked.connect(self.browse_pulse_setting_directory)
 
-        # Status Bar
-        self.statusBar().showMessage('PPPAT')
+
 
         # Application icon
         self.setWindowIcon(QIcon('resources/icons/pppat.png'))
@@ -55,12 +55,24 @@ class MainWindow(QMainWindow):
         self.panel_pre_pulse.toggleButton.click()
         self.panel_log.toggleButton.click()
 
-        # define set of parameters
+        # define set of internal parameters
+        self.pulse_setting = None
         self.pulse_setting_dir = None
         self.pulse_setting_files = None
         self.pulse_setting_shot = None
-        
-        logger.info('Starting PPPAT')        
+
+        # Display user role in the status Bar
+        logger.info(f'PPPAT has been launched by user {self.user_login}')
+        self.statusBar().showMessage(f'PPPAT launched by {self.user_role}')
+            
+        # Depending of the user'role, enable/disable loading pulse setup from SL
+        if self.user_role == 'eic':
+            self.panel_pre_pulse.widget.radio_sl.setChecked(True)
+        else:
+            self.panel_pre_pulse.widget.radio_sl.setDisabled(True)
+            self.panel_pre_pulse.widget.radio_shot.setChecked(True)
+
+        logger.info('Starting PPPAT')
         
     def menu_bar(self):
         self.menuBar = self.menuBar()
@@ -116,14 +128,15 @@ class MainWindow(QMainWindow):
             else:
                 self.panel_pre_pulse.widget.pulse_setting_origin.setText(
                         self.pulse_setting_dir)
-                logger.info('load pulse setting from file')
+                logger.info('loading pulse setting from files')
+                
                 
         if self.panel_pre_pulse.widget.radio_shot.isChecked():
             shot_nb = self.panel_pre_pulse.widget.edit_shot.text()
             if not shot_nb:
                 logger.error('Set pulse number first !')
             else:
-                logger.info(f'load pulse setting from WEST shot #{shot_nb}')
+                logger.info(f'loading pulse setting from WEST shot #{shot_nb}')
                 
                 self.panel_pre_pulse.widget.pulse_setting_origin.setText(
                         f'WEST shot number {shot_nb}')
@@ -160,15 +173,34 @@ class MainWindow(QMainWindow):
             self.pulse_setting_dir = _pulse_setting_dir
             self.pulse_setting_files  = _pulse_setting_files
             logger.info(f'Pulse setting dir set to {self.pulse_setting_dir}')
-            logger.info(f'Pulse settinf files exist into {self.pulse_setting_dir}')
+            logger.info(f'Pulse setting files exist into {self.pulse_setting_dir}')
         else:
-            logger.error("One of the pulse setting file does not exist!" )
-            
-#        h = GuiLogger()
-#        h.edit = self.log 
-#        logging.getLogger().addHandler(h)
-         
-            
+            logger.error("One or both of the pulse setting files do not exist!" )
+
+    @property
+    def user_login(self):
+        """
+        Get the user's login name
+        """
+        return getuser()
+
+             
+    @property
+    def user_role(self):
+        """
+        Determine the "role" of the user launching PPPAT. Could be:
+            - an Engineer in Charge (EiC)
+            - a Session Leader (SL)
+            - someone else
+        Depending of this "role", some options in PPPAT might differ.
+        """       
+        if self.user_login == 'eic' or 'JH218595':
+            return 'eic'
+        elif self.user_login == 'sl':
+            return 'sl'
+        else:
+            return None
+               
             
 #     def __init__(self, title, config_file):       
 #        super(mainWindow, self).__init__()  # top-level window creator
