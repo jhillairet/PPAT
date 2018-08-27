@@ -23,7 +23,7 @@ MINIMUM_WIDTH = 800
 
 class MainWindow(QMainWindow):  
     """
-    Central class which serves as Controller
+    Central GUI class which also serves as main Controller
     """
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)  # initialize the window
@@ -65,7 +65,7 @@ class MainWindow(QMainWindow):
         logger.info(f'PPPAT has been launched by user {self.user_login}')
         self.statusBar().showMessage(f'PPPAT launched by {self.user_role}')
             
-        # Depending of the user'role, enable/disable loading pulse setup from SL
+        # Depending of the user's role, enable/disable loading pulse setup from SL
         if self.user_role == 'eic':
             self.panel_pre_pulse.widget.radio_sl.setChecked(True)
         else:
@@ -119,10 +119,11 @@ class MainWindow(QMainWindow):
     def load_pulse_setting(self):
         # decide how to load the pulse setting depending on the GUI status
         if self.panel_pre_pulse.widget.radio_sl.isChecked():
-            pass
+            logger.info('loading pulse setting from SL')
+            self.panel_pre_pulse.widget.pulse_setting_origin.setText('from SL')
             # TODO
 
-        if self.panel_pre_pulse.widget.radio_file.isChecked():
+        elif self.panel_pre_pulse.widget.radio_file.isChecked():
             if not self.pulse_setting_dir:
                 logger.error('Browse a directory first !')
             else:
@@ -131,7 +132,7 @@ class MainWindow(QMainWindow):
                 logger.info('loading pulse setting from files')
                 
                 
-        if self.panel_pre_pulse.widget.radio_shot.isChecked():
+        elif self.panel_pre_pulse.widget.radio_shot.isChecked():
             shot_nb = self.panel_pre_pulse.widget.edit_shot.text()
             if not shot_nb:
                 logger.error('Set pulse number first !')
@@ -142,8 +143,6 @@ class MainWindow(QMainWindow):
                         f'WEST shot number {shot_nb}')
                 self.pulse_setting_shot = int(shot_nb)
                 
-
-
 
     def browse_pulse_setting_directory(self):
         """

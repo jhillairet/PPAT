@@ -21,7 +21,15 @@ class LoggerHandler(logging.Handler):
 
     def emit(self, record):
         msg = self.format(record)
-        self.widget.appendPlainText(msg)
+        # color the display message depending of its nature
+        if "ERROR" in msg:
+            html_msg = "<font color='Red'>"+msg+"</font>"
+        elif "WARNING" in msg:
+            html_msg = "<font color='Yellow'>"+msg+"</font>"
+        else:
+            html_msg = "<font color='Black'>"+msg+"</font>"
+
+        self.widget.appendHtml(html_msg)
 
 
 class QPlainTextEditLogger(QWidget):
@@ -30,6 +38,7 @@ class QPlainTextEditLogger(QWidget):
 
         self.log_widget = QPlainTextEdit()
         self.log_widget.setReadOnly(True)
+        self.log_widget.zoomOut(2)
 
         log_handler = LoggerHandler(self.log_widget)
 
