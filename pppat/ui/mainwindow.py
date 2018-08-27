@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 MINIMUM_WIDTH = 800
 
 
-class MainWindow(QMainWindow):
+class MainWindow(QMainWindow):  
     """
     Central class which serves as Controller
     """
@@ -48,15 +48,19 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage('PPPAT')
 
         # Application icon
-        self.setWindowIcon(QIcon('resources/icons/pppat.png'))        
+        self.setWindowIcon(QIcon('resources/icons/pppat.png'))
 
         # open some panels at startup
-        #self.panel_rappels.toggleButton.click()
+        # self.panel_rappels.toggleButton.click()
         self.panel_pre_pulse.toggleButton.click()
         self.panel_log.toggleButton.click()
+
+        # define set of parameters
+        self.pulse_setting_dir = None
+        self.pulse_setting_files = None
+        self.pulse_setting_shot = None
         
-        PulseSetting()
-        logger.info('Starting PPPAT')
+        logger.info('Starting PPPAT')        
         
     def menu_bar(self):
         self.menuBar = self.menuBar()
@@ -101,7 +105,31 @@ class MainWindow(QMainWindow):
         self.central_widget = scroll
 
     def load_pulse_setting(self):
-        print('load pulse setting')
+        # decide how to load the pulse setting depending on the GUI status
+        if self.panel_pre_pulse.widget.radio_sl.isChecked():
+            pass
+            # TODO
+
+        if self.panel_pre_pulse.widget.radio_file.isChecked():
+            if not self.pulse_setting_dir:
+                logger.error('Browse a directory first !')
+            else:
+                self.panel_pre_pulse.widget.pulse_setting_origin.setText(
+                        self.pulse_setting_dir)
+                logger.info('load pulse setting from file')
+                
+        if self.panel_pre_pulse.widget.radio_shot.isChecked():
+            shot_nb = self.panel_pre_pulse.widget.edit_shot.text()
+            if not shot_nb:
+                logger.error('Set pulse number first !')
+            else:
+                logger.info(f'load pulse setting from WEST shot #{shot_nb}')
+                
+                self.panel_pre_pulse.widget.pulse_setting_origin.setText(
+                        f'WEST shot number {shot_nb}')
+                self.pulse_setting_shot = int(shot_nb)
+                
+
 
 
     def browse_pulse_setting_directory(self):
@@ -132,10 +160,8 @@ class MainWindow(QMainWindow):
             self.pulse_setting_dir = _pulse_setting_dir
             self.pulse_setting_files  = _pulse_setting_files
             logger.info(f'Pulse setting dir set to {self.pulse_setting_dir}')
-            logger.info(f'Pulse settinf file exist into {self.pulse_setting_dir}')
+            logger.info(f'Pulse settinf files exist into {self.pulse_setting_dir}')
         else:
-            self.pulse_setting_dir = None
-            self.pulse_setting_files = None
             logger.error("One of the pulse setting file does not exist!" )
             
 #        h = GuiLogger()
