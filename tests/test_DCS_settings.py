@@ -3,7 +3,7 @@
 Testing DCS setting module
 """
 import pytest
-from pppat.libpulse.DCS_setting import DCSSettings
+from pppat.libpulse.DCS_settings import DCSSettings
 
 sup_filename = '../resources/pulse_setup_examples/52865/Sup.xml'
 
