@@ -5,7 +5,7 @@ from qtpy.QtWidgets import (QMainWindow, QApplication, QToolBox, QWidget,
                             QScrollArea, QTextBrowser, QFrame, QTextEdit,
                             QFileDialog, QPlainTextEdit)
 from qtpy.QtGui import QIcon
-from qtpy.QtCore import QDir
+from qtpy.QtCore import QDir, Slot
 # PPPAT's ui
 from pppat.ui.reminder import EiCReminderWidget
 from pppat.ui.console import ConsoleWidget
@@ -13,7 +13,7 @@ from pppat.ui.collapsible_toolbox import QCollapsibleToolbox
 from pppat.ui.pre_pulse import PrePulseAnalysisWidget
 from pppat.ui.log import QPlainTextEditLogger
 # PPPAT's other stuffs
-from pppat.pulse_setting import PulseSetting
+from pppat.libpulse.DCS_setting import DCSSettings
 
 import logging
 logger = logging.getLogger(__name__)
@@ -42,8 +42,8 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.central_widget)
         
         # connect the various button to their controller
-        self.panel_pre_pulse.widget.push_load.clicked.connect(self.load_pulse_setting)
-        self.panel_pre_pulse.widget.push_browse.clicked.connect(self.browse_pulse_setting_directory)
+        self.panel_pre_pulse.widget.push_load.clicked.connect(self.load_pulse_settings)
+        self.panel_pre_pulse.widget.push_browse.clicked.connect(self.browse_pulse_settings_directory)
 
 
 
@@ -56,10 +56,10 @@ class MainWindow(QMainWindow):
         self.panel_log.toggleButton.click()
 
         # define set of internal parameters
-        self.pulse_setting = None
-        self.pulse_setting_dir = None
-        self.pulse_setting_files = None
-        self.pulse_setting_shot = None
+        self.pulse_settings = None
+        self.pulse_settings_dir = None
+        self.pulse_settings_files = None
+        self.pulse_settings_shot = None
 
         # Display user role in the status Bar
         logger.info(f'PPPAT has been launched by user {self.user_login}')
@@ -73,8 +73,9 @@ class MainWindow(QMainWindow):
             self.panel_pre_pulse.widget.radio_shot.setChecked(True)
 
         logger.info('Starting PPPAT')
-        
+
     def menu_bar(self):
+        """ Menu bar """
         self.menuBar = self.menuBar()
 
         file_menu = self.menuBar.addMenu('&File')
@@ -116,7 +117,33 @@ class MainWindow(QMainWindow):
         scroll.setWidgetResizable(True)
         self.central_widget = scroll
 
-    def load_pulse_setting(self):
+    @property
+    def user_login(self):
+        """
+        User's login name
+        """
+        return getuser()
+
+             
+    @property
+    def user_role(self):
+        """
+        User's "role", Could be:
+            - Engineer in Charge ("eic")
+            - Session Leader ("sl")
+            - someone else (None)
+        Depending of this "role", some options in PPPAT might differ.
+        """       
+        if self.user_login == 'eic' or 'JH218595':
+            return 'eic'
+        elif self.user_login == 'sl':
+            return 'sl'
+        else:
+            return None
+
+    @Slot()
+    def load_pulse_settings(self):
+        """ Load the pulse settings when user clicks on 'load' """
         # decide how to load the pulse setting depending on the GUI status
         if self.panel_pre_pulse.widget.radio_sl.isChecked():
             logger.info('loading pulse setting from SL')
@@ -124,11 +151,11 @@ class MainWindow(QMainWindow):
             # TODO
 
         elif self.panel_pre_pulse.widget.radio_file.isChecked():
-            if not self.pulse_setting_dir:
+            if not self.pulse_settings_dir:
                 logger.error('Browse a directory first !')
             else:
                 self.panel_pre_pulse.widget.pulse_setting_origin.setText(
-                        self.pulse_setting_dir)
+                        self.pulse_settings_dir)
                 logger.info('loading pulse setting from files')
                 
                 
@@ -141,10 +168,11 @@ class MainWindow(QMainWindow):
                 
                 self.panel_pre_pulse.widget.pulse_setting_origin.setText(
                         f'WEST shot number {shot_nb}')
-                self.pulse_setting_shot = int(shot_nb)
+                self.pulse_settings_shot = int(shot_nb)
                 
 
-    def browse_pulse_setting_directory(self):
+    @Slot()
+    def browse_pulse_settings_directory(self):
         """
         Open a file dialog to select the directory which contains the sup.xml 
         and dp.xml files. 
@@ -176,29 +204,7 @@ class MainWindow(QMainWindow):
         else:
             logger.error("One or both of the pulse setting files do not exist!" )
 
-    @property
-    def user_login(self):
-        """
-        Get the user's login name
-        """
-        return getuser()
 
-             
-    @property
-    def user_role(self):
-        """
-        Determine the "role" of the user launching PPPAT. Could be:
-            - an Engineer in Charge (EiC)
-            - a Session Leader (SL)
-            - someone else
-        Depending of this "role", some options in PPPAT might differ.
-        """       
-        if self.user_login == 'eic' or 'JH218595':
-            return 'eic'
-        elif self.user_login == 'sl':
-            return 'sl'
-        else:
-            return None
                
             
 #     def __init__(self, title, config_file):       
