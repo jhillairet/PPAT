@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Sat Aug 25 17:05:46 2018
-
-@author: JH218595
-"""
 from xml.etree import ElementTree
 import numpy as np
 import logging
@@ -17,18 +12,18 @@ class DCSSettings():
         Parameters
         ----------
         filename: str
-            filename is is the path of a DCS-formatted supervision file
-            (typically Sup.xml).
+            path to a DCS-formatted supervision file (typically Sup.xml).
 
         """
         try:
-            ## getting root of xml file
+            # try reading and parsing the xml file
             self.tree = ElementTree.parse(filename)
             self.root = self.tree.getroot()
             logger.info(f'DCS file {filename} openned')
 
-        except FileNotFoundError:
-            logger.error('DCS XML file not found !')
+        except FileNotFoundError as e:
+            logger.error(e)
+            raise(FileNotFoundError)
 
     @property
     def nominal_scenario(self):
@@ -39,16 +34,17 @@ class DCSSettings():
 
         Returns
         -------
-        scenario : n x 3 Numpy array
+        scenario : list of tuple
             Array describing the nominal scenario.
 
-        Example :
+        Example
+        -------
         >> DCS_settings = DCSSettings('Sup.xml')
         >> scenario = DCS_settings.nominal_scenario()
 
         >> scenario =
-        [['Init' '34.0' '34.0']
-         ['segment1' '34.1' '0.1']]
+        [('Init', '34.0', '34.0')
+         ('segment1', '34.1', '0.1')]
 
         The first column is the name of the segment as defined in Xedit by the session leader
         The second column is the absolute time at which the segment ends (the first segment starts
@@ -59,10 +55,6 @@ class DCSSettings():
         Note that the nominal scenario is, by convention, the sequence of segments which contain
         the most segments with number less than a 100. Segments with number > 100 are (also by
         convention) either backup segments or stop segments.
-
-
-        Bug reports and suggestions are welcome.
-
         ---
         C. Reux - January 2017. Based on initial work by H. Joshi
         J. Hillairet 2018
@@ -252,4 +244,4 @@ if __name__ == '__main__':
     """ Testing purpose """
     DCS_settings = DCSSettings('../resources/pulse_setup_examples/52865/Sup.xml')
     ns = DCS_settings.nominal_scenario
-    print(ns)
+    #print(ns)
