@@ -1,6 +1,8 @@
 qtpy
 watchdog
+numpy
 pyqtgraph
 pywed
 IRFMtb
+
 
