@@ -59,28 +59,48 @@ class DCSSettings():
         C. Reux - January 2017. Based on initial work by H. Joshi
         J. Hillairet 2018
         """
-        # code refactoring. Changes:
+        # Big code refactoring. Variable name changes:
         # arrTargetSeg -> self.target_segments
         # arrSearchSeg -> self.segment_trajectories
         # arrSegment -> self.nominal_scenario
+        # arrSearch2 -> self.nominal_trajectory
+        
+        # Get all segments and transition ways from the nominal trajectory
+        nominal_segment = self.prepare_arrSegment(self.nominal_trajectory, 
+                                                  self.target_segments)
+        # transform the flat list into a list of tuples: (segment_name, t_start, t_end) 
+        nominal_segment = list(zip(*[iter(nominal_segment)]*3))
+        return nominal_segment
 
-        # Search all possible scenarios
+    def _clean_array(self, array):
+        """ Convenient function to remove '->' and 'TheEnd' from a list """
+        cleaned_array = [value for value in array if
+                  not value.startswith('->') and
+                  not value.startswith('TheEnd')]
+        return cleaned_array
+
+    @property
+    def all_scenarios(self):
+        """
+        List of all the possible segment transition scenarios,
+        starting from 'Init' and ending at 'TheEnd'
+        """
         all_scenarios = self.search_all('Init', 'TheEnd')
 
-        def clean_array(array):
-            """ convenient function to remove '->' and 'TheEnd' from a list """
-            cleaned_array = [value for value in array if
-                      not value.startswith('->') and
-                      not value.startswith('TheEnd')]
-            return cleaned_array
-        
+        return all_scenarios
+
+    @property
+    def nominal_trajectory(self):
+        """
+        List of the 
+        """       
         # Search the nominal scenario among all possible scenarios
         # The nominal scenario is defined as the one containing the most segments
         # with ID numbers < 100
         longest=0
         # Loop over all possible scenarios
-        for i in range(0,len(all_scenarios)):
-            arrSearch_temp = clean_array(all_scenarios[i])
+        for i in range(0,len(self.all_scenarios)):
+            arrSearch_temp = self._clean_array(self.all_scenarios[i])
             count_nominal = 1
             # Loop over the segments in the chosen scenario
             for ii in range(1,len(arrSearch_temp)):
@@ -94,19 +114,14 @@ class DCSSettings():
                 choice = i
 
         # Get the nominal scenario
-        nominal_trajectory = clean_array(all_scenarios[choice])
-
-        # Determination of all segments and transition ways
-        nominal_segment = self.prepare_arrSegment(nominal_trajectory, self.target_segments)
-        # transform the flat list into a list of tuples: (segment_name, t_start, t_end) 
-        nominal_segment = list(zip(*[iter(nominal_segment)]*3))
-        return nominal_segment
-
+        nominal_trajectory = self._clean_array(self.all_scenarios[choice])
+        
+        return nominal_trajectory
 
     @property
     def target_segments(self):
         """
-        Returns a list of all the segments and all the ways to transit from
+        List of all the segments and all the ways to transit from
         them to other segments. Contains the segment name, the target segment,
         the name of the jump condition, the (maximum) time at which the jump
         can take place.
@@ -179,15 +194,15 @@ class DCSSettings():
 
     def search_all(self, start, end, path=[], seg_traj=None):
         """
-        Search into all the possible segments for the ones which start and end
-        by the defined segment names.
+        Recursive search into all the possible segments for the ones which 
+        start and end by defined segment names.
 
         Aguments
         --------
         start : str
-            segment start name
+            start segment name
         end : str
-            segment end name
+            end segment name
         path: list, optional
             segment path trajectory (ex: 'A->D->G->E'), used for recursion only
             default value is []
@@ -242,6 +257,6 @@ class DCSSettings():
 
 if __name__ == '__main__':
     """ Testing purpose """
-    DCS_settings = DCSSettings('../resources/pulse_setup_examples/52865/Sup.xml')
+    DCS_settings = DCSSettings('../../resources/pulse_setup_examples/52865/Sup.xml')
     ns = DCS_settings.nominal_scenario
-    #print(ns)
+    print(ns)

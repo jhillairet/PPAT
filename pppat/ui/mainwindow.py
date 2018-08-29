@@ -1,6 +1,6 @@
 import os.path
 from getpass import getuser
-from qtpy.QtWidgets import (QMainWindow, QApplication, QToolBox, QWidget,
+from qtpy.QtWidgets import (QMainWindow, QApplication, QWidget,
                             QHBoxLayout, QVBoxLayout, QAction, qApp,
                             QScrollArea, QTextBrowser, QFrame, QTextEdit,
                             QFileDialog, QPlainTextEdit)
@@ -12,8 +12,7 @@ from pppat.ui.console import ConsoleWidget
 from pppat.ui.collapsible_toolbox import QCollapsibleToolbox
 from pppat.ui.pre_pulse import PrePulseAnalysisWidget
 from pppat.ui.log import QPlainTextEditLogger
-# PPPAT's other stuffs
-from pppat.libpulse.DCS_setting import DCSSettings
+from pppat.libpulse.DCS_settings import DCSSettings
 
 import logging
 logger = logging.getLogger(__name__)
@@ -21,7 +20,7 @@ logger = logging.getLogger(__name__)
 MINIMUM_WIDTH = 800
 
 
-class MainWindow(QMainWindow):  
+class MainWindow(QMainWindow):
     """
     Central GUI class which also serves as main Controller
     """
@@ -40,7 +39,7 @@ class MainWindow(QMainWindow):
         # Set the various PPPAT tools as the central Widget
         self.generate_central_widget()
         self.setCentralWidget(self.central_widget)
-        
+
         # connect the various button to their controller
         self.panel_pre_pulse.widget.push_load.clicked.connect(self.load_pulse_settings)
         self.panel_pre_pulse.widget.push_browse.clicked.connect(self.browse_pulse_settings_directory)
@@ -64,7 +63,7 @@ class MainWindow(QMainWindow):
         # Display user role in the status Bar
         logger.info(f'PPPAT has been launched by user {self.user_login}')
         self.statusBar().showMessage(f'PPPAT launched by {self.user_role}')
-            
+
         # Depending of the user's role, enable/disable loading pulse setup from SL
         if self.user_role == 'eic':
             self.panel_pre_pulse.widget.radio_sl.setChecked(True)
@@ -90,8 +89,7 @@ class MainWindow(QMainWindow):
         Define the central widget, which contain the main GUI of the app,
         mostly the various tools.
         """
-        # Define the various collabsible panels
-
+        # Define the various collabsible panels (leave "child=" avoid Qt bug)
         self.panel_rappels = QCollapsibleToolbox(child=EiCReminderWidget(), title='Cahier de liaison des EiC / EiC\'s Notebook')
         self.panel_pre_pulse = QCollapsibleToolbox(child=PrePulseAnalysisWidget(), title='Pre-pulse Analysis')
         self.panel_post_pulse = QCollapsibleToolbox(child=QTextBrowser(), title='Post-pulse Analysis')
@@ -124,7 +122,6 @@ class MainWindow(QMainWindow):
         """
         return getuser()
 
-             
     @property
     def user_role(self):
         """
@@ -133,7 +130,7 @@ class MainWindow(QMainWindow):
             - Session Leader ("sl")
             - someone else (None)
         Depending of this "role", some options in PPPAT might differ.
-        """       
+        """
         if self.user_login == 'eic' or 'JH218595':
             return 'eic'
         elif self.user_login == 'sl':
@@ -159,55 +156,65 @@ class MainWindow(QMainWindow):
                 logger.info('loading pulse setting from files')
                 
                 
+                self.pulse_settings = DCSSettings(self.pulse_settings_files['sup'])
+                
+                
+                nominal_scenario = self.pulse_settings.nominal_scenario
+                nominal_trajectory = self.pulse_settings.nominal_trajectory
+                nominal_trajectory_str = ' -> '.join(nominal_trajectory)
+                logger.info(nominal_trajectory_str)
+                
+                self.panel_pre_pulse.widget.pulse_properties.setText(
+                        nominal_trajectory_str)
+
         elif self.panel_pre_pulse.widget.radio_shot.isChecked():
             shot_nb = self.panel_pre_pulse.widget.edit_shot.text()
             if not shot_nb:
                 logger.error('Set pulse number first !')
             else:
                 logger.info(f'loading pulse setting from WEST shot #{shot_nb}')
-                
+
                 self.panel_pre_pulse.widget.pulse_setting_origin.setText(
                         f'WEST shot number {shot_nb}')
                 self.pulse_settings_shot = int(shot_nb)
-                
 
     @Slot()
     def browse_pulse_settings_directory(self):
         """
-        Open a file dialog to select the directory which contains the sup.xml 
-        and dp.xml files. 
-        
+        Open a file dialog to select the directory which contains the sup.xml
+        and dp.xml files.
+
         # TODO : also deals with zip or tar.gz file containing the .xml files
         """
         # if user click on the 'browse' button, then automatically select
         # the "file" mode
         self.panel_pre_pulse.widget.radio_file.setChecked(True)
         # open file dialog
-        _pulse_setting_dir = \
+        _pulse_settings_dir = \
             QFileDialog.getExistingDirectory(self,
                                              'Select XML/DCS files directory',
                                              directory=QDir.currentPath()
                                              )
-        _pulse_setting_files = {
-                'sup': f'{_pulse_setting_dir}/Sup.xml',
-                'dp': f'{_pulse_setting_dir}/DP.xml'
+        _pulse_settings_files = {
+                'sup': f'{_pulse_settings_dir}/Sup.xml',
+                'dp': f'{_pulse_settings_dir}/DP.xml'
                 }
 
-        # test if both file dp.xml and sup.xml exist. If not -> error msg   
-        if os.path.isfile(_pulse_setting_files['dp']) and \
-            os.path.isfile(_pulse_setting_files['sup']):
-            
-            self.pulse_setting_dir = _pulse_setting_dir
-            self.pulse_setting_files  = _pulse_setting_files
-            logger.info(f'Pulse setting dir set to {self.pulse_setting_dir}')
-            logger.info(f'Pulse setting files exist into {self.pulse_setting_dir}')
+        # test if both file dp.xml and sup.xml exist. If not -> error msg
+        if os.path.isfile(_pulse_settings_files['dp']) and \
+            os.path.isfile(_pulse_settings_files['sup']):
+
+            self.pulse_settings_dir = _pulse_settings_dir
+            self.pulse_settings_files  = _pulse_settings_files
+            logger.info(f'Pulse setting dir set to {self.pulse_settings_dir}')
+            logger.info(f'Pulse setting files exist into {self.pulse_settings_dir}')
         else:
             logger.error("One or both of the pulse setting files do not exist!" )
 
 
-               
-            
-#     def __init__(self, title, config_file):       
+
+
+#     def __init__(self, title, config_file):
 #        super(mainWindow, self).__init__()  # top-level window creator
 #
 #        self.setWindowTitle(title)
