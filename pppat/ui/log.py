@@ -1,22 +1,23 @@
 # -*- coding: utf-8 -*-
-"""
-Logging Qt widget
-
-@author: JH218595
-"""
 from qtpy.QtWidgets import QWidget, QPlainTextEdit, QVBoxLayout
 
 import logging
 # must NOT specify __name__ here, otherwise logging does not work in GUI...
-# TODO : hid the IPython logs into this log console !!
 logger = logging.getLogger()
+
+# TODO : hid the IPython logs into this log console !!
 
 
 class LoggerHandler(logging.Handler):
+    """
+    Logging handler associated to QPlainTextEditLogger widget
+    """
     def __init__(self, widget):
         super().__init__()
         self.widget = widget
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s: %(message)s')
+        # only display into the widget the date/nature/message (not %(module))
+        formatter = logging.Formatter('%(asctime)s - [%(levelname)s] %(message)s',
+                                      "%Y-%m-%d %H:%M:%S")
         self.setFormatter(formatter)
 
     def emit(self, record):
@@ -33,6 +34,9 @@ class LoggerHandler(logging.Handler):
 
 
 class QPlainTextEditLogger(QWidget):
+    """
+    QtWidget consisting in a QPlainTextEdit which display logging logs
+    """
     def __init__(self, parent=None):
         super().__init__(parent)
 
