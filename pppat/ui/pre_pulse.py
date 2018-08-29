@@ -7,6 +7,7 @@ from qtpy.QtWidgets import (QWidget, QGridLayout, QRadioButton, QGroupBox,
                             QFormLayout, QLineEdit, QFileDialog, QComboBox,
                             QErrorMessage)
 from qtpy.QtGui import QIntValidator
+from qtpy.QtCore import Slot
 
 import logging
 logger = logging.getLogger(__name__)
@@ -43,6 +44,7 @@ class PrePulseAnalysisWidget(QWidget):
         
         self.edit_shot = QLineEdit()
         self.edit_shot.setPlaceholderText('Shot Number')
+        self.edit_shot.textChanged.connect(self._validate_radio_shot)
         self.edit_shot.setValidator(QIntValidator())  # only integer for shot# 
         
         self.push_load = QPushButton('Load')
@@ -57,18 +59,22 @@ class PrePulseAnalysisWidget(QWidget):
         top_left_group.setLayout(layout)
 
         return top_left_group
+
+    @Slot()
+    def _validate_radio_shot(self):
+        self.radio_shot.setChecked(True)
         
     def _create_top_right_group(self):
         """
         Top Right widgets group
         """
-        top_right_group = QGroupBox('Pulse properties')
+        top_right_group = QGroupBox('Pulse settings informations')
         
         self.pulse_setting_origin = QLabel()
         self.pulse_properties = QLabel()
         
         layout = QFormLayout()
-        layout.addRow(QLabel('Pulse setup from:'), self.pulse_setting_origin)
+        layout.addRow(QLabel('Pulse settings from:'), self.pulse_setting_origin)
         layout.addRow(QLabel('Pulse properties:'), self.pulse_properties)
         top_right_group.setLayout(layout)
         

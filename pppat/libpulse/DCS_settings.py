@@ -72,7 +72,8 @@ class DCSSettings():
         nominal_segment = list(zip(*[iter(nominal_segment)]*3))
         return nominal_segment
 
-    def _clean_array(self, array):
+    @staticmethod
+    def _clean_array(array):
         """ Convenient function to remove '->' and 'TheEnd' from a list """
         cleaned_array = [value for value in array if
                   not value.startswith('->') and
@@ -197,8 +198,8 @@ class DCSSettings():
         Recursive search into all the possible segments for the ones which 
         start and end by defined segment names.
 
-        Aguments
-        --------
+        Parameters
+        ----------
         start : str
             start segment name
         end : str

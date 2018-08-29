@@ -13,6 +13,7 @@ from pppat.ui.collapsible_toolbox import QCollapsibleToolbox
 from pppat.ui.pre_pulse import PrePulseAnalysisWidget
 from pppat.ui.log import QPlainTextEditLogger
 from pppat.libpulse.DCS_settings import DCSSettings
+from pppat.libpulse.pulse_settings import PulseSettings
 
 import logging
 logger = logging.getLogger(__name__)
@@ -43,8 +44,6 @@ class MainWindow(QMainWindow):
         # connect the various button to their controller
         self.panel_pre_pulse.widget.push_load.clicked.connect(self.load_pulse_settings)
         self.panel_pre_pulse.widget.push_browse.clicked.connect(self.browse_pulse_settings_directory)
-
-
 
         # Application icon
         self.setWindowIcon(QIcon('resources/icons/pppat.png'))
@@ -141,11 +140,23 @@ class MainWindow(QMainWindow):
     @Slot()
     def load_pulse_settings(self):
         """ Load the pulse settings when user clicks on 'load' """
+        # construct the pulse settings 
+        self.pulse_settings = PulseSettings()
+        
         # decide how to load the pulse setting depending on the GUI status
+        # after having checked that 
         if self.panel_pre_pulse.widget.radio_sl.isChecked():
-            logger.info('loading pulse setting from SL')
-            self.panel_pre_pulse.widget.pulse_setting_origin.setText('from SL')
-            # TODO
+            # TODO : check if SL pulse setting is available
+            pulse_settings_SL_avail = True
+            
+            if not pulse_settings_SL_avail:
+                logger.error('Pulse settings from SL are not available!')
+            else:
+                logger.info('Loading pulse setting from SL')
+                self.panel_pre_pulse.widget.pulse_setting_origin.setText('from SL')
+    
+                # Load pulse settings from the Session Leader proposal
+                self.pulse_settings.load_from_session_leader()
 
         elif self.panel_pre_pulse.widget.radio_file.isChecked():
             if not self.pulse_settings_dir:
@@ -155,28 +166,34 @@ class MainWindow(QMainWindow):
                         self.pulse_settings_dir)
                 logger.info('loading pulse setting from files')
                 
-                
-                self.pulse_settings = DCSSettings(self.pulse_settings_files['sup'])
-                
-                
-                nominal_scenario = self.pulse_settings.nominal_scenario
-                nominal_trajectory = self.pulse_settings.nominal_trajectory
-                nominal_trajectory_str = ' -> '.join(nominal_trajectory)
-                logger.info(nominal_trajectory_str)
-                
-                self.panel_pre_pulse.widget.pulse_properties.setText(
-                        nominal_trajectory_str)
+                # Load pulse settings from a set of .xml files
+                self.pulse_settings.load_from_file(self.pulse_settings_files)
+
 
         elif self.panel_pre_pulse.widget.radio_shot.isChecked():
-            shot_nb = self.panel_pre_pulse.widget.edit_shot.text()
-            if not shot_nb:
+            pulse_nb = self.panel_pre_pulse.widget.edit_shot.text()
+            if not pulse_nb:
                 logger.error('Set pulse number first !')
             else:
-                logger.info(f'loading pulse setting from WEST shot #{shot_nb}')
+                logger.info(f'loading pulse setting from WEST shot #{pulse_nb}')
 
                 self.panel_pre_pulse.widget.pulse_setting_origin.setText(
-                        f'WEST shot number {shot_nb}')
-                self.pulse_settings_shot = int(shot_nb)
+                        f'WEST shot number {pulse_nb}')
+                self.pulse_settings_shot = int(pulse_nb)
+                
+                # Load pulse settings from a pulse number
+                self.pulse_settings.load_from_pulse(self.pulse_settings_shot)
+                
+        # here the pulse settings must have been read by a way or another
+        try:
+            nominal_trajectory = self.pulse_settings.DCS_settings.nominal_trajectory
+            nominal_trajectory_str = ' -> '.join(nominal_trajectory)
+            logger.info(nominal_trajectory_str)
+        
+            self.panel_pre_pulse.widget.pulse_properties.setText(nominal_trajectory_str)    
+        except AttributeError as e:
+            logger.error(e)
+        
 
     @Slot()
     def browse_pulse_settings_directory(self):
