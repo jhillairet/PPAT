@@ -46,3 +46,8 @@ class CheckResult():
 
     def __repr__(self):
         return f'Result of test "{self.name}": code={self.code} [{self.DIC[self.code]}]:{self.text}'
+    
+    @property
+    def code_name(self):
+        """ convenient representation of the result code as a string """
+        return self.DIC[self.code]

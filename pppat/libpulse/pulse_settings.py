@@ -57,7 +57,7 @@ class PulseSettings():
                     # load pulse settings
                     self.load_from_file(pulse_settings_files)  
                     
-#                    # clean up the file mess
+                    # TODO : clean up the file mess
 #                    os.remove(XEDIT2DCS_archive)
 #                    os.remove('DP.xml')
 #                    os.remove('Sup.xml')
@@ -66,17 +66,47 @@ class PulseSettings():
                       
 
 
-
-
     def load_from_session_leader(self):
+        # TODO
         pass
     
-    def validate(self):
+    def validate(self, is_online=True):
         """
         Validate the pulse settings against various kinds of tests (WOI & other)
         """
-        pass
-    
-                    
+        
+        # list of the Python file located in the tests pre-pulse directory
+        import pkgutil
+        from importlib import import_module
                 
+        check_filenames = [name for _, name, _ in pkgutil.iter_modules(['tests/pre_pulse'])]
+        check_importers = [imp for imp, _, _ in pkgutil.iter_modules(['tests/pre_pulse'])]
+        logger.debug(check_filenames)
+        logger.debug(check_importers)
+        
+        tested_fun_names = []
+            
+        for (importer, file) in zip(check_importers, check_filenames):
+            all_fun = dir(importer.find_module(file).load_module())
+            check_fun = [n for n in all_fun if n.startswith('check_')]
+            # import the module (here=file) which contains the check script
+            i = import_module(importer.path.replace('/','.')+'.'+file)
+            
+            # list all the functions in the module file
+            # and run the ones which name starts by 'check_'
+            check_results = {}
+            fun_names = dir(i)
+            for fun_name in fun_names:
+                if 'check_' in fun_name:
+                    tested_fun_names.append(fun_name)
+                    logger.info(f'{fun_name}: Testing...')
+                    result = getattr(i, fun_name)(is_online=is_online)
+                    check_results[result.name] = result 
+                    logger.info(f'{fun_name}: result={result.code_name}')
+
+                    
+if __name__ == '__main__':
+    ps = PulseSettings()
+    ps.load_from_file({'sup':'resources/pulse_setup_examples/52865/Sup.xml',
+                       'dp':'resources/pulse_setup_examples/52865/DP.xml'})
                 
