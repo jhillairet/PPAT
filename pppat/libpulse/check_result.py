@@ -45,7 +45,7 @@ class CheckResult():
         self.fail_limit = fail_limit
 
     def __repr__(self):
-        return f'Result of test "{self.name}": code={self.code} [{self.DIC[self.code]}]:{self.text}'
+        return f'Checking: [{self.DIC[self.code]}] for "{self.name}": {self.text}'
     
     @property
     def code_name(self):

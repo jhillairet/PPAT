@@ -15,11 +15,16 @@ class DCSSettings():
             path to a DCS-formatted supervision file (typically Sup.xml).
 
         """
+        # Boolean state for the loading result
+        self.isLoaded = False
+
         try:
             # try reading and parsing the xml file
             self.tree = ElementTree.parse(filename)
             self.root = self.tree.getroot()
             logger.info(f'DCS file {filename} openned')
+            # indicate that the file has been correctly openned
+            self.isLoaded = True
 
         except FileNotFoundError as e:
             logger.error(e)

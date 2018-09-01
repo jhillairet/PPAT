@@ -3,7 +3,7 @@ from getpass import getuser
 from qtpy.QtWidgets import (QMainWindow, QApplication, QWidget,
                             QHBoxLayout, QVBoxLayout, QAction, qApp,
                             QScrollArea, QTextBrowser, QFrame, QTextEdit,
-                            QFileDialog, QPlainTextEdit)
+                            QFileDialog, QPlainTextEdit, QTableWidgetItem)
 from qtpy.QtGui import QIcon
 from qtpy.QtCore import QDir, Slot
 # PPPAT's ui
@@ -44,6 +44,7 @@ class MainWindow(QMainWindow):
         # connect the various button to their controller
         self.panel_pre_pulse.widget.push_load.clicked.connect(self.load_pulse_settings)
         self.panel_pre_pulse.widget.push_browse.clicked.connect(self.browse_pulse_settings_directory)
+        self.panel_pre_pulse.widget.push_check.clicked.connect(self.check_pulse_settings)
 
         # Application icon
         self.setWindowIcon(QIcon('resources/icons/pppat.png'))
@@ -63,12 +64,12 @@ class MainWindow(QMainWindow):
         logger.info(f'PPPAT has been launched by user {self.user_login}')
         self.statusBar().showMessage(f'PPPAT launched by {self.user_role}')
 
-        # Depending of the user's role, enable/disable loading pulse setup from SL
-        if self.user_role == 'eic':
-            self.panel_pre_pulse.widget.radio_sl.setChecked(True)
-        else:
-            self.panel_pre_pulse.widget.radio_sl.setDisabled(True)
-            self.panel_pre_pulse.widget.radio_shot.setChecked(True)
+#        # Depending of the user's role, enable/disable loading pulse setup from SL
+#        if self.user_role == 'eic':
+#            self.panel_pre_pulse.widget.radio_sl.setChecked(True)
+#        else:
+#            self.panel_pre_pulse.widget.radio_sl.setDisabled(True)
+#            self.panel_pre_pulse.widget.radio_shot.setChecked(True)
 
         logger.info('Starting PPPAT')
 
@@ -138,13 +139,28 @@ class MainWindow(QMainWindow):
             return None
 
     @Slot()
+    def check_pulse_settings(self):
+        """ Check pulse setting vs all tests """
+        
+        check_results = self.pulse_settings.check_all()
+
+        # display the check results into the table
+        for i,result in enumerate(check_results):
+            self.panel_pre_pulse.widget.check_table.setItem(i, 0, QTableWidgetItem(result.name))
+            self.panel_pre_pulse.widget.check_table.setItem(i, 1, QTableWidgetItem(result.code_name))
+            self.panel_pre_pulse.widget.check_table.setItem(i, 2, QTableWidgetItem(result.text))
+            #self.panel_pre_pulse.widget.check_table.resizeColumnsToContents()
+            self.panel_pre_pulse.widget.check_table.horizontalHeader().setStretchLastSection(True)
+    @Slot()
     def load_pulse_settings(self):
         """ Load the pulse settings when user clicks on 'load' """
         # construct the pulse settings 
         self.pulse_settings = PulseSettings()
-        
-        # decide how to load the pulse setting depending on the GUI status
-        # after having checked that 
+        # default loading state
+        res_load = False
+
+        # Load the pulse setting depending on the loading option
+        # Load pulse settings from the Session Leader proposal
         if self.panel_pre_pulse.widget.radio_sl.isChecked():
             # TODO : check if SL pulse setting is available
             pulse_settings_SL_avail = True
@@ -155,9 +171,10 @@ class MainWindow(QMainWindow):
                 logger.info('Loading pulse setting from SL')
                 self.panel_pre_pulse.widget.pulse_setting_origin.setText('from SL')
     
-                # Load pulse settings from the Session Leader proposal
-                self.pulse_settings.load_from_session_leader()
+                
+                res_load = self.pulse_settings.load_from_session_leader()
 
+        # Load pulse settings from a set of .xml files
         elif self.panel_pre_pulse.widget.radio_file.isChecked():
             if not self.pulse_settings_dir:
                 logger.error('Browse a directory first !')
@@ -166,10 +183,10 @@ class MainWindow(QMainWindow):
                         self.pulse_settings_dir)
                 logger.info('loading pulse setting from files')
                 
-                # Load pulse settings from a set of .xml files
-                self.pulse_settings.load_from_file(self.pulse_settings_files)
+                
+                res_load = self.pulse_settings.load_from_file(self.pulse_settings_files)
 
-
+        # Load pulse settings from a pulse number
         elif self.panel_pre_pulse.widget.radio_shot.isChecked():
             pulse_nb = self.panel_pre_pulse.widget.edit_shot.text()
             if not pulse_nb:
@@ -181,19 +198,26 @@ class MainWindow(QMainWindow):
                         f'WEST shot number {pulse_nb}')
                 self.pulse_settings_shot = int(pulse_nb)
                 
-                # Load pulse settings from a pulse number
-                self.pulse_settings.load_from_pulse(self.pulse_settings_shot)
                 
-        # here the pulse settings must have been read by a way or another
-        try:
-            nominal_trajectory = self.pulse_settings.DCS_settings.nominal_trajectory
-            nominal_trajectory_str = ' -> '.join(nominal_trajectory)
-            logger.info(nominal_trajectory_str)
+                res_load = self.pulse_settings.load_from_pulse(self.pulse_settings_shot)
         
-            self.panel_pre_pulse.widget.pulse_properties.setText(nominal_trajectory_str)    
-        except AttributeError as e:
-            logger.error(e)
+        # if the pulse settings have been correctly loaded
+        # the check button is enabled and the nominal scenario trajectory is displayed
+        if res_load:
+            logger.info('Pulse settings successfully loaded :)')
+            self.panel_pre_pulse.widget.push_check.setEnabled(True)
         
+            try:
+                nominal_trajectory = self.pulse_settings.DCS_settings.nominal_trajectory
+                nominal_trajectory_str = ' -> '.join(nominal_trajectory)
+                logger.info(nominal_trajectory_str)
+            
+                self.panel_pre_pulse.widget.pulse_properties.setText(nominal_trajectory_str)    
+            except AttributeError as e:
+                logger.error(e)
+        else:
+            logger.error('Problem during pulse settings loading :(')
+
 
     @Slot()
     def browse_pulse_settings_directory(self):
