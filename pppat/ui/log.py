@@ -47,7 +47,28 @@ class QPlainTextEditLogger(QWidget):
         log_handler = LoggerHandler(self.log_widget)
 
         logger.addHandler(log_handler)
+        logger.addFilter(NoDebugFilter())
 
         layout = QVBoxLayout()
         layout.addWidget(self.log_widget)
         self.setLayout(layout)
+
+#class NoWordFilter(logging.Filter):
+#    """ Filter logging message containing a specific word """
+#    def filter(self, record):
+#        return not ('word' in record.getMessage())
+
+class NoDebugFilter(logging.Filter):
+    def filter(self, record):
+        """
+        Filter logging message (LogRecord) is they are of DEBUG level.
+        This function has been made to filter pywed DEBUG messages, which are
+        generated at the root level of logging and make at lot of noise...
+
+        Returns
+        -------
+        do_filter: Boolean
+            Is the specified record to be logged?
+            Returns zero for no, nonzero for yes.
+        """
+        return not record.levelno == logging.DEBUG

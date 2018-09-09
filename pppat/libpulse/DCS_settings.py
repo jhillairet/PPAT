@@ -69,11 +69,11 @@ class DCSSettings():
         # arrSearchSeg -> self.segment_trajectories
         # arrSegment -> self.nominal_scenario
         # arrSearch2 -> self.nominal_trajectory
-        
+
         # Get all segments and transition ways from the nominal trajectory
-        nominal_segment = self.prepare_arrSegment(self.nominal_trajectory, 
+        nominal_segment = self.prepare_arrSegment(self.nominal_trajectory,
                                                   self.target_segments)
-        # transform the flat list into a list of tuples: (segment_name, t_start, t_end) 
+        # transform the flat list into a list of tuples: (segment_name, t_start, t_end)
         nominal_segment = list(zip(*[iter(nominal_segment)]*3))
         return nominal_segment
 
@@ -98,8 +98,8 @@ class DCSSettings():
     @property
     def nominal_trajectory(self):
         """
-        List of the 
-        """       
+        List of the
+        """
         # Search the nominal scenario among all possible scenarios
         # The nominal scenario is defined as the one containing the most segments
         # with ID numbers < 100
@@ -121,7 +121,7 @@ class DCSSettings():
 
         # Get the nominal scenario
         nominal_trajectory = self._clean_array(self.all_scenarios[choice])
-        
+
         return nominal_trajectory
 
     @property
@@ -172,35 +172,52 @@ class DCSSettings():
                     # This is not taken into account.
                     if not target_segment in targets:
                         # Adding target segment properties in arrTargetSeg array
-                        #if (program == "Watchdog" or program == "StartUp" ):
+                        # if (program == "Watchdog" or program == "StartUp" ):
                         targets.append(target_segment)
-                        target_segments.append([name, target_segment, program, start_time, seg_sr])
+                        target_segments.append([name, target_segment, 
+                                                program, start_time, seg_sr])
                         seg_sr += 1
 
         return target_segments
 
-    def prepare_arrSegment(self, arrSearch, arrTargetSeg):
+    def prepare_arrSegment(self, trajectory, segments):
+        """
+        Returns all segments and transition ways from a given trajectory.
+
+        Parameters
+        ----------
+        trajectory: dict
+            Dictionnary of the trajectory
+        segments: list
+            List of all the segments of the trajectory
+
+        Returns
+        -------
+        arrSegment: list
+            all segments and transition to perform the trajectory
+
+        """
         arrSegment = []
-        #### After selection of trajectory and fill arrSegment with segments and time information
-        #### re declare arrSegment array to freshly append selected choice of trajectory
-        startTime=0.0
-        for i in range(0,len(arrSearch)):
+        # After selection of trajectory,
+        # fill arrSegment with segments and time information
+        startTime = 0.0
+        for i in range(0, len(trajectory)):
             segment_done = 0
-            for j in range(0,len(arrTargetSeg)):
+            for j in range(0, len(segments)):
                 # Note: only one transition is considered at the moment
                 # This assumes that all transitions happen at Watchdog time.
-                if (arrSearch[i] == arrTargetSeg[j][0]) and not segment_done:
-                    startTime = startTime+float(arrTargetSeg[j][3])
-                    arrSegment.append(arrSearch[i])
+                if (trajectory[i] == segments[j][0]) and not segment_done:
+                    startTime = startTime + float(segments[j][3])
+                    arrSegment.append(trajectory[i])
                     arrSegment.append(startTime)
-                    arrSegment.append(float(arrTargetSeg[j][3]))
+                    arrSegment.append(float(segments[j][3]))
                     segment_done = 1
 
         return arrSegment
 
     def search_all(self, start, end, path=[], seg_traj=None):
         """
-        Recursive search into all the possible segments for the ones which 
+        Recursive search into all the possible segments for the ones which
         start and end by defined segment names.
 
         Parameters
@@ -243,9 +260,9 @@ class DCSSettings():
     @property
     def segment_trajectories(self):
         """
-        Creates an array which segment names as indexes to avoid only one
-        occurrence of each segment.
-        arrSearSeg gives the segments which it is possible to jump to
+        Dictionnary with segment names as indexes (to avoid only one
+        occurrence of each segment.)
+        Gives the segments which it is possible to jump to
         starting from the index segment.
         """
         segment_trajectories = dict()

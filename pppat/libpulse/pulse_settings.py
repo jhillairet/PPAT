@@ -21,13 +21,13 @@ class PulseSettings():
 
     def load_from_file(self, pulse_settings_files):
         """
-        Load the pulse settings from the Sup.xml and DP.xml files. 
-        
+        Load the pulse settings from the Sup.xml and DP.xml files.
+
         Parameters
         ----------
         pulse_settings_files : dict
             dictionnary which contains the path to the xml files. We expect
-            pulse_settings_files['sup'] and pulse_settings_files['dp'] to 
+            pulse_settings_files['sup'] and pulse_settings_files['dp'] to
             contain the path to these Sup.xml and DP.xml respectively
 
         Return
@@ -43,20 +43,20 @@ class PulseSettings():
     def load_from_pulse(self, pulse):
         """
         Load the pulse settings from a WEST shot number
-        
+
         Parameters
         ----------
         pulse: int
             WEST pulse number (pulse>50000)
-        
+
         Return
         ------
         result: Boolean
             True if the pulse settings have been correctly loaded, else False
-        
+
         """
         XEDIT2DCS_archive = 'FXEDIT2DCS.tgz'
-        # extract DP.xml and Sup.xml from the tar.gz obtained from the 
+        # extract DP.xml and Sup.xml from the tar.gz obtained from the
         # database (if they exist in the database) and load them
         result = IRFMtb.tsrfile(pulse, 'FXEDIT2DCS', XEDIT2DCS_archive)
         if result == 0:
@@ -64,11 +64,11 @@ class PulseSettings():
                 with tarfile.open(XEDIT2DCS_archive, mode='r') as tgz:
                     tgz.extract(tgz.getmember('DP.xml'))
                     tgz.extract(tgz.getmember('Sup.xml'))
-                    pulse_settings_files = {'sup':'Sup.xml', 
+                    pulse_settings_files = {'sup':'Sup.xml',
                                             'dp':'DP.xml'}
                     # load pulse settings
-                    res_load = self.load_from_file(pulse_settings_files)  
-                    
+                    res_load = self.load_from_file(pulse_settings_files)
+
                     return res_load
                     # TODO : clean up the file mess
 #                    os.remove(XEDIT2DCS_archive)
@@ -82,7 +82,6 @@ class PulseSettings():
             return False
         #IRFMtb.tsrfile(pulse, 'FPCSPARAM', 'FPCSPARAM.tgz')
 
-
     def load_from_session_leader(self):
         """
         Return
@@ -94,24 +93,31 @@ class PulseSettings():
         # TODO
         logger.error('Not implemented yet!')
         return False
-    
+
     def check_all(self, is_online=True):
         """
         Check the pulse settings against various kinds of tests (WOI & other)
-        
+
+        Parameters
+        ----------
+        is_online: Boolean
+            True if the IRFM database is reachable on the network, False if not
+
         Return
         ------
-        check_results : list of ChecCheckResult objects  
+        check_results : List
+            List of CheckResult objects
+
         """
         check_results = []
         tested_fun_names = []
-        
+
         # list of the Python file located in the tests pre-pulse directory
         check_filenames = [name for _, name, _ in pkgutil.iter_modules(['tests/pre_pulse'])]
         check_importers = [imp for imp, _, _ in pkgutil.iter_modules(['tests/pre_pulse'])]
         logger.debug(check_filenames)
         logger.debug(check_importers)
-        
+
         # Run all tests functions located in the pre_pulse directory
         # These function names should start by 'check_'
         for (importer, file) in zip(check_importers, check_filenames):
@@ -133,9 +139,9 @@ class PulseSettings():
                     logger.info(f'{fun_name}: result={result.code_name}')
 
         return check_results
-                    
+
 if __name__ == '__main__':
     ps = PulseSettings()
     ps.load_from_file({'sup':'resources/pulse_setup_examples/52865/Sup.xml',
                        'dp':'resources/pulse_setup_examples/52865/DP.xml'})
-                
+

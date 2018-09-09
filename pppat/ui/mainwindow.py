@@ -1,4 +1,6 @@
 import os.path
+import socket
+
 from getpass import getuser
 from qtpy.QtWidgets import (QMainWindow, QApplication, QWidget,
                             QHBoxLayout, QVBoxLayout, QAction, qApp,
@@ -6,7 +8,7 @@ from qtpy.QtWidgets import (QMainWindow, QApplication, QWidget,
                             QFileDialog, QPlainTextEdit, QTableWidgetItem)
 from qtpy.QtGui import QIcon
 from qtpy.QtCore import QDir, Slot
-# PPPAT's ui
+
 from pppat.ui.reminder import EiCReminderWidget
 from pppat.ui.console import ConsoleWidget
 from pppat.ui.collapsible_toolbox import QCollapsibleToolbox
@@ -18,6 +20,7 @@ from pppat.libpulse.pulse_settings import PulseSettings
 import logging
 logger = logging.getLogger(__name__)
 
+# PPPAT minimum width in pixels
 MINIMUM_WIDTH = 800
 
 
@@ -141,8 +144,8 @@ class MainWindow(QMainWindow):
     @Slot()
     def check_pulse_settings(self):
         """ Check pulse setting vs all tests """
-        
-        check_results = self.pulse_settings.check_all()
+
+        check_results = self.pulse_settings.check_all(self.is_online())
 
         # display the check results into the table
         for i,result in enumerate(check_results):
@@ -151,10 +154,11 @@ class MainWindow(QMainWindow):
             self.panel_pre_pulse.widget.check_table.setItem(i, 2, QTableWidgetItem(result.text))
             #self.panel_pre_pulse.widget.check_table.resizeColumnsToContents()
             self.panel_pre_pulse.widget.check_table.horizontalHeader().setStretchLastSection(True)
+
     @Slot()
     def load_pulse_settings(self):
         """ Load the pulse settings when user clicks on 'load' """
-        # construct the pulse settings 
+        # construct the pulse settings
         self.pulse_settings = PulseSettings()
         # default loading state
         res_load = False
@@ -164,14 +168,13 @@ class MainWindow(QMainWindow):
         if self.panel_pre_pulse.widget.radio_sl.isChecked():
             # TODO : check if SL pulse setting is available
             pulse_settings_SL_avail = True
-            
+
             if not pulse_settings_SL_avail:
                 logger.error('Pulse settings from SL are not available!')
             else:
                 logger.info('Loading pulse setting from SL')
                 self.panel_pre_pulse.widget.pulse_setting_origin.setText('from SL')
-    
-                
+
                 res_load = self.pulse_settings.load_from_session_leader()
 
         # Load pulse settings from a set of .xml files
@@ -182,8 +185,7 @@ class MainWindow(QMainWindow):
                 self.panel_pre_pulse.widget.pulse_setting_origin.setText(
                         self.pulse_settings_dir)
                 logger.info('loading pulse setting from files')
-                
-                
+
                 res_load = self.pulse_settings.load_from_file(self.pulse_settings_files)
 
         # Load pulse settings from a pulse number
@@ -197,27 +199,28 @@ class MainWindow(QMainWindow):
                 self.panel_pre_pulse.widget.pulse_setting_origin.setText(
                         f'WEST shot number {pulse_nb}')
                 self.pulse_settings_shot = int(pulse_nb)
-                
-                
+
                 res_load = self.pulse_settings.load_from_pulse(self.pulse_settings_shot)
-        
+
         # if the pulse settings have been correctly loaded
-        # the check button is enabled and the nominal scenario trajectory is displayed
+        # the check button is enabled 
+        # and the nominal scenario trajectory is displayed
         if res_load:
             logger.info('Pulse settings successfully loaded :)')
             self.panel_pre_pulse.widget.push_check.setEnabled(True)
-        
+
             try:
                 nominal_trajectory = self.pulse_settings.DCS_settings.nominal_trajectory
+                # create a string which summarize the trajectory
                 nominal_trajectory_str = ' -> '.join(nominal_trajectory)
+                nominal_trajectory_str = nominal_trajectory_str.replace('segment', '')
                 logger.info(nominal_trajectory_str)
-            
-                self.panel_pre_pulse.widget.pulse_properties.setText(nominal_trajectory_str)    
+
+                self.panel_pre_pulse.widget.pulse_properties.setText(nominal_trajectory_str)
             except AttributeError as e:
                 logger.error(e)
         else:
             logger.error('Problem during pulse settings loading :(')
-
 
     @Slot()
     def browse_pulse_settings_directory(self):
@@ -252,8 +255,24 @@ class MainWindow(QMainWindow):
         else:
             logger.error("One or both of the pulse setting files do not exist!" )
 
-
-
+    @staticmethod
+    def is_online():
+        """
+        Return the online status (True or False).
+        
+        Returns
+        -------
+        status: Boolean
+                The online status True is the IRFM database can be 
+                reached on the network. False if not ('offline' mode).
+        """
+        host = '10.8.86.1'  # deneb address
+        port = 5880
+        try:
+            s = socket.create_connection((host, port), timeout=2)
+            return True
+        except socket.error:
+            return False
 
 #     def __init__(self, title, config_file):
 #        super(mainWindow, self).__init__()  # top-level window creator
