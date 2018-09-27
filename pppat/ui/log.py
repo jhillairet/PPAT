@@ -26,7 +26,11 @@ class LoggerHandler(logging.Handler):
         if "ERROR" in msg:
             html_msg = "<font color='Red'>"+msg+"</font>"
         elif "WARNING" in msg:
-            html_msg = "<font color='Yellow'>"+msg+"</font>"
+            html_msg = "<font color='Orange'>"+msg+"</font>"
+        elif "UNAVAILABLE" in msg:
+            html_msg = "<font color='Purple'>"+msg+"</font>"
+        elif "OK" in msg:
+            html_msg = "<font color='Green'>"+msg+"</font>"
         else:
             html_msg = "<font color='Black'>"+msg+"</font>"
 

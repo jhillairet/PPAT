@@ -1,6 +1,7 @@
 import IRFMtb
 import tarfile
 from pppat.libpulse.DCS_settings import DCSSettings
+from pppat.libpulse.check_result import CheckResult
 import pkgutil
 from importlib import import_module
 import logging
@@ -11,10 +12,10 @@ class PulseSettings():
     """
     Pulse setting
 
-    PulseSetting is a model of the pulse setting which is created by the
+    PulseSetting is a model of the pulse settings which is created by the
     session leader. The pulse settings come from two XML files, namely
     DP.xml and SUP.xml. Each WEST pulse is defined following the information
-    contained in these two file.
+    contained in these two files.
     """
     def __init__(self):
         logger.info('init Pulse Setting')
@@ -26,7 +27,7 @@ class PulseSettings():
         Parameters
         ----------
         pulse_settings_files : dict
-            dictionnary which contains the path to the xml files. We expect
+            dictionnary which contains the path to the XML files. We expect
             pulse_settings_files['sup'] and pulse_settings_files['dp'] to
             contain the path to these Sup.xml and DP.xml respectively
 
@@ -38,6 +39,8 @@ class PulseSettings():
         """
         # Load DCS settings (Sup.xml)
         self.DCS_settings = DCSSettings(pulse_settings_files['sup'])
+        # TODO: Load DP.xml
+
         return self.DCS_settings.isLoaded
 
     def load_from_pulse(self, pulse):
@@ -119,13 +122,12 @@ class PulseSettings():
         logger.debug(check_importers)
 
         # Run all tests functions located in the pre_pulse directory
-        # These function names should start by 'check_'
+        # These function names should start by 'check_' and returns a CheckResult
+        # TODO: run these tests in parallel
+        logger.info("########## C'est parti mon kiki ! ###########")
         for (importer, file) in zip(check_importers, check_filenames):
-            # all_fun = dir(importer.find_module(file).load_module())
-            # check_fun = [n for n in all_fun if n.startswith('check_')]
-
             # import the module (here=file)
-            i = import_module(importer.path.replace('/','.')+'.'+file)
+            i = import_module(importer.path.replace('/', '.') + '.' + file)
 
             # list all the functions in the module file
             # and run the ones which name starts by 'check_'
@@ -133,8 +135,18 @@ class PulseSettings():
             for fun_name in fun_names:
                 if 'check_' in fun_name:
                     tested_fun_names.append(fun_name)
-                    logger.info(f'{fun_name}: Testing...')
-                    result = getattr(i, fun_name)(is_online=is_online)
+                    logger.debug(f'{fun_name}: Testing...')
+                    # Run the function. 
+                    # In case of Python error (error in code?)
+                    # catch the error and trace it as a failed test
+                    # and continue without breaking everything
+                    try:
+                        result = getattr(i, fun_name)(is_online=is_online)
+                    except Exception as e:  # catch *all* exceptions
+                        result = CheckResult(name=fun_name,
+                                             code=CheckResult.ERROR, text=e)
+                        logger.error(f'Error {e} during in {fun_name}')
+
                     check_results.append(result)
                     logger.info(f'{fun_name}: result={result.code_name}')
 

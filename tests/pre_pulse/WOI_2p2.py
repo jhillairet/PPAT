@@ -19,3 +19,7 @@ def check_WOI_2p2(is_online=True):
     else:
         return Result(name='WOI 2.2: (dummy)', code=Result.UNAVAILABLE, 
                       text='dummy test')
+        
+def check_WOI_x(is_online=False):
+    # raise an error
+    1/0
