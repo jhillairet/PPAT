@@ -7,7 +7,7 @@ from qtpy.QtWidgets import (QWidget, QGridLayout, QRadioButton, QGroupBox,
                             QFormLayout, QLineEdit, QFileDialog, QComboBox,
                             QErrorMessage, QTableView, QAbstractItemView,
                             QTableWidget, QTableWidgetItem, QHeaderView)
-from qtpy.QtGui import QIntValidator
+from qtpy.QtGui import QIntValidator, QFont
 from qtpy.QtCore import Slot
 
 import logging
@@ -96,25 +96,30 @@ class PrePulseAnalysisWidget(QWidget):
         layout = QVBoxLayout()
 
         self.check_table = QTableWidget(12, 3)
-        self.check_table.setHorizontalHeaderLabels(['Test',
+        self.check_table.setHorizontalHeaderLabels(['Test Name',
                                                     'Result',
                                                     'Result description'])
+        # # Columns config
+        # resize the column widths
+        self.check_table.horizontalHeader().resizeSection(0, 200)
+        self.check_table.horizontalHeader().resizeSection(1, 100)
+        # Strech last column to fill the remaining space
+        self.check_table.horizontalHeader().setStretchLastSection(True)
+        # # Strech the column #n
+        # # self.check_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
+        # # Rows config
         self.check_table.verticalHeader().hide()
-        # Strech last column to fill 
-        # self.check_table.horizontalHeader().setStretchLastSection(True)
-        # Strech the column #n 
-        self.check_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.check_table.verticalHeader().setDefaultSectionSize(20)
+        # font size of the header
+        header_font = self.check_table.horizontalHeader().font()
+        header_font.setPointSize(10)
+        self.check_table.horizontalHeader().setFont(header_font)
+        # font size of the table
+        font = self.check_table.font()
+        font.setPointSize(8)
+        self.check_table.setFont(font)
+
         layout.addWidget(self.check_table)
         bottom_group.setLayout(layout)
         return bottom_group
-
-#    def resizeEvent(self, event):
-#        """ Resize all sections to content and user interactive """
-#    
-#        super(QTableWidget, self).resizeEvent(event)
-#        header = self.horizontalHeader()
-#        for column in range(header.count()):
-#            header.setSectionResizeMode(column, QHeaderView.ResizeToContents)
-#            width = header.sectionSize(column)
-#            header.setSectionResizeMode(column, QHeaderView.Interactive)
-#            header.resizeSection(column, width)

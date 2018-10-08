@@ -7,7 +7,7 @@ from qtpy.QtWidgets import (QMainWindow, QApplication, QWidget,
                             QScrollArea, QTextBrowser, QFrame, QTextEdit,
                             QFileDialog, QPlainTextEdit, QTableWidgetItem)
 from qtpy.QtGui import QIcon
-from qtpy.QtCore import QDir, Slot
+from qtpy.QtCore import QDir, Slot, Qt
 
 from pppat.ui.reminder import EiCReminderWidget
 from pppat.ui.console import ConsoleWidget
@@ -148,12 +148,23 @@ class MainWindow(QMainWindow):
         check_results = self.pulse_settings.check_all(self.is_online())
 
         # display the check results into the table
-        for i,result in enumerate(check_results):
+        for i, result in enumerate(check_results):
             self.panel_pre_pulse.widget.check_table.setItem(i, 0, QTableWidgetItem(result.name))
             self.panel_pre_pulse.widget.check_table.setItem(i, 1, QTableWidgetItem(result.code_name))
             self.panel_pre_pulse.widget.check_table.setItem(i, 2, QTableWidgetItem(result.text))
-            #self.panel_pre_pulse.widget.check_table.resizeColumnsToContents()
-            self.panel_pre_pulse.widget.check_table.horizontalHeader().setStretchLastSection(True)
+            # Stretch 
+            #self.panel_pre_pulse.widget.check_table.horizontalHeader().setStretchLastSection(True)
+            
+            # Add color to the result item
+            if result.code == result.ERROR:
+                self.panel_pre_pulse.widget.check_table.item(i, 1).setForeground(Qt.red)
+            elif result.code == result.WARNING:
+                self.panel_pre_pulse.widget.check_table.item(i, 1).setForeground(Qt.darkYellow)
+            elif result.code == result.OK:
+                self.panel_pre_pulse.widget.check_table.item(i, 1).setForeground(Qt.darkGreen)
+            elif result.code == result.UNAVAILABLE:
+                self.panel_pre_pulse.widget.check_table.item(i, 1).setForeground(Qt.darkMagenta)
+            # else leave it black (default)
 
     @Slot()
     def load_pulse_settings(self):
@@ -203,7 +214,7 @@ class MainWindow(QMainWindow):
                 res_load = self.pulse_settings.load_from_pulse(self.pulse_settings_shot)
 
         # if the pulse settings have been correctly loaded
-        # the check button is enabled 
+        # the check button is enabled
         # and the nominal scenario trajectory is displayed
         if res_load:
             logger.info('Pulse settings successfully loaded :)')
@@ -259,11 +270,11 @@ class MainWindow(QMainWindow):
     def is_online():
         """
         Return the online status (True or False).
-        
+
         Returns
         -------
         status: Boolean
-                The online status True is the IRFM database can be 
+                The online status True is the IRFM database can be
                 reached on the network. False if not ('offline' mode).
         """
         host = '10.8.86.1'  # deneb address
