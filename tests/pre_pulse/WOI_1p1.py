@@ -10,23 +10,26 @@ logger = logging.getLogger(__name__)
 
 def check_WOI_1p1_torus_pressure(is_online=True):
     """ Check the torus pressure before a pulse """
+    check_name = 'WOI 1.1: torus pressure'
+
     if is_online:
         p = pw.tsmat(0, 'EXP=T=S;General;TTORE')
         torus_pressure = p[0]*10**(p[1])
+        logger.info(f'Torus pressure: {torus_pressure} Pa')
 
         if torus_pressure < 1e-5:
-            return Result(name='WOI 1.1: torus pressure', code=Result.OK,
+            return Result(name=check_name, code=Result.OK,
                           text='Torus pressure OK')
 
         if (torus_pressure >= 1e-5) and (torus_pressure < 1e-4):
-            return Result(name='WOI 1.1: torus pressure', code=Result.WARNING,
+            return Result(name=check_name, code=Result.WARNING,
                           text='Torus pressure above lower limit')
 
         else:
-            return Result(name='WOI 1.1: torus pressure', code=Result.ERROR,
+            return Result(name=check_name, code=Result.ERROR,
                           text='Torus pressure above upper limit')
     else:
-        return Result(name='WOI 1.1: torus pressure', code=Result.UNAVAILABLE,
+        return Result(name=check_name, code=Result.UNAVAILABLE,
                       text='Torus pressure not available')
 
 
