@@ -16,13 +16,12 @@ logging_config = dict(
         },
     root={
         'handlers': ['h'],
-        'level': logging.INFO,
+        'level': logging.INFO,  # change to DEBUG here is needed
         },
 )
 
 dictConfig(logging_config)
 logger = logging.getLogger(__name__)
-#logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 # create file handler which logs even debug messages
 fh = logging.FileHandler('pppat.log', mode='w') # overwrite the log file (append otherwise)
