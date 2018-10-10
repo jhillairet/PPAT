@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def check_WOI_3p2_toroidal_coil_current(is_online=True):
+def check_WOI_3p2_toroidal_coil_current(is_online=True, waveforms=None):
     """ Check the toroidal field coil current value """
     check_name = 'WOI 3.2: toroidal coil current'
 
