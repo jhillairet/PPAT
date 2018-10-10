@@ -2,6 +2,7 @@ import IRFMtb
 import tarfile
 from pppat.libpulse.DCS_settings import DCSSettings
 from pppat.libpulse.check_result import CheckResult
+from pppat.libpulse.waveform import *
 import pkgutil
 from importlib import import_module
 import logging
@@ -39,7 +40,9 @@ class PulseSettings():
         """
         # Load DCS settings (Sup.xml)
         self.DCS_settings = DCSSettings(pulse_settings_files['sup'])
-        # TODO: Load DP.xml
+        nominal_scenario = self.DCS_settings.nominal_scenario
+        # Load DP.xml
+        self.waveforms = get_all_waveforms(nominal_scenario, pulse_settings_files['dp'])
 
         return self.DCS_settings.isLoaded
 
@@ -148,7 +151,7 @@ class PulseSettings():
                         logger.error(f'Error {e} during in {fun_name}')
 
                     check_results.append(result)
-                    logger.info(f'{fun_name}: result={result.code_name}')
+                    #logger.info(f'{fun_name}: result={result.code_name}')
 
         return check_results
 

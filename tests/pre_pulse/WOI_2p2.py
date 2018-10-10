@@ -10,7 +10,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def check_WOI_2p2_B30_pressure(is_online=True):
+def check_WOI_2p2_B30_pressure(is_online=True, waveforms=None):
     """
     Check the B30 water loop pressure.
     """

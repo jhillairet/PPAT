@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def check_WOI_1p1_torus_pressure(is_online=True):
+def check_WOI_1p1_torus_pressure(is_online=True, waveforms=None):
     """ Check the torus pressure before a pulse """
     check_name = 'WOI 1.1: torus pressure'
 
