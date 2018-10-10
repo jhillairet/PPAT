@@ -1,12 +1,13 @@
 import os.path
 import socket
+from contextlib import contextmanager
 
 from getpass import getuser
 from qtpy.QtWidgets import (QMainWindow, QApplication, QWidget,
                             QHBoxLayout, QVBoxLayout, QAction, qApp,
                             QScrollArea, QTextBrowser, QFrame, QTextEdit,
                             QFileDialog, QPlainTextEdit, QTableWidgetItem)
-from qtpy.QtGui import QIcon
+from qtpy.QtGui import QIcon, QCursor
 from qtpy.QtCore import QDir, Slot, Qt
 
 from pppat.ui.reminder import EiCReminderWidget
@@ -14,7 +15,6 @@ from pppat.ui.console import ConsoleWidget
 from pppat.ui.collapsible_toolbox import QCollapsibleToolbox
 from pppat.ui.pre_pulse import PrePulseAnalysisWidget
 from pppat.ui.log import QPlainTextEditLogger
-from pppat.libpulse.DCS_settings import DCSSettings
 from pppat.libpulse.pulse_settings import PulseSettings
 
 import logging
@@ -144,18 +144,19 @@ class MainWindow(QMainWindow):
     @Slot()
     def check_pulse_settings(self):
         """ Check pulse setting vs all tests """
-
-        check_results = self.pulse_settings.check_all(self.is_online())
+        
+        with self.wait_cursor():
+            check_results = self.pulse_settings.check_all(self.is_online())
 
         # display the check results into the table
         for i, result in enumerate(check_results):
             self.panel_pre_pulse.widget.check_table.setItem(i, 0, QTableWidgetItem(result.name))
             self.panel_pre_pulse.widget.check_table.setItem(i, 1, QTableWidgetItem(result.code_name))
             self.panel_pre_pulse.widget.check_table.setItem(i, 2, QTableWidgetItem(result.text))
-            # Stretch 
-            #self.panel_pre_pulse.widget.check_table.horizontalHeader().setStretchLastSection(True)
+            # # Stretch 
+            # self.panel_pre_pulse.widget.check_table.horizontalHeader().setStretchLastSection(True)
             
-            # Add color to the result item
+            # Add color to the result item (OK, WARNING, ERROR or UNAVAILABLE)
             if result.code == result.ERROR:
                 self.panel_pre_pulse.widget.check_table.item(i, 1).setForeground(Qt.red)
             elif result.code == result.WARNING:
@@ -174,44 +175,45 @@ class MainWindow(QMainWindow):
         # default loading state
         res_load = False
 
-        # Load the pulse setting depending on the loading option
-        # Load pulse settings from the Session Leader proposal
-        if self.panel_pre_pulse.widget.radio_sl.isChecked():
-            # TODO : check if SL pulse setting is available
-            pulse_settings_SL_avail = True
-
-            if not pulse_settings_SL_avail:
-                logger.error('Pulse settings from SL are not available!')
-            else:
-                logger.info('Loading pulse setting from SL')
-                self.panel_pre_pulse.widget.pulse_setting_origin.setText('from SL')
-
-                res_load = self.pulse_settings.load_from_session_leader()
-
-        # Load pulse settings from a set of .xml files
-        elif self.panel_pre_pulse.widget.radio_file.isChecked():
-            if not self.pulse_settings_dir:
-                logger.error('Browse a directory first !')
-            else:
-                self.panel_pre_pulse.widget.pulse_setting_origin.setText(
-                        self.pulse_settings_dir)
-                logger.info('loading pulse setting from files')
-
-                res_load = self.pulse_settings.load_from_file(self.pulse_settings_files)
-
-        # Load pulse settings from a pulse number
-        elif self.panel_pre_pulse.widget.radio_shot.isChecked():
-            pulse_nb = self.panel_pre_pulse.widget.edit_shot.text()
-            if not pulse_nb:
-                logger.error('Set pulse number first !')
-            else:
-                logger.info(f'loading pulse setting from WEST shot #{pulse_nb}')
-
-                self.panel_pre_pulse.widget.pulse_setting_origin.setText(
-                        f'WEST shot number {pulse_nb}')
-                self.pulse_settings_shot = int(pulse_nb)
-
-                res_load = self.pulse_settings.load_from_pulse(self.pulse_settings_shot)
+        with self.wait_cursor():
+            # Load the pulse setting depending on the loading option
+            # Load pulse settings from the Session Leader proposal
+            if self.panel_pre_pulse.widget.radio_sl.isChecked():
+                # TODO : check if SL pulse setting is available
+                pulse_settings_SL_avail = True
+    
+                if not pulse_settings_SL_avail:
+                    logger.error('Pulse settings from SL are not available!')
+                else:
+                    logger.info('Loading pulse setting from SL')
+                    self.panel_pre_pulse.widget.pulse_setting_origin.setText('from SL')
+    
+                    res_load = self.pulse_settings.load_from_session_leader()
+    
+            # Load pulse settings from a set of .xml files
+            elif self.panel_pre_pulse.widget.radio_file.isChecked():
+                if not self.pulse_settings_dir:
+                    logger.error('Browse a directory first !')
+                else:
+                    self.panel_pre_pulse.widget.pulse_setting_origin.setText(
+                            self.pulse_settings_dir)
+                    logger.info('loading pulse setting from files')
+    
+                    res_load = self.pulse_settings.load_from_file(self.pulse_settings_files)
+    
+            # Load pulse settings from a pulse number
+            elif self.panel_pre_pulse.widget.radio_shot.isChecked():
+                pulse_nb = self.panel_pre_pulse.widget.edit_shot.text()
+                if not pulse_nb:
+                    logger.error('Set pulse number first !')
+                else:
+                    logger.info(f'loading pulse setting from WEST shot #{pulse_nb}')
+    
+                    self.panel_pre_pulse.widget.pulse_setting_origin.setText(
+                            f'WEST shot number {pulse_nb}')
+                    self.pulse_settings_shot = int(pulse_nb)
+    
+                    res_load = self.pulse_settings.load_from_pulse(self.pulse_settings_shot)
 
         # if the pulse settings have been correctly loaded
         # the check button is enabled
@@ -284,6 +286,15 @@ class MainWindow(QMainWindow):
             return True
         except socket.error:
             return False
+
+    @staticmethod
+    @contextmanager
+    def wait_cursor():
+        try:
+            QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+            yield
+        finally:
+            QApplication.restoreOverrideCursor()
 
 #     def __init__(self, title, config_file):
 #        super(mainWindow, self).__init__()  # top-level window creator
