@@ -41,7 +41,7 @@ class PulseSettings():
         # Load DCS settings (Sup.xml)
         self.DCS_settings = DCSSettings(pulse_settings_files['sup'])
         nominal_scenario = self.DCS_settings.nominal_scenario
-        # Load DP.xml
+        # Load DCS waveforms (DP.xml)
         self.waveforms = get_all_waveforms(nominal_scenario, pulse_settings_files['dp'])
 
         return self.DCS_settings.isLoaded
@@ -135,6 +135,8 @@ class PulseSettings():
             # list all the functions in the module file
             # and run the ones which name starts by 'check_'
             fun_names = dir(i)
+            # parameters given to all check functions
+            kwargs = {'is_online': is_online, 'waveforms': self.waveforms}
             for fun_name in fun_names:
                 if 'check_' in fun_name:
                     tested_fun_names.append(fun_name)
@@ -144,14 +146,16 @@ class PulseSettings():
                     # catch the error and trace it as a failed test
                     # and continue without breaking everything
                     try:
-                        result = getattr(i, fun_name)(is_online=is_online)
+                        # evaluate a check function and retrieve its result
+                        result = getattr(i, fun_name)(**kwargs)
                     except Exception as e:  # catch *all* exceptions
                         result = CheckResult(name=fun_name,
-                                             code=CheckResult.ERROR, text=e)
+                                             code=CheckResult.ERROR, 
+                                             text=str(e))
                         logger.error(f'Error {e} during in {fun_name}')
 
                     check_results.append(result)
-                    #logger.info(f'{fun_name}: result={result.code_name}')
+                    logger.info(f'{fun_name}: result={result.code_name}')
 
         return check_results
 
