@@ -17,6 +17,30 @@ class Waveform():
         self.segments = segments    # Segment number of each point
         self.name = name
 
+def get_waveform(waveform_name, waveforms):
+    """
+    Retrieve a waveform from a waveform list
+    
+    Parameters
+    ----------
+        waveform_name : str
+            Name of the waveform to look for
+            
+        waveforms: list
+            List of Waveform objects
+            
+    Return
+    ------
+        waveform: Waveform object
+            None is the waveform has not been found in the waveforms list
+    
+    """
+    waveform = None
+    for wf in waveforms:
+        if wf.name == waveform_name:
+            waveform = wf
+    return waveform
+            
 def get_all_waveforms(scenario, DP_file):
     """
     extract all the waveforms for the given scenario
