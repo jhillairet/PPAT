@@ -4,7 +4,8 @@ class CheckResult():
     UNAVAILABLE = 2
     WARNING = 1
     ERROR = 0
-    DIC = {0: 'ERROR', 1: 'WARNING', 2: 'UNAVAILABLE', 3: 'OK'}
+    BROKEN = -1
+    DIC = {0: 'ERROR', 1: 'WARNING', 2: 'UNAVAILABLE', 3: 'OK', -1: 'BROKEN'}
 
     def __init__(self, name='', code=0, text='',
                  fail_abs_times=[], fail_values=[], fail_rel_times=[],
