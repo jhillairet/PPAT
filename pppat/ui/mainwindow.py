@@ -13,7 +13,8 @@ from qtpy.QtCore import QDir, Slot, Qt
 from pppat.ui.reminder import EiCReminderWidget
 from pppat.ui.console import ConsoleWidget
 from pppat.ui.collapsible_toolbox import QCollapsibleToolbox
-from pppat.ui.pre_pulse import PrePulseAnalysisWidget
+from pppat.ui.pre_pulse_analysis import PrePulseAnalysisWidget
+from pppat.ui.pre_pulse_display import PrePulseDisplayWidget
 from pppat.ui.log import QPlainTextEditLogger
 from pppat.libpulse.pulse_settings import PulseSettings
 
@@ -95,8 +96,8 @@ class MainWindow(QMainWindow):
         # Define the various collabsible panels (leave "child=" avoid Qt bug)
         self.panel_rappels = QCollapsibleToolbox(child=EiCReminderWidget(), title='Cahier de liaison des EiC / EiC\'s Notebook')
         self.panel_pre_pulse = QCollapsibleToolbox(child=PrePulseAnalysisWidget(), title='Pre-pulse Analysis')
+        self.panel_pulse_display = QCollapsibleToolbox(child=PrePulseDisplayWidget(), title='Pre-pulse Display')
         self.panel_post_pulse = QCollapsibleToolbox(child=QTextBrowser(), title='Post-pulse Analysis')
-        self.panel_pulse_display = QCollapsibleToolbox(child=QTextBrowser(), title='Pre-pulse Display')
         self.panel_log = QCollapsibleToolbox(child=QPlainTextEditLogger(), title='Logs')
         self.panel_console = QCollapsibleToolbox(child=ConsoleWidget(), title='Python Console')
 

@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class PrePulseAnalysisWidget(QWidget):
     """
-    Pre-pulse gui
+    Pre-pulse Analysis GUI
 
     Create all the widgets in the Pre-pulse analysis panel.
     """
@@ -123,3 +123,5 @@ class PrePulseAnalysisWidget(QWidget):
         layout.addWidget(self.check_table)
         bottom_group.setLayout(layout)
         return bottom_group
+
+        
