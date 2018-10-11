@@ -1,16 +1,19 @@
 from xml.dom import minidom
 import numpy as np
 
-from . import waveformBuilder
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.collections import PatchCollection
 from matplotlib import gridspec
 
+from pppat.libpulse.waveform import get_waveform
 
-def BigPicture_disp(segmentTrajectory,dpFile):
 
+def BigPicture_disp(segmentTrajectory, dpFile, waveforms):
 
+    # Force interactive mode off to plot in separate windows and not in console
+    #plt.rcParams['interactive'] = False
+    
     #Figure window size parameters. Note that NX adjusts the vertical size if too tall.
     fig_Xposition = 0
     fig_Yposition = 0
@@ -177,23 +180,22 @@ def BigPicture_disp(segmentTrajectory,dpFile):
     signal_list.append('8')
     signal_list.append('Phi_ICRH3')
 
-    signal_number = len(signal_list)/3
+    signal_number = int(len(signal_list)/3)
 
     #Reshaping of the signal list into an array.
     #signal_array(:,1) = DCS signal name
     #signal_array(:,2) = subplot to be plotted in.
     #signal_array(:,3) = name of the waveform, to be displayed in legend
+    signal_array = np.array(signal_list).reshape((signal_number,3))
+#    for (sig_name, subplot_nb, wf_name) in signal_array:
+#        print(sig_name)
 
-    signal_array = np.array([])
-    signal_array = np.array(np.array(signal_list))
-    signal_array = np.reshape(signal_array,(signal_number,3))
-
-
+    
     #Build the waveforms from the segment trajectory, the signal names and the name of the DP.xml file
-
-    wform = waveformBuilder(segmentTrajectory,signal_array[:,0],dpFile)
-
-
+    wform = waveforms
+    #wform = waveformBuilder(segmentTrajectory,signal_array[:,0],dpFile)
+    
+    
     #Array containing axes labels.
     #Should be the same size as the number of subplots times 2 (2 axes per subplot)
 
@@ -210,7 +212,6 @@ def BigPicture_disp(segmentTrajectory,dpFile):
 
 
     #Figure initialization
-
     fig = plt.figure()
     fig.canvas.set_window_title("The Big Picture")
 
@@ -227,20 +228,6 @@ def BigPicture_disp(segmentTrajectory,dpFile):
     axarr = np.append(axarr,plt.subplot(gs[4]))
     axarr = np.append(axarr,axarr[-1].twinx())
 
-
-    #axarr = np.append(axarr,plt.subplot(5,1,1))
-    #axarr = np.append(axarr,plt.subplot(5,1,2))
-    #axarr = np.append(axarr,axarr[-1].twinx())
-    #axarr = np.append(axarr,plt.subplot(5,1,3))
-    #axarr = np.append(axarr,axarr[-1].twinx())
-    #axarr = np.append(axarr,plt.subplot(5,1,4))
-    #axarr = np.append(axarr,axarr[-1].twinx())
-    #axarr = np.append(axarr,plt.subplot(5,1,5))
-    #axarr = np.append(axarr,axarr[-1].twinx())
-
-
-
-
     #Link the x axes to be able to zoom all suplots simultaneously
     axarr[0].get_shared_x_axes().join(axarr[0], axarr[1], axarr[3], axarr[5], axarr[7])
 
@@ -249,11 +236,11 @@ def BigPicture_disp(segmentTrajectory,dpFile):
 
     #Black background for better readbility in the control room
     for i in np.arange(9):
-        axarr[i].set_axis_bgcolor('black')
+        axarr[i].set_facecolor('black')
 
-    #Color maps for curves.
-    #Default pyplot colormap has a black iteration which is invisible in a black background
-    #n_colors is the number of different colors in the colormap
+        #Color maps for curves.
+        #Default pyplot colormap has a black iteration which is invisible in a black background
+        #n_colors is the number of different colors in the colormap
 
         n_colors=7
         plot_color_map_base = plt.cm.prism
@@ -261,6 +248,8 @@ def BigPicture_disp(segmentTrajectory,dpFile):
         plot_color_map = ['#FF0000','#00FF00','#FF00FF','#0000FF','#FFFF00','#00FFFF','#669900','#cccccc','#996600',]
         axarr[i].set_color_cycle(plot_color_map)
 
+    # convert the segment scenario into a numpy array for compatibility with the code below
+    segmentTrajectory = np.array(segmentTrajectory)
 
     #Prepare each subplot.
     #Could have been done with a loop, but some subplots display all-zero waveforms (heating).
@@ -307,7 +296,7 @@ def BigPicture_disp(segmentTrajectory,dpFile):
     for i in np.where(signal_array[:,1]=='1')[0]:
 
         #Plot signal
-        axarr[1].plot(wform[i].times,wform[i].values,'x-',label=signal_array[i,2],linewidth=3,markersize=10)
+        axarr[1].plot(wform[i].times, wform[i].values,'x-',label=signal_array[i,2],linewidth=3,markersize=10)
 
     #Get y axis limits to find the adequate size of vertical bars for segment indicators
     ylim_inf = axarr[1].get_ylim()[0]
@@ -463,7 +452,7 @@ def BigPicture_disp(segmentTrajectory,dpFile):
 
 
     #Set figure geometry
-    mngr = plt.get_current_fig_manager()
-    mngr.window.setGeometry(fig_Xposition,fig_Yposition,fig_width,fig_height)
+    #mngr = plt.get_current_fig_manager()
+    #mngr.window.setGeometry(fig_Xposition,fig_Yposition,fig_width,fig_height)
 
     plt.show()
