@@ -11,7 +11,7 @@ import os
 
 
 class PulseSettings():
-    XEDIT2DCS_FILES_PATH = '/var/tmp/pilotes/XEDIT2DCS/'
+    XEDIT2DCS_DIR_PATH = '/var/tmp/pilotes/XEDIT2DCS/'
     XEDIT2DCS_FILENAMES = {'sup':'Sup.xml', 'dp':'DP.xml'}
 
     """
@@ -75,6 +75,7 @@ class PulseSettings():
                     tgz.extract(tgz.getmember(self.XEDIT2DCS_FILENAMES['dp']))
                     tgz.extract(tgz.getmember(self.XEDIT2DCS_FILENAMES['sup']))
                     # load pulse settings
+                    # TODO : put the file is correct temp directory
                     res_load = self.load_from_file(self.XEDIT2DCS_FILENAMES)
 
                     return res_load
@@ -98,37 +99,24 @@ class PulseSettings():
             True if the pulse settings have been correctly loaded, else False
 
         """
-        
-
-#        self.LoadFolderName = '/Home/%s/XEDIT2DCS/data/output'%(self.parent.statusAreaWidget.login_name)
-#
-#        # DP.xml and Sup.xml are supposed to be in th same folder.
-#        self.supFilename = '%s/Sup.xml'%(self.LoadFolderName)
-#        self.dpFilename = '%s/DP.xml'%(self.LoadFolderName)
-#    
-        # if both files exist
-        dp_file = os.path.join(self.XEDIT2DCS_FILES_PATH, self.XEDIT2DCS_FILENAMES['dp'])
-        sup_file = os.path.join(self.XEDIT2DCS_FILES_PATH, self.XEDIT2DCS_FILENAMES['sup'])
-        logger.info(f'Check availability of {dp_file} and {sup_file}')
-        logger.info(os.path.exists(dp_file))
-        logger.info(os.path.exists(sup_file))
+        # if both files exist on Nunki
+        # TODO : check that we are on Nunki !
+        # TODO : make a watchdog on the files
+        dp_file = os.path.join(self.XEDIT2DCS_DIR_PATH, self.XEDIT2DCS_FILENAMES['dp'])
+        sup_file = os.path.join(self.XEDIT2DCS_DIR_PATH, self.XEDIT2DCS_FILENAMES['sup'])
+        files_path = {'sup': sup_file, 'dp': dp_file}
+        logger.info(f'Check the availability of {dp_file} and {sup_file}')
         if os.path.exists(dp_file) and os.path.exists(sup_file):
-            logger.info('Session leader DCS setting files found!')
-            
-            return True
+            logger.info('Session leader DCS setting files found!')	
+            # load pulse settings
+            res_load = self.load_from_file(files_path)
+
+            return res_load
         else:
             logger.error('Unable to read the DCS Settings from session leader')
 
             return False
 
-#            # the sequence of segments (=segment trajectory) is retrieved from the Sup.xml file.
-#            # At the moment, only the nominal scenario i.e. the scenario containing the most segments
-#            # with numbers < 100 is retrieved.
-#            self.segmentTrajectory = segmentTrajectoryFinder(self.supFilename)
-#
-#            # Update the scenario display with the nominal scenario
-#            self.updateScenarioDisplay()
-#
 ##            # Check if a watchdog already exists in order not to create a new one for each folder change               
 ##            if not hasattr(self, 'FolderWatcher'):
 ##                # No pre existing watchdog
@@ -147,18 +135,6 @@ class PulseSettings():
 #            # Update the last modification time
 #            self.parent.OnlineSituationAreaWidget.updateModTime()
 #
-#        # Case if the user cancels the load operation or if the file has not been found
-##            # Displays a text message saying the load operation has not been completed.
-##            self.parent.CheckAreaWidget.WrongDCSFile()
-##            # Updates the next shot number
-##            self.parent.OnlineSituationAreaWidget.updateNextShot()
-##            # Erases the scenario display
-##            self.parent.scenarioAreaWidget.resetScenarioDisplay()
-##            # Unloads the DCS file
-##            self.unloadDCS()
-##            # Removes the changetime for current file.
-##            self.parent.OnlineSituationAreaWidget.removeModTime()
-
 
     def check_all(self, is_online=True):
         """
