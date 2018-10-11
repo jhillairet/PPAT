@@ -27,6 +27,9 @@ class PulseSettings():
     """
     def __init__(self):
         logger.info('init Pulse Setting')
+        
+        self.files = None  # dictionnary containing 'dp' and 'sup' xml file paths
+        self.waveforms = None  # list of Waveform objects
 
     def load_from_file(self, pulse_settings_files):
         """
@@ -45,13 +48,23 @@ class PulseSettings():
             True if the pulse settings have been correctly loaded, else False
 
         """
+        self.files = pulse_settings_files
+        
         # Load DCS settings (Sup.xml)
-        self.DCS_settings = DCSSettings(pulse_settings_files['sup'])
-        nominal_scenario = self.DCS_settings.nominal_scenario
+        self.DCS_settings = DCSSettings(self.files['sup'])
+
         # Load DCS waveforms (DP.xml)
-        self.waveforms = get_all_waveforms(nominal_scenario, pulse_settings_files['dp'])
+        self.waveforms = get_all_waveforms(self.nominal_scenario, self.files['dp'])
 
         return self.DCS_settings.isLoaded
+
+    @property
+    def nominal_scenario(self):
+        return self.DCS_settings.nominal_scenario
+
+    @property
+    def nominal_trajectory(self):
+        return self.DCS_settings.nominal_trajectory
 
     def load_from_pulse(self, pulse):
         """
@@ -68,6 +81,7 @@ class PulseSettings():
             True if the pulse settings have been correctly loaded, else False
 
         """
+        # TODO: ? IRFMtb.tsrfile(pulse, 'FPCSPARAM', 'FPCSPARAM.tgz')
         XEDIT2DCS_archive = 'FXEDIT2DCS.tgz'
         # extract DP.xml and Sup.xml from the tar.gz obtained from the
         # database (if they exist in the database) and load them
@@ -98,7 +112,6 @@ class PulseSettings():
         else:
             logger.error('Problem with the database to get pulse setting files')
             return False
-        #IRFMtb.tsrfile(pulse, 'FPCSPARAM', 'FPCSPARAM.tgz')
 
     def load_from_session_leader(self):
         """
@@ -117,37 +130,18 @@ class PulseSettings():
             # TODO : make a watchdog on the files
             dp_file = os.path.join(self.XEDIT2DCS_DIR_PATH, self.XEDIT2DCS_FILENAMES['dp'])
             sup_file = os.path.join(self.XEDIT2DCS_DIR_PATH, self.XEDIT2DCS_FILENAMES['sup'])
-            files_path = {'sup': sup_file, 'dp': dp_file}
+            self.files = {'sup': sup_file, 'dp': dp_file}
 
             if os.path.exists(dp_file) and os.path.exists(sup_file):
                 logger.info('Session leader DCS setting files found!')	
                 # load pulse settings
-                res_load = self.load_from_file(files_path)
+                res_load = self.load_from_file(self.files)
     
                 return res_load
             else:
                 logger.error('Unable to read the DCS Settings from session leader')
     
                 return False
-
-##            # Check if a watchdog already exists in order not to create a new one for each folder change               
-##            if not hasattr(self, 'FolderWatcher'):
-##                # No pre existing watchdog
-##                self.FolderWatcher = ModifFolderWatcher(self.parent,self.LoadFolderName)
-##                
-##            else:
-##                # preexisting watchdog: stop and recreate a new one.
-##                self.FolderWatcher.resetModifFolderWatcher(self.LoadFolderName)
-#
-#            # Resets text area and colored squares
-#            self.parent.CheckAreaWidget.resetChecks()
-#
-#            # Update the next shot number
-#            self.parent.OnlineSituationAreaWidget.updateNextShot()
-#
-#            # Update the last modification time
-#            self.parent.OnlineSituationAreaWidget.updateModTime()
-#
 
     def check_all(self, is_online=True):
         """
@@ -207,62 +201,6 @@ class PulseSettings():
                     logger.info(f'{fun_name}: result={result.code_name}')
 
         return check_results
-
-#class ModifFolderWatcher(QtCore.QThread):
-#    """
-#    Watcher class to monitor file changes on DP.xml or Sup.xml
-#    Methods:
-#    - modified: actions to perform when a folder/file change is detected
-#    - resetFolderWatcher: actions to perform when the user changes the folder to be monitored
-#    """
-#    def __init__(self,parentWidget,folderName):
-#        """
-#        Overloaded init to be able to pass the parent widget (for addressing purposes)
-#        and the folder to be monitored.
-#        """
-#        super(ModifFolderWatcher, self).__init__()
-#        self.folderName = folderName
-#        self.parent = parentWidget
-#        # Start the observer process (standard way to do it for the watchdog package)
-#        self.observer = Observer()
-#        self.event_handler = MyHandler(self.folderName)
-#        self.observer.schedule(self.event_handler, self.folderName, recursive=True)
-#        self.observer.start()
-#        # Method called when a change is detected
-#        self.connect(self.event_handler, QtCore.Signal("FolderModified"), self.modified) #PyQt4
-#
-#
-#    def modified(self):
-#        """
-#        Performs actions when a file change is detected.
-#        - Stops the watcher to avoid signal saturation.
-#        - Resets the results of checks in the checkArea (returns colored squares to black)
-#        - Resets the scenario display area
-#        - Update the next shot number
-#        - Unload the DCS files to prevent any subsequent check or BigPicture by the user
-#        - Remove the changetime from the onlineSituation Area (because the DCS file has to be reloaded
-#        """
-#        #self.emit(QtCore.SIGNAL("fileModified1"))
-#        self.observer.stop()
-#        self.parent.CheckAreaWidget.resetScenario()
-#        self.parent.scenarioAreaWidget.resetScenarioDisplay()
-#        self.parent.OnlineSituationAreaWidget.updateNextShot()
-#        self.parent.scenarioAreaWidget.unloadDCS()
-#        self.parent.OnlineSituationAreaWidget.removeModTime()
-#
-#    def resetModifFolderWatcher(self,folderName):
-#        """
-#        Stops the pre-existing watcher and starts a new one with a new folder to be monitored
-#        Similar procedure as in the init.
-#        """
-#        self.observer.stop()
-#        self.folderName = folderName
-#        self.observer = Observer()
-#        self.event_handler = MyHandler(self.folderName)
-#        self.observer.schedule(self.event_handler, self.folderName, recursive=True)
-#        self.observer.start()
-#        self.connect(self.event_handler, QtCore.Signal("FolderModified"), self.modified)
-
 
 
 if __name__ == '__main__':

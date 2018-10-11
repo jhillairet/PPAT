@@ -16,6 +16,10 @@ class Waveform():
         self.values = np.array(values)        # Value vector
         self.segments = segments    # Segment number of each point
         self.name = name
+        
+    def __repr__(self):
+        " meaningfull representation "
+        return f'DCS Waveform {self.name} ({len(self.segments)} segments)'
 
 def get_waveform(waveform_name, waveforms):
     """

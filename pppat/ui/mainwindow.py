@@ -17,6 +17,7 @@ from pppat.ui.pre_pulse_analysis import PrePulseAnalysisWidget
 from pppat.ui.pre_pulse_display import PrePulseDisplayWidget
 from pppat.ui.log import QPlainTextEditLogger
 from pppat.libpulse.pulse_settings import PulseSettings
+from pppat.ui.BigPicture import BigPicture_disp
 
 import logging
 logger = logging.getLogger(__name__)
@@ -49,6 +50,7 @@ class MainWindow(QMainWindow):
         self.panel_pre_pulse.widget.push_load.clicked.connect(self.load_pulse_settings)
         self.panel_pre_pulse.widget.push_browse.clicked.connect(self.browse_pulse_settings_directory)
         self.panel_pre_pulse.widget.push_check.clicked.connect(self.check_pulse_settings)
+        self.panel_pulse_display.widget.push_bigpicture.clicked.connect(self.display_big_picture)
 
         # Application icon
         self.setWindowIcon(QIcon('resources/icons/pppat.png'))
@@ -60,9 +62,9 @@ class MainWindow(QMainWindow):
 
         # define set of internal parameters
         self.pulse_settings = None
-        self.pulse_settings_dir = None
-        self.pulse_settings_files = None
-        self.pulse_settings_shot = None
+#        self.pulse_settings_dir = None
+#        self.pulse_settings_files = None
+#        self.pulse_settings_shot = None
 
         # Display user role in the status Bar
         logger.info(f'PPPAT has been launched by user {self.user_login}')
@@ -168,6 +170,82 @@ class MainWindow(QMainWindow):
                 self.panel_pre_pulse.widget.check_table.item(i, 1).setForeground(Qt.darkMagenta)
             # else leave it black (default)
 
+##            # Check if a watchdog already exists in order not to create a new one for each folder change               
+##            if not hasattr(self, 'FolderWatcher'):
+##                # No pre existing watchdog
+##                self.FolderWatcher = ModifFolderWatcher(self.parent,self.LoadFolderName)
+##                
+##            else:
+##                # preexisting watchdog: stop and recreate a new one.
+##                self.FolderWatcher.resetModifFolderWatcher(self.LoadFolderName)
+#
+#            # Resets text area and colored squares
+#            self.parent.CheckAreaWidget.resetChecks()
+#
+#            # Update the next shot number
+#            self.parent.OnlineSituationAreaWidget.updateNextShot()
+#
+#            # Update the last modification time
+#            self.parent.OnlineSituationAreaWidget.updateModTime()
+#
+
+#class ModifFolderWatcher(QtCore.QThread):
+#    """
+#    Watcher class to monitor file changes on DP.xml or Sup.xml
+#    Methods:
+#    - modified: actions to perform when a folder/file change is detected
+#    - resetFolderWatcher: actions to perform when the user changes the folder to be monitored
+#    """
+#    def __init__(self,parentWidget,folderName):
+#        """
+#        Overloaded init to be able to pass the parent widget (for addressing purposes)
+#        and the folder to be monitored.
+#        """
+#        super(ModifFolderWatcher, self).__init__()
+#        self.folderName = folderName
+#        self.parent = parentWidget
+#        # Start the observer process (standard way to do it for the watchdog package)
+#        self.observer = Observer()
+#        self.event_handler = MyHandler(self.folderName)
+#        self.observer.schedule(self.event_handler, self.folderName, recursive=True)
+#        self.observer.start()
+#        # Method called when a change is detected
+#        self.connect(self.event_handler, QtCore.Signal("FolderModified"), self.modified) #PyQt4
+#
+#
+#    def modified(self):
+#        """
+#        Performs actions when a file change is detected.
+#        - Stops the watcher to avoid signal saturation.
+#        - Resets the results of checks in the checkArea (returns colored squares to black)
+#        - Resets the scenario display area
+#        - Update the next shot number
+#        - Unload the DCS files to prevent any subsequent check or BigPicture by the user
+#        - Remove the changetime from the onlineSituation Area (because the DCS file has to be reloaded
+#        """
+#        #self.emit(QtCore.SIGNAL("fileModified1"))
+#        self.observer.stop()
+#        self.parent.CheckAreaWidget.resetScenario()
+#        self.parent.scenarioAreaWidget.resetScenarioDisplay()
+#        self.parent.OnlineSituationAreaWidget.updateNextShot()
+#        self.parent.scenarioAreaWidget.unloadDCS()
+#        self.parent.OnlineSituationAreaWidget.removeModTime()
+#
+#    def resetModifFolderWatcher(self,folderName):
+#        """
+#        Stops the pre-existing watcher and starts a new one with a new folder to be monitored
+#        Similar procedure as in the init.
+#        """
+#        self.observer.stop()
+#        self.folderName = folderName
+#        self.observer = Observer()
+#        self.event_handler = MyHandler(self.folderName)
+#        self.observer.schedule(self.event_handler, self.folderName, recursive=True)
+#        self.observer.start()
+#        self.connect(self.event_handler, QtCore.Signal("FolderModified"), self.modified)
+
+
+
     @Slot()
     def load_pulse_settings(self):
         """ Load the pulse settings when user clicks on 'load' """
@@ -217,11 +295,12 @@ class MainWindow(QMainWindow):
                     res_load = self.pulse_settings.load_from_pulse(self.pulse_settings_shot)
 
         # if the pulse settings have been correctly loaded
-        # the check button is enabled
+        # some widgets (buttons) are enabled
         # and the nominal scenario trajectory is displayed
         if res_load:
             logger.info('Pulse settings successfully loaded :)')
             self.panel_pre_pulse.widget.push_check.setEnabled(True)
+            self.panel_pulse_display.widget.push_bigpicture.setEnabled(True)
 
             try:
                 nominal_trajectory = self.pulse_settings.DCS_settings.nominal_trajectory
@@ -268,6 +347,18 @@ class MainWindow(QMainWindow):
             logger.info(f'Pulse setting files exist into {self.pulse_settings_dir}')
         else:
             logger.error("One or both of the pulse setting files do not exist!" )
+
+    @Slot()
+    def display_big_picture(self):
+        """
+        Display the big picture of the pulse setting.
+        """
+        # TODO : check data first?
+        nominal_scenario = self.pulse_settings.DCS_settings.nominal_scenario
+        dp_file = self.pulse_settings.files['dp']
+        wfs = self.pulse_settings.waveforms
+
+        BigPicture_disp(nominal_scenario, dp_file, wfs)
 
     @staticmethod
     def is_online():
