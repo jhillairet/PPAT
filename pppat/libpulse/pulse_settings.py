@@ -1,19 +1,22 @@
 import IRFMtb
 import tarfile
+import pkgutil
+import os
+import platform
 from pppat.libpulse.DCS_settings import DCSSettings
 from pppat.libpulse.check_result import CheckResult
-from pppat.libpulse.waveform import *
-import pkgutil
+from pppat.libpulse.waveform import get_all_waveforms
 from importlib import import_module
+
 import logging
 logger = logging.getLogger(__name__)
-import os
 
 
 class PulseSettings():
     XEDIT2DCS_DIR_PATH = '/var/tmp/pilotes/XEDIT2DCS/'
     XEDIT2DCS_FILENAMES = {'sup':'Sup.xml', 'dp':'DP.xml'}
-
+    XEDIT2DCS_SERVER = 'nunki.intra.cea.fr'
+    
     """
     Pulse setting
 
@@ -75,14 +78,20 @@ class PulseSettings():
                     tgz.extract(tgz.getmember(self.XEDIT2DCS_FILENAMES['dp']))
                     tgz.extract(tgz.getmember(self.XEDIT2DCS_FILENAMES['sup']))
                     # load pulse settings
-                    # TODO : put the file is correct temp directory
+                    # TODO : download/move the file is correct temp directory
                     res_load = self.load_from_file(self.XEDIT2DCS_FILENAMES)
 
                     return res_load
-                    # TODO : clean up the file mess
+#                # TODO: should we clean the xml files when reading from a file?
+#                # only if local file! Should not delete files on Nunki !!
+#                # clean up the file mess
+#                try:
 #                    os.remove(XEDIT2DCS_archive)
 #                    os.remove('DP.xml')
 #                    os.remove('Sup.xml')
+#                except Exception as e:
+#                    logger.error(f'Problem when deleting the xml files during cleaning: {str(e)}')
+              
             else:
                 logger.error('Problem to read the xml files!')
                 return False
@@ -99,23 +108,27 @@ class PulseSettings():
             True if the pulse settings have been correctly loaded, else False
 
         """
-        # if both files exist on Nunki
-        # TODO : check that we are on Nunki !
-        # TODO : make a watchdog on the files
-        dp_file = os.path.join(self.XEDIT2DCS_DIR_PATH, self.XEDIT2DCS_FILENAMES['dp'])
-        sup_file = os.path.join(self.XEDIT2DCS_DIR_PATH, self.XEDIT2DCS_FILENAMES['sup'])
-        files_path = {'sup': sup_file, 'dp': dp_file}
-        logger.info(f'Check the availability of {dp_file} and {sup_file}')
-        if os.path.exists(dp_file) and os.path.exists(sup_file):
-            logger.info('Session leader DCS setting files found!')	
-            # load pulse settings
-            res_load = self.load_from_file(files_path)
-
-            return res_load
-        else:
-            logger.error('Unable to read the DCS Settings from session leader')
-
+        # Check the DCS settings are available are read them if they are
+        computer_name = platform.node()
+        if not computer_name == self.XEDIT2DCS_SERVER:
+            logger.error('Session leader DCS settings are only available on Nunki!')
             return False
+        else:
+            # TODO : make a watchdog on the files
+            dp_file = os.path.join(self.XEDIT2DCS_DIR_PATH, self.XEDIT2DCS_FILENAMES['dp'])
+            sup_file = os.path.join(self.XEDIT2DCS_DIR_PATH, self.XEDIT2DCS_FILENAMES['sup'])
+            files_path = {'sup': sup_file, 'dp': dp_file}
+
+            if os.path.exists(dp_file) and os.path.exists(sup_file):
+                logger.info('Session leader DCS setting files found!')	
+                # load pulse settings
+                res_load = self.load_from_file(files_path)
+    
+                return res_load
+            else:
+                logger.error('Unable to read the DCS Settings from session leader')
+    
+                return False
 
 ##            # Check if a watchdog already exists in order not to create a new one for each folder change               
 ##            if not hasattr(self, 'FolderWatcher'):
