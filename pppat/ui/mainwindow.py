@@ -62,7 +62,7 @@ class MainWindow(QMainWindow):
 
         # define set of internal parameters
         self.pulse_settings = None
-#        self.pulse_settings_dir = None
+        self.pulse_settings_dir = None
 #        self.pulse_settings_files = None
 #        self.pulse_settings_shot = None
 
@@ -251,7 +251,6 @@ class MainWindow(QMainWindow):
         """ Load the pulse settings when user clicks on 'load' """
         # construct the pulse settings
         self.pulse_settings = PulseSettings()
-        self.pulse_settings_dir = None
         # default loading state
         res_load = False
 
