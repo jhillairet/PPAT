@@ -58,6 +58,7 @@ class MainWindow(QMainWindow):
         # open some panels at startup
         # self.panel_rappels.toggleButton.click()
         self.panel_pre_pulse.toggleButton.click()
+        self.panel_pulse_display.toggleButton.click()
         self.panel_log.toggleButton.click()
 
         # define set of internal parameters

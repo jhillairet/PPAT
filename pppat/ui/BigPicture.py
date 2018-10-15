@@ -192,7 +192,12 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms):
 
     
     #Build the waveforms from the segment trajectory, the signal names and the name of the DP.xml file
-    wform = waveforms
+    # get only the waveforms indicated above in the signal_list 
+    wform = []
+    for i, sig in enumerate(signal_array):
+        #print(f'i={i}: sig={sig}')
+        wform.append(get_waveform(sig[0], waveforms))
+
     #wform = waveformBuilder(segmentTrajectory,signal_array[:,0],dpFile)
     
     
@@ -211,11 +216,11 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms):
     label_array = np.append(label_array,'[deg]')
 
 
-    #Figure initialization
+    # Figure initialization
     fig = plt.figure()
     fig.canvas.set_window_title("The Big Picture")
 
-    #Axes creation. 2 y axes per suplot using twinx.
+    # Axes creation. 2 y axes per suplot using twinx.
     axarr = np.array([])
     gs = gridspec.GridSpec(5,1,height_ratios=[1,6,6,6,6])
     axarr = np.append(axarr,plt.subplot(gs[0]))
@@ -228,13 +233,13 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms):
     axarr = np.append(axarr,plt.subplot(gs[4]))
     axarr = np.append(axarr,axarr[-1].twinx())
 
-    #Link the x axes to be able to zoom all suplots simultaneously
+    # Link the x axes to be able to zoom all suplots simultaneously
     axarr[0].get_shared_x_axes().join(axarr[0], axarr[1], axarr[3], axarr[5], axarr[7])
 
-    #Reduce spaces between subplots to compactify the display
+    # Reduce spaces between subplots to compactify the display
     fig.subplots_adjust(left=0.12,bottom=0.02,right=0.90,top=0.98,wspace=0.15,hspace=0.10)
 
-    #Black background for better readbility in the control room
+    # Black background for better readbility in the control room
     for i in np.arange(9):
         axarr[i].set_facecolor('black')
 
@@ -251,13 +256,13 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms):
     # convert the segment scenario into a numpy array for compatibility with the code below
     segmentTrajectory = np.array(segmentTrajectory)
 
-    #Prepare each subplot.
-    #Could have been done with a loop, but some subplots display all-zero waveforms (heating).
-    #Others do not, for compacity purposes (21 gas valves)
-    #Even axis numbers: left-hand y axes
-    #Odd axis numbers: right-hand y axes
+    # Prepare each subplot.
+    # Could have been done with a loop, but some subplots display all-zero waveforms (heating).
+    # Others do not, for compacity purposes (21 gas valves)
+    # Even axis numbers: left-hand y axes
+    # Odd axis numbers: right-hand y axes
 
-    #Patch plot (segments)
+    # Patch plot (segments)
 
     axarr[0].plot([0],[0],'x-',label=signal_array[i,2],linewidth=3,markersize=10)
 
@@ -289,118 +294,85 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms):
     axarr[0].tick_params(axis='x',bottom='off',labelbottom='off')
     axarr[0].tick_params(axis='y',left='off',labelleft='off')
 
-
-
-
     # Plasma current (subplot 1, left axis)
     for i in np.where(signal_array[:,1]=='1')[0]:
-
+        print(f'wform in 1: {wform[i]}')
         #Plot signal
-        axarr[1].plot(wform[i].times, wform[i].values,'x-',label=signal_array[i,2],linewidth=3,markersize=10)
+        axarr[1].plot(wform[i].times, wform[i].values,'x-',label=signal_array[i,2],linewidth=2,markersize=10)
 
-    #Get y axis limits to find the adequate size of vertical bars for segment indicators
-    ylim_inf = axarr[1].get_ylim()[0]
-    ylim_sup = axarr[1].get_ylim()[1]
-
-    #Set yaxis labels just beyond automatic limits to avoid having horizontal lines stuck to the top
+    # Get y axis limits to find the adequate size of vertical bars for segment indicators
+    ylim_inf, ylim_sup = axarr[1].get_ylim()
+ 
+    # Set yaxis labels just beyond automatic limits to avoid having horizontal lines stuck to the top
     # or the bottom of the subplot.
     axarr[1].set_ylim([ylim_inf-0.1*abs(ylim_sup-ylim_inf),ylim_sup+0.1*abs(ylim_sup-ylim_inf)])
 
-    #Y axis label taken from table defined above.
+    # Y axis label taken from table defined above.
     axarr[1].set_ylabel(label_array[1])
 
-    #Display legend near the relevant axis (left or right). To be improved.
+    # Display legend near the relevant axis (left or right). To be improved.
     axarr[1].legend(loc=2,fontsize=11)
 
-    #Display white vertical lines to mark segment transitions.
-    for ii in (np.arange(len(segmentTrajectory))):
-        segment_time = segmentTrajectory[ii,1]
-        axis_range = axarr[1].get_ylim()
-        axarr[1].plot([segment_time, segment_time],axis_range,'w',linewidth=1.0)
+    # Display white vertical lines to mark segment transitions on all subplots
+    for ax in axarr:
+        for segment in segmentTrajectory:
+            segment_time = float(segment[1])
+            ax.axvline(segment_time, color='w', lw=0.5)
+        #axis_range = axarr[1].get_ylim()
+        #axarr[1].plot([segment_time, segment_time],axis_range,'w',linewidth=1.0)
 
-    #Repeat for right-hand axis on first subplot.
+    # Repeat for right-hand axis on first subplot.
     # R,Z (subplot 1, right axis)
     for i in np.where(signal_array[:,1]=='2')[0]:
+        print(f'wform in 2: {wform[i]}')
+        if wform[i]:  # not None
+            # Do not display non-existent waveforms (unused shape control modes).
+            if len(wform[i].values != 0) > 0:
 
-        #Do not display non-existent waveforms (unused shape control modes).
-        if len(wform[i].values!=0)>0:
-
-            axarr[2].plot(wform[i].times,wform[i].values,'x--',label=signal_array[i,2],linewidth=3)
+                axarr[2].plot(wform[i].times,wform[i].values,'x--',label=signal_array[i,2],linewidth=2)
 
     axarr[2].set_ylabel(label_array[2])
-    ylim_inf = axarr[2].get_ylim()[0]
-    ylim_sup = axarr[2].get_ylim()[1]
+    ylim_inf, ylim_sup = axarr[2].get_ylim()
     axarr[2].set_ylim([ylim_inf-0.1*abs(ylim_sup-ylim_inf),ylim_sup+0.1*abs(ylim_sup-ylim_inf)])
     axarr[2].legend(loc=1,fontsize=11)
 
-    for ii in (np.arange(len(segmentTrajectory))):
-        segment_time = segmentTrajectory[ii,1]
-        axis_range = axarr[2].get_ylim()
-        axarr[2].plot([segment_time, segment_time],axis_range,'w',linewidth=0.5)
-
-
-
-
-    #Repeat for next subplot.
+    # Repeat for next subplot.
     # Coil currents (subplot 2, left axis)
     for i in np.where(signal_array[:,1]=='3')[0]:
-
-        axarr[3].plot(wform[i].times,wform[i].values,'x-',label=signal_array[i,2],linewidth=3)
+        print(f'wform in3: {wform[i]}')
+        print('ax 3:' + str(wform[i].values))
+        axarr[3].plot(wform[i].times,wform[i].values,'x-',label=signal_array[i,2],linewidth=2)
 
     axarr[3].set_ylabel(label_array[3])
-    ylim_inf = axarr[3].get_ylim()[0]
-    ylim_sup = axarr[3].get_ylim()[1]
+    ylim_inf, ylim_sup = axarr[3].get_ylim()
     axarr[3].set_ylim([ylim_inf-0.1*abs(ylim_sup-ylim_inf),ylim_sup+0.1*abs(ylim_sup-ylim_inf)])
     axarr[3].legend(loc=2,fontsize=10)
-    for ii in (np.arange(len(segmentTrajectory))):
-        segment_time = segmentTrajectory[ii,1]
-        axis_range = axarr[3].get_ylim()
-        axarr[3].plot([segment_time, segment_time],axis_range,'w',linewidth=1.0)
-
-
 
     # Empty plot (subplot 2, right axis)
     for i in np.where(signal_array[:,1]=='4')[0]:
-
-        axarr[4].plot(wform[i].times,wform[i].values,'x--',label=signal_array[i,2],linewidth=3)
+        print(f'wform in 4: {wform[i]}')
+        print('ax 4:' + str(wform[i].values))
+        axarr[4].plot(wform[i].times,wform[i].values,'x--',label=signal_array[i,2],linewidth=2)
 
     axarr[4].set_ylabel(label_array[4])
-    ylim_inf = axarr[4].get_ylim()[0]
-    ylim_sup = axarr[4].get_ylim()[1]
+    ylim_inf, ylim_sup = axarr[4].get_ylim()
     axarr[4].set_ylim([ylim_inf-0.1*abs(ylim_sup-ylim_inf),ylim_sup+0.1*abs(ylim_sup-ylim_inf)])
     axarr[4].legend(loc=1,fontsize=11)
-
-    for ii in (np.arange(len(segmentTrajectory))):
-        segment_time = segmentTrajectory[ii,1]
-        axis_range = axarr[4].get_ylim()
-        axarr[4].plot([segment_time, segment_time],axis_range,'w',linewidth=0.5)
-
-    #axarr[4].tick_params(axis='y',right='off',labelright='off')
-
-
 
     # Density request (subplot 3, left axis)
     for i in np.where(signal_array[:,1]=='5')[0]:
         if len(np.where(wform[i].values!=0)[0])>0:
-            axarr[5].plot(wform[i].times,wform[i].values,'x-',label=signal_array[i,2],linewidth=3)
+            axarr[5].plot(wform[i].times,wform[i].values,'x-',label=signal_array[i,2],linewidth=2)
 
     axarr[5].set_ylabel(label_array[5])
-    ylim_inf = axarr[5].get_ylim()[0]
-    ylim_sup = axarr[5].get_ylim()[1]
+    ylim_inf, ylim_sup = axarr[5].get_ylim()
     axarr[5].set_ylim([ylim_inf-0.1*abs(ylim_sup-ylim_inf),ylim_sup+0.1*abs(ylim_sup-ylim_inf)])
     axarr[5].legend(loc=2,fontsize=11)
-
-    for ii in (np.arange(len(segmentTrajectory))):
-        segment_time = segmentTrajectory[ii,1]
-        axis_range = axarr[5].get_ylim()
-        axarr[5].plot([segment_time, segment_time],axis_range,'w',linewidth=0.5)
-
-
 
     # Gas valve opening requests (subplot 3, right axis)
     for i in np.where(signal_array[:,1]=='6')[0]:
         if len(np.where(wform[i].values!=0)[0])>0:
-            axarr[6].plot(wform[i].times,wform[i].values,'x--',label=signal_array[i,2],linewidth=3)
+            axarr[6].plot(wform[i].times,wform[i].values,'x--',label=signal_array[i,2],linewidth=2)
 
     axarr[6].set_ylabel(label_array[6])
     ylim_inf = axarr[6].get_ylim()[0]
@@ -408,17 +380,10 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms):
     axarr[6].set_ylim([ylim_inf-0.1*abs(ylim_sup-ylim_inf),ylim_sup+0.1*abs(ylim_sup-ylim_inf)])
     axarr[6].legend(loc=1,fontsize=10)
 
-    for ii in (np.arange(len(segmentTrajectory))):
-        segment_time = segmentTrajectory[ii,1]
-        axis_range = axarr[6].get_ylim()
-        axarr[6].plot([segment_time, segment_time],axis_range,'w',linewidth=0.5)
-
-
-
     # Heating powers (subplot 4, left axis)
     for i in np.where(signal_array[:,1]=='7')[0]:
 
-        axarr[7].plot(wform[i].times,wform[i].values,'x-',label=signal_array[i,2],linewidth=3)
+        axarr[7].plot(wform[i].times,wform[i].values,'x-',label=signal_array[i,2],linewidth=2)
 
     ylim_inf = axarr[7].get_ylim()[0]
     ylim_sup = axarr[7].get_ylim()[1]
@@ -426,33 +391,18 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms):
     axarr[7].set_ylim([ylim_inf-0.1*abs(ylim_sup-ylim_inf),ylim_sup+0.1*abs(ylim_sup-ylim_inf)])
     axarr[7].legend(loc=2,fontsize=10)
 
-
-    for ii in (np.arange(len(segmentTrajectory))):
-        segment_time = segmentTrajectory[ii,1]
-        axis_range = axarr[7].get_ylim()
-        axarr[7].plot([segment_time, segment_time],axis_range,'w',linewidth=0.5)
-
-
-
     # Heating phases (subplot 4, right axis)
     for i in np.where(signal_array[:,1]=='8')[0]:
 
-        axarr[8].plot(wform[i].times,wform[i].values,'x--',label=signal_array[i,2],linewidth=3)
+        axarr[8].plot(wform[i].times,wform[i].values,'x--',label=signal_array[i,2],linewidth=2)
 
     ylim_inf = axarr[8].get_ylim()[0]
     ylim_sup = axarr[8].get_ylim()[1]
     axarr[8].set_ylabel(label_array[8])
     axarr[8].set_ylim([ylim_inf-0.1*abs(ylim_sup-ylim_inf),ylim_sup+0.1*abs(ylim_sup-ylim_inf)])
     axarr[8].legend(loc=1,fontsize=12)
-    for ii in (np.arange(len(segmentTrajectory))):
-        segment_time = segmentTrajectory[ii,1]
-        axis_range = axarr[8].get_ylim()
-        axarr[8].plot([segment_time, segment_time],axis_range,'w',linewidth=0.5)
 
-
-
-    #Set figure geometry
-    #mngr = plt.get_current_fig_manager()
-    #mngr.window.setGeometry(fig_Xposition,fig_Yposition,fig_width,fig_height)
-
+    # Set figure geometry
+    fig.canvas.manager.window.setGeometry(fig_Xposition,fig_Yposition,fig_width,fig_height)
+    #fig.tight_layout()
     plt.show()
