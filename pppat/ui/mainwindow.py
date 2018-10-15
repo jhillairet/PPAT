@@ -251,6 +251,7 @@ class MainWindow(QMainWindow):
         """ Load the pulse settings when user clicks on 'load' """
         # construct the pulse settings
         self.pulse_settings = PulseSettings()
+        self.pulse_settings_dir = None
         # default loading state
         res_load = False
 
