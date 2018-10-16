@@ -331,7 +331,8 @@ class MainWindow(QMainWindow):
         _pulse_settings_dir = \
             QFileDialog.getExistingDirectory(self,
                                              'Select XML/DCS files directory',
-                                             directory=QDir.currentPath()
+                                             directory=QDir.currentPath(),
+                                             options=QFileDialog.DontUseNativeDialog
                                              )
         _pulse_settings_files = {
                 'sup': f'{_pulse_settings_dir}/Sup.xml',
