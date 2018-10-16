@@ -23,7 +23,6 @@ def check_WOI_4p1_plasma_density(is_online=False, waveforms=None):
         raise(ValueError(f'waveform {waveform_name} not found!?'))
     else:
         # check the min density (excluding 0 values)
-        logger.info(waveform.values)
         n_min = 1e18*np.amin(waveform.values[np.nonzero(waveform.values)])
         logger.info(f'Min density from waveform: {n_min}')
 
