@@ -1,6 +1,5 @@
 from xml.dom import minidom
 import numpy as np
-
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.collections import PatchCollection
@@ -8,249 +7,110 @@ from matplotlib import gridspec
 
 from pppat.libpulse.waveform import get_waveform
 
+# Black background for better readbility in the control room
+#plt.style.use('dark_background')
 
-def BigPicture_disp(segmentTrajectory, dpFile, waveforms):
 
-    # Force interactive mode off to plot in separate windows and not in console
-    #plt.rcParams['interactive'] = False
-    
-    #Figure window size parameters. Note that NX adjusts the vertical size if too tall.
+
+def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
+    # Figure window size parameters. Note that NX adjusts the vertical size if too tall.
     fig_Xposition = 0
     fig_Yposition = 0
     fig_width = 1200
     fig_height = 1000
 
-
-    signal_array = np.array([])
-
-    #print(dpFile)
-
-    #Build the signal list together with the plot number they are supposed to be displayed in.
-    #First stored in a linear list for memory management efficiency
+    # Build the signal list together with the plot number they are supposed to be displayed in.
+    # First stored in a linear list for memory management efficiency
 
     signal_list = []
-    signal_list.append('rts:WEST_PCS/Plasma/Ip/waveform.ref')
-    signal_list.append('1')
-    signal_list.append('Ip')
+    signal_list.append(['rts:WEST_PCS/Plasma/Ip/waveform.ref', '1', 'Ip'])
+    # plasma positions
+    signal_list.append(['rts:WEST_PCS/Plasma/Rgeo/waveform.ref', '2', 'Rgeo'])
+    signal_list.append(['rts:WEST_PCS/Plasma/Zgeo/waveform.ref', '2', 'Zgeo'])
+    signal_list.append(['rts:WEST_PCS/Plasma/Rext/waveform.ref', '2', 'Rext'])
+    signal_list.append(['rts:WEST_PCS/Plasma/dXLow/waveform.ref', '2', 'dXLow'])
+    # Poloidal and divertor currents
+    signal_list.append(['rts:WEST_PCS/Actuators/Poloidal/IA/waveform.ref', '3', 'IA'])
+    signal_list.append(['rts:WEST_PCS/Actuators/Poloidal/IBh/waveform.ref', '3', 'IBh'])
+    signal_list.append(['rts:WEST_PCS/Actuators/Poloidal/IDh/waveform.ref', '3', 'IDh'])
+    signal_list.append(['rts:WEST_PCS/Actuators/Poloidal/IEh/waveform.ref', '3', 'IEh'])
+    signal_list.append(['rts:WEST_PCS/Actuators/Poloidal/IFh/waveform.ref', '3', 'IFh'])
+    signal_list.append(['rts:WEST_PCS/Actuators/Poloidal/IBb/waveform.ref', '3', 'IBb'])
+    signal_list.append(['rts:WEST_PCS/Actuators/Poloidal/IDb/waveform.ref', '3', 'IDb'])
+    signal_list.append(['rts:WEST_PCS/Actuators/Poloidal/IEb/waveform.ref', '3', 'IEb'])
+    signal_list.append(['rts:WEST_PCS/Actuators/Poloidal/IFb/waveform.ref', '3', 'IFb'])
+    signal_list.append(['rts:WEST_PCS/Actuators/Poloidal/IXh/waveform.ref', '4', 'IXh'])
+    signal_list.append(['rts:WEST_PCS/Actuators/Poloidal/IXb/waveform.ref', '4', 'IXb'])
+    # Density and gaz injection
+    signal_list.append(['rts:WEST_PCS/Actuators/Gas/REF1/waveform.ref', '5', 'ne'])
+    for ind in range(1, 21):  # les 21 vannes de gaz
+        signal_list.append([f'rts:WEST_PCS/Actuators/Gas/valve{ind:02d}/waveform.ref', 
+                            '6', f'valve {ind}'])
+    # External heating system
+    signal_list.append(['rts:WEST_PCS/Actuators/Heating/LHCD/power/1/waveform.ref', '7', 'P_LH1'])
+    signal_list.append(['rts:WEST_PCS/Actuators/Heating/LHCD/power/2/waveform.ref', '7', 'P_LH2'])
+    signal_list.append(['rts:WEST_PCS/Actuators/Heating/ICRH/power/1/waveform.ref', '7', 'P_ICRH1'])
+    signal_list.append(['rts:WEST_PCS/Actuators/Heating/ICRH/power/2/waveform.ref', '7', 'P_ICRH2'])
+    signal_list.append(['rts:WEST_PCS/Actuators/Heating/ICRH/power/3/waveform.ref', '7', 'P_ICRH3'])
 
-    signal_list.append('rts:WEST_PCS/Actuators/Gas/REF1/waveform.ref')
-    signal_list.append('5')
-    signal_list.append('ne')
+    signal_list.append(['rts:WEST_PCS/Actuators/Heating/LHCD/phase/1/waveform.ref', '8', 'Phi_LH1'])
+    signal_list.append(['rts:WEST_PCS/Actuators/Heating/LHCD/phase/2/waveform.ref', '8', 'Phi_LH2'])
+    signal_list.append(['rts:WEST_PCS/Actuators/Heating/ICRH/phase/1/waveform.ref', '8', 'Phi_ICRH1'])
+    signal_list.append(['rts:WEST_PCS/Actuators/Heating/ICRH/phase/2/waveform.ref', '8', 'Phi_ICRH2'])
+    signal_list.append(['rts:WEST_PCS/Actuators/Heating/ICRH/phase/3/waveform.ref', '8', 'Phi_ICRH3'])
 
-    signal_list.append('rts:WEST_PCS/Actuators/Gas/valve01/waveform.ref')
-    signal_list.append('6')
-    signal_list.append('valve 1')
-    signal_list.append('rts:WEST_PCS/Actuators/Gas/valve02/waveform.ref')
-    signal_list.append('6')
-    signal_list.append('valve 2')
-    signal_list.append('rts:WEST_PCS/Actuators/Gas/valve03/waveform.ref')
-    signal_list.append('6')
-    signal_list.append('valve 3')
-    signal_list.append('rts:WEST_PCS/Actuators/Gas/valve04/waveform.ref')
-    signal_list.append('6')
-    signal_list.append('valve 4')
-    signal_list.append('rts:WEST_PCS/Actuators/Gas/valve05/waveform.ref')
-    signal_list.append('6')
-    signal_list.append('valve 5')
-    signal_list.append('rts:WEST_PCS/Actuators/Gas/valve06/waveform.ref')
-    signal_list.append('6')
-    signal_list.append('valve 6')
-    signal_list.append('rts:WEST_PCS/Actuators/Gas/valve07/waveform.ref')
-    signal_list.append('6')
-    signal_list.append('valve 7')
-    signal_list.append('rts:WEST_PCS/Actuators/Gas/valve08/waveform.ref')
-    signal_list.append('6')
-    signal_list.append('valve 8')
-    signal_list.append('rts:WEST_PCS/Actuators/Gas/valve09/waveform.ref')
-    signal_list.append('6')
-    signal_list.append('valve 9')
-    signal_list.append('rts:WEST_PCS/Actuators/Gas/valve10/waveform.ref')
-    signal_list.append('6')
-    signal_list.append('valve 10')
-    signal_list.append('rts:WEST_PCS/Actuators/Gas/valve11/waveform.ref')
-    signal_list.append('6')
-    signal_list.append('valve 11')
-    signal_list.append('rts:WEST_PCS/Actuators/Gas/valve12/waveform.ref')
-    signal_list.append('6')
-    signal_list.append('valve 12')
-    signal_list.append('rts:WEST_PCS/Actuators/Gas/valve13/waveform.ref')
-    signal_list.append('6')
-    signal_list.append('valve 13')
-    signal_list.append('rts:WEST_PCS/Actuators/Gas/valve14/waveform.ref')
-    signal_list.append('6')
-    signal_list.append('valve 14')
-    signal_list.append('rts:WEST_PCS/Actuators/Gas/valve15/waveform.ref')
-    signal_list.append('6')
-    signal_list.append('valve 15')
-    signal_list.append('rts:WEST_PCS/Actuators/Gas/valve16/waveform.ref')
-    signal_list.append('6')
-    signal_list.append('valve 16')
-    signal_list.append('rts:WEST_PCS/Actuators/Gas/valve17/waveform.ref')
-    signal_list.append('6')
-    signal_list.append('valve 17')
-    signal_list.append('rts:WEST_PCS/Actuators/Gas/valve18/waveform.ref')
-    signal_list.append('6')
-    signal_list.append('valve 18')
-    signal_list.append('rts:WEST_PCS/Actuators/Gas/valve19/waveform.ref')
-    signal_list.append('6')
-    signal_list.append('valve 19')
-    signal_list.append('rts:WEST_PCS/Actuators/Gas/valve20/waveform.ref')
-    signal_list.append('6')
-    signal_list.append('valve 20')
-    signal_list.append('rts:WEST_PCS/Actuators/Gas/valve21/waveform.ref')
-    signal_list.append('6')
-    signal_list.append('valve 21')
+    #signal_number = int(len(signal_list)/3)
 
-    signal_list.append('rts:WEST_PCS/Actuators/Poloidal/IA/waveform.ref')
-    signal_list.append('3')
-    signal_list.append('IA')
-    signal_list.append('rts:WEST_PCS/Actuators/Poloidal/IBh/waveform.ref')
-    signal_list.append('3')
-    signal_list.append('IBh')
-    signal_list.append('rts:WEST_PCS/Actuators/Poloidal/IDh/waveform.ref')
-    signal_list.append('3')
-    signal_list.append('IDh')
-    signal_list.append('rts:WEST_PCS/Actuators/Poloidal/IEh/waveform.ref')
-    signal_list.append('3')
-    signal_list.append('IEh')
-    signal_list.append('rts:WEST_PCS/Actuators/Poloidal/IFh/waveform.ref')
-    signal_list.append('3')
-    signal_list.append('IFh')
-    signal_list.append('rts:WEST_PCS/Actuators/Poloidal/IBb/waveform.ref')
-    signal_list.append('3')
-    signal_list.append('IBb')
-    signal_list.append('rts:WEST_PCS/Actuators/Poloidal/IDb/waveform.ref')
-    signal_list.append('3')
-    signal_list.append('IDb')
-    signal_list.append('rts:WEST_PCS/Actuators/Poloidal/IEb/waveform.ref')
-    signal_list.append('3')
-    signal_list.append('IEb')
-    signal_list.append('rts:WEST_PCS/Actuators/Poloidal/IFb/waveform.ref')
-    signal_list.append('3')
-    signal_list.append('IFb')
+    # Reshaping of the signal list into an array.
+    # signal_array[:,1] = DCS signal name
+    # signal_array[:,2] = subplot to be plotted in.
+    # signal_array[:,3] = name of the waveform, to be displayed in legend
+    signal_array = np.array(signal_list)#.reshape((signal_number,3))
 
-    signal_list.append('rts:WEST_PCS/Actuators/Poloidal/IXh/waveform.ref')
-    signal_list.append('4')
-    signal_list.append('IXh')
-    signal_list.append('rts:WEST_PCS/Actuators/Poloidal/IXb/waveform.ref')
-    signal_list.append('4')
-    signal_list.append('IXb')
-
-    signal_list.append('rts:WEST_PCS/Plasma/Rgeo/waveform.ref')
-    signal_list.append('2')
-    signal_list.append('Rgeo')
-    signal_list.append('rts:WEST_PCS/Plasma/Zgeo/waveform.ref')
-    signal_list.append('2')
-    signal_list.append('Zgeo')
-    signal_list.append('rts:WEST_PCS/Plasma/Rext/waveform.ref')
-    signal_list.append('2')
-    signal_list.append('Rext')
-    signal_list.append('rts:WEST_PCS/Plasma/dXLow/waveform.ref')
-    signal_list.append('2')
-    signal_list.append('dXLow')
-
-    signal_list.append('rts:WEST_PCS/Actuators/Heating/LHCD/power/1/waveform.ref')
-    signal_list.append('7')
-    signal_list.append('P_LH1')
-    signal_list.append('rts:WEST_PCS/Actuators/Heating/LHCD/phase/1/waveform.ref')
-    signal_list.append('8')
-    signal_list.append('Phi_LH1')
-    signal_list.append('rts:WEST_PCS/Actuators/Heating/LHCD/power/2/waveform.ref')
-    signal_list.append('7')
-    signal_list.append('P_LH2')
-    signal_list.append('rts:WEST_PCS/Actuators/Heating/LHCD/phase/2/waveform.ref')
-    signal_list.append('8')
-    signal_list.append('Phi_LH2')
-    signal_list.append('rts:WEST_PCS/Actuators/Heating/ICRH/power/1/waveform.ref')
-    signal_list.append('7')
-    signal_list.append('P_ICRH1')
-    signal_list.append('rts:WEST_PCS/Actuators/Heating/ICRH/phase/1/waveform.ref')
-    signal_list.append('8')
-    signal_list.append('Phi_ICRH1')
-    signal_list.append('rts:WEST_PCS/Actuators/Heating/ICRH/power/2/waveform.ref')
-    signal_list.append('7')
-    signal_list.append('P_ICRH2')
-    signal_list.append('rts:WEST_PCS/Actuators/Heating/ICRH/phase/2/waveform.ref')
-    signal_list.append('8')
-    signal_list.append('Phi_ICRH2')
-    signal_list.append('rts:WEST_PCS/Actuators/Heating/ICRH/power/3/waveform.ref')
-    signal_list.append('7')
-    signal_list.append('P_ICRH3')
-    signal_list.append('rts:WEST_PCS/Actuators/Heating/ICRH/phase/3/waveform.ref')
-    signal_list.append('8')
-    signal_list.append('Phi_ICRH3')
-
-    signal_number = int(len(signal_list)/3)
-
-    #Reshaping of the signal list into an array.
-    #signal_array(:,1) = DCS signal name
-    #signal_array(:,2) = subplot to be plotted in.
-    #signal_array(:,3) = name of the waveform, to be displayed in legend
-    signal_array = np.array(signal_list).reshape((signal_number,3))
-#    for (sig_name, subplot_nb, wf_name) in signal_array:
-#        print(sig_name)
-
-    
     #Build the waveforms from the segment trajectory, the signal names and the name of the DP.xml file
-    # get only the waveforms indicated above in the signal_list 
+    # get only the waveforms indicated above in the signal_list
     wform = []
     for i, sig in enumerate(signal_array):
         #print(f'i={i}: sig={sig}')
         wform.append(get_waveform(sig[0], waveforms))
 
     #wform = waveformBuilder(segmentTrajectory,signal_array[:,0],dpFile)
-    
-    
-    #Array containing axes labels.
-    #Should be the same size as the number of subplots times 2 (2 axes per subplot)
 
-    label_array = np.array([])
-    label_array = np.append(label_array,'') #No label on patch subplot, just to keep the correct numbers for the following ones.
-    label_array = np.append(label_array,'[A]')
-    label_array = np.append(label_array,'[m]')
-    label_array = np.append(label_array,'[A]')
-    label_array = np.append(label_array,'[A]')
-    label_array = np.append(label_array,'[m^-2]')
-    label_array = np.append(label_array,'[Pa.m^3.s^-1]')
-    label_array = np.append(label_array,'[W]')
-    label_array = np.append(label_array,'[deg]')
-
+    # Array containing axes y-labels.
+    # Should be the same size as the number of subplots times 2 (2 axes per subplot)
+    ylabels = {'0': '',  # No label on patch subplot
+              '1': '[A]', '2': '[m]', '3': '[A]', '4': '[A]',
+              '5': '[m^-2]', '6': '[Pa.m^3.s^-1]', '7': '[W]', '8':'[deg]'}
 
     # Figure initialization
     fig = plt.figure()
-    fig.canvas.set_window_title("The Big Picture")
+    fig.canvas.set_window_title(f"The Big Picture - WEST pulse #{pulse_nb}")
 
     # Axes creation. 2 y axes per suplot using twinx.
     axarr = np.array([])
-    gs = gridspec.GridSpec(5,1,height_ratios=[1,6,6,6,6])
-    axarr = np.append(axarr,plt.subplot(gs[0]))
-    axarr = np.append(axarr,plt.subplot(gs[1]))
-    axarr = np.append(axarr,axarr[-1].twinx())
-    axarr = np.append(axarr,plt.subplot(gs[2]))
-    axarr = np.append(axarr,axarr[-1].twinx())
-    axarr = np.append(axarr,plt.subplot(gs[3]))
-    axarr = np.append(axarr,axarr[-1].twinx())
-    axarr = np.append(axarr,plt.subplot(gs[4]))
-    axarr = np.append(axarr,axarr[-1].twinx())
+    gs = gridspec.GridSpec(5, 1, height_ratios=[1,6,6,6,6])
+    axarr = np.append(axarr, plt.subplot(gs[0]))
+    axarr = np.append(axarr, plt.subplot(gs[1]))
+    axarr = np.append(axarr, axarr[-1].twinx())
+    axarr = np.append(axarr, plt.subplot(gs[2]))
+    axarr = np.append(axarr, axarr[-1].twinx())
+    axarr = np.append(axarr, plt.subplot(gs[3]))
+    axarr = np.append(axarr, axarr[-1].twinx())
+    axarr = np.append(axarr, plt.subplot(gs[4]))
+    axarr = np.append(axarr, axarr[-1].twinx())
 
     # Link the x axes to be able to zoom all suplots simultaneously
     axarr[0].get_shared_x_axes().join(axarr[0], axarr[1], axarr[3], axarr[5], axarr[7])
 
-    # Reduce spaces between subplots to compactify the display
-    fig.subplots_adjust(left=0.12,bottom=0.02,right=0.90,top=0.98,wspace=0.15,hspace=0.10)
 
-    # Black background for better readbility in the control room
+
+    # Black background for better readbility in the control room   
     for i in np.arange(9):
         axarr[i].set_facecolor('black')
 
-        #Color maps for curves.
-        #Default pyplot colormap has a black iteration which is invisible in a black background
-        #n_colors is the number of different colors in the colormap
-
-        n_colors=7
-        plot_color_map_base = plt.cm.prism
-        #plot_color_map = plot_color_map_base(np.linspace(0.02,1.0,n_colors))
-        plot_color_map = ['#FF0000','#00FF00','#FF00FF','#0000FF','#FFFF00','#00FFFF','#669900','#cccccc','#996600',]
+        # Color maps for curves.        
+        plot_color_map = ['#FF0000','#00FF00','#FF00FF','#0000FF','#FFFF00',
+                          '#00FFFF','#669900','#cccccc','#996600',]
         axarr[i].set_color_cycle(plot_color_map)
 
     # convert the segment scenario into a numpy array for compatibility with the code below
@@ -262,147 +122,121 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms):
     # Even axis numbers: left-hand y axes
     # Odd axis numbers: right-hand y axes
 
-    # Patch plot (segments)
-
-    axarr[0].plot([0],[0],'x-',label=signal_array[i,2],linewidth=3,markersize=10)
+    # Segments overview (patch plot)
+    axarr[0].plot([0], [0], 
+                  'x-', label=signal_array[i,2], linewidth=3, markersize=10)
 
     segments_patches = []
     for ii in (np.arange(len(segmentTrajectory))):
 
         segment_duration = float(segmentTrajectory[ii,2])
-        segment_start_time = float(segmentTrajectory[ii,1])-segment_duration
-        rect = mpatches.Rectangle([segment_start_time,0.0],segment_duration,1.0,ec='none')
+        segment_start_time = float(segmentTrajectory[ii,1]) - segment_duration
+        rect = mpatches.Rectangle([segment_start_time,0.0], segment_duration,
+                                   1.0, ec='none')
         segments_patches.append(rect)
     #p_collec = PatchCollection(segments_patches, cmap=mpl.cm.jet, alpha=0.4)
     colors = np.linspace(0, 1, len(segments_patches))
-    p_collec = PatchCollection(segments_patches,cmap=plt.cm.Dark2)
+    p_collec = PatchCollection(segments_patches, cmap=plt.cm.Dark2)
     p_collec.set_array(np.array(colors))
-
 
     axarr[0].add_collection(p_collec)
     axarr[0].set_ylim([0,1])
 
     for ii in (np.arange(len(segmentTrajectory))):
         segment_duration = float(segmentTrajectory[ii,2])
-        segment_start_time = float(segmentTrajectory[ii,1])-segment_duration
-        if (segmentTrajectory[ii,0]=='Init'):
+        segment_start_time = float(segmentTrajectory[ii,1]) - segment_duration
+        if (segmentTrajectory[ii,0] == 'Init'):
             text_segment = 'Init'
         else:
             text_segment = segmentTrajectory[ii,0][7:]
 
-        axarr[0].text(segment_start_time+segment_duration/2.0,0.2,text_segment,color='white',ha='center')
-    axarr[0].tick_params(axis='x',bottom='off',labelbottom='off')
-    axarr[0].tick_params(axis='y',left='off',labelleft='off')
+        axarr[0].text(segment_start_time + segment_duration/2.0, 0.2,
+                      text_segment, color='white', ha='center')
+    axarr[0].tick_params(axis='x', bottom='off', labelbottom='off')
+    axarr[0].tick_params(axis='y', left='off', labelleft='off')
 
     # Plasma current (subplot 1, left axis)
     for i in np.where(signal_array[:,1]=='1')[0]:
-        print(f'wform in 1: {wform[i]}')
-        #Plot signal
-        axarr[1].plot(wform[i].times, wform[i].values,'x-',label=signal_array[i,2],linewidth=2,markersize=10)
-
-    # Get y axis limits to find the adequate size of vertical bars for segment indicators
-    ylim_inf, ylim_sup = axarr[1].get_ylim()
- 
-    # Set yaxis labels just beyond automatic limits to avoid having horizontal lines stuck to the top
-    # or the bottom of the subplot.
-    axarr[1].set_ylim([ylim_inf-0.1*abs(ylim_sup-ylim_inf),ylim_sup+0.1*abs(ylim_sup-ylim_inf)])
-
-    # Y axis label taken from table defined above.
-    axarr[1].set_ylabel(label_array[1])
-
+        # Plot signal
+        axarr[1].plot(wform[i].times, wform[i].values,
+                      'x-', label=signal_array[i,2], linewidth=2, markersize=10)
     # Display legend near the relevant axis (left or right). To be improved.
-    axarr[1].legend(loc=2,fontsize=11)
+    axarr[1].legend(loc=2, fontsize=11)
 
-    # Display white vertical lines to mark segment transitions on all subplots
-    for ax in axarr:
-        for segment in segmentTrajectory:
-            segment_time = float(segment[1])
-            ax.axvline(segment_time, color='w', lw=0.5)
-        #axis_range = axarr[1].get_ylim()
-        #axarr[1].plot([segment_time, segment_time],axis_range,'w',linewidth=1.0)
-
-    # Repeat for right-hand axis on first subplot.
     # R,Z (subplot 1, right axis)
-    for i in np.where(signal_array[:,1]=='2')[0]:
-        print(f'wform in 2: {wform[i]}')
-        if wform[i]:  # not None
+    for i in np.where(signal_array[:,1] == '2')[0]:
+        if wform[i]:  # avoid case where it's None
             # Do not display non-existent waveforms (unused shape control modes).
             if len(wform[i].values != 0) > 0:
-
-                axarr[2].plot(wform[i].times,wform[i].values,'x--',label=signal_array[i,2],linewidth=2)
-
-    axarr[2].set_ylabel(label_array[2])
-    ylim_inf, ylim_sup = axarr[2].get_ylim()
-    axarr[2].set_ylim([ylim_inf-0.1*abs(ylim_sup-ylim_inf),ylim_sup+0.1*abs(ylim_sup-ylim_inf)])
+                axarr[2].plot(wform[i].times, wform[i].values,
+                             'x--', linewidth=2, label=signal_array[i,2])
     axarr[2].legend(loc=1,fontsize=11)
 
-    # Repeat for next subplot.
     # Coil currents (subplot 2, left axis)
-    for i in np.where(signal_array[:,1]=='3')[0]:
-        print(f'wform in3: {wform[i]}')
-        print('ax 3:' + str(wform[i].values))
-        axarr[3].plot(wform[i].times,wform[i].values,'x-',label=signal_array[i,2],linewidth=2)
-
-    axarr[3].set_ylabel(label_array[3])
-    ylim_inf, ylim_sup = axarr[3].get_ylim()
-    axarr[3].set_ylim([ylim_inf-0.1*abs(ylim_sup-ylim_inf),ylim_sup+0.1*abs(ylim_sup-ylim_inf)])
-    axarr[3].legend(loc=2,fontsize=10)
-
-    # Empty plot (subplot 2, right axis)
-    for i in np.where(signal_array[:,1]=='4')[0]:
-        print(f'wform in 4: {wform[i]}')
-        print('ax 4:' + str(wform[i].values))
-        axarr[4].plot(wform[i].times,wform[i].values,'x--',label=signal_array[i,2],linewidth=2)
-
-    axarr[4].set_ylabel(label_array[4])
-    ylim_inf, ylim_sup = axarr[4].get_ylim()
-    axarr[4].set_ylim([ylim_inf-0.1*abs(ylim_sup-ylim_inf),ylim_sup+0.1*abs(ylim_sup-ylim_inf)])
+    for i in np.where(signal_array[:,1] == '3')[0]:
+        axarr[3].plot(wform[i].times, wform[i].values, 
+                      'x-', label=signal_array[i,2], linewidth=2)
+    axarr[3].legend(loc=2, fontsize=8)
+    
+    # Divertor coil currents (subplot 2, right axis)
+    for i in np.where(signal_array[:,1] == '4')[0]:
+        axarr[4].plot(wform[i].times, wform[i].values,
+                      'x--', label=signal_array[i,2], linewidth=2)
     axarr[4].legend(loc=1,fontsize=11)
 
     # Density request (subplot 3, left axis)
     for i in np.where(signal_array[:,1]=='5')[0]:
         if len(np.where(wform[i].values!=0)[0])>0:
-            axarr[5].plot(wform[i].times,wform[i].values,'x-',label=signal_array[i,2],linewidth=2)
-
-    axarr[5].set_ylabel(label_array[5])
-    ylim_inf, ylim_sup = axarr[5].get_ylim()
-    axarr[5].set_ylim([ylim_inf-0.1*abs(ylim_sup-ylim_inf),ylim_sup+0.1*abs(ylim_sup-ylim_inf)])
-    axarr[5].legend(loc=2,fontsize=11)
+            axarr[5].plot(wform[i].times,wform[i].values,
+                          'x-', label=signal_array[i,2], linewidth=2)
+    axarr[5].legend(loc=2, fontsize=11)
 
     # Gas valve opening requests (subplot 3, right axis)
-    for i in np.where(signal_array[:,1]=='6')[0]:
-        if len(np.where(wform[i].values!=0)[0])>0:
-            axarr[6].plot(wform[i].times,wform[i].values,'x--',label=signal_array[i,2],linewidth=2)
-
-    axarr[6].set_ylabel(label_array[6])
-    ylim_inf = axarr[6].get_ylim()[0]
-    ylim_sup = axarr[6].get_ylim()[1]
-    axarr[6].set_ylim([ylim_inf-0.1*abs(ylim_sup-ylim_inf),ylim_sup+0.1*abs(ylim_sup-ylim_inf)])
-    axarr[6].legend(loc=1,fontsize=10)
+    for i in np.where(signal_array[:,1] == '6')[0]:
+        if len(np.where(wform[i].values != 0)[0]) > 0:
+            axarr[6].plot(wform[i].times, wform[i].values, 
+                          'x--', label=signal_array[i,2], linewidth=2)
+    axarr[6].legend(loc=1, fontsize=10)
 
     # Heating powers (subplot 4, left axis)
-    for i in np.where(signal_array[:,1]=='7')[0]:
-
-        axarr[7].plot(wform[i].times,wform[i].values,'x-',label=signal_array[i,2],linewidth=2)
-
-    ylim_inf = axarr[7].get_ylim()[0]
-    ylim_sup = axarr[7].get_ylim()[1]
-    axarr[7].set_ylabel(label_array[7])
-    axarr[7].set_ylim([ylim_inf-0.1*abs(ylim_sup-ylim_inf),ylim_sup+0.1*abs(ylim_sup-ylim_inf)])
-    axarr[7].legend(loc=2,fontsize=10)
+    for i in np.where(signal_array[:,1] == '7')[0]:
+        axarr[7].plot(wform[i].times, wform[i].values,
+                      'x-', label=signal_array[i,2], linewidth=2)
+    axarr[7].legend(loc=2, fontsize=10)
 
     # Heating phases (subplot 4, right axis)
-    for i in np.where(signal_array[:,1]=='8')[0]:
+    for i in np.where(signal_array[:,1] == '8')[0]:
+        axarr[8].plot(wform[i].times, wform[i].values, 
+                      'x--', label=signal_array[i,2], linewidth=2)
+    axarr[8].legend(loc=1, fontsize=12)
 
-        axarr[8].plot(wform[i].times,wform[i].values,'x--',label=signal_array[i,2],linewidth=2)
+    # generic to all subplots
+    for (ind_ax, ax) in enumerate(axarr):
+        # Display white vertical lines to mark segment transitions
+        for segment in segmentTrajectory:
+            segment_time = float(segment[1])
+            ax.axvline(segment_time, color='w', lw=0.5)
 
-    ylim_inf = axarr[8].get_ylim()[0]
-    ylim_sup = axarr[8].get_ylim()[1]
-    axarr[8].set_ylabel(label_array[8])
-    axarr[8].set_ylim([ylim_inf-0.1*abs(ylim_sup-ylim_inf),ylim_sup+0.1*abs(ylim_sup-ylim_inf)])
-    axarr[8].legend(loc=1,fontsize=12)
+        # Y-axis labels
+        ax.set_ylabel(ylabels[str(ind_ax)])
 
+        # Set yaxis labels just beyond automatic limits to avoid having 
+        # horizontal lines stuck to the top or the bottom of the subplot.
+        ylim_inf, ylim_sup = ax.get_ylim()
+        ax.set_ylim([ylim_inf - 0.1*abs(ylim_sup - ylim_inf),
+                     ylim_sup + 0.1*abs(ylim_sup - ylim_inf)])
+        
     # Set figure geometry
-    fig.canvas.manager.window.setGeometry(fig_Xposition,fig_Yposition,fig_width,fig_height)
+    fig.canvas.manager.window.setGeometry(fig_Xposition,fig_Yposition,
+                                          fig_width,fig_height)
+
+    # Reduce spaces between subplots to compactify the display
+    fig.subplots_adjust(left=0.12, bottom=0.02, right=0.90, top=0.98,
+                        wspace=0.15, hspace=0.10)
+    
+    # BUG : IA current is -5000 for some end segment (>900)
+    # contain the y-lim to physical values
+    axarr[3].set_ylim(-5e-3, +5e-3)
+    
     #fig.tight_layout()
     plt.show()

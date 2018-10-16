@@ -64,8 +64,8 @@ class MainWindow(QMainWindow):
         # define set of internal parameters
         self.pulse_settings = None
         self.pulse_settings_dir = None
-#        self.pulse_settings_files = None
-#        self.pulse_settings_shot = None
+        self.pulse_settings_files = None
+        self.pulse_settings_shot = None
 
         # Display user role in the status Bar
         logger.info(f'PPPAT has been launched by user {self.user_login}')
@@ -359,7 +359,8 @@ class MainWindow(QMainWindow):
         dp_file = self.pulse_settings.files['dp']
         wfs = self.pulse_settings.waveforms
 
-        BigPicture_disp(nominal_scenario, dp_file, wfs)
+        BigPicture_disp(nominal_scenario, dp_file, wfs, 
+                        self.pulse_settings_shot)
 
     @staticmethod
     def is_online():
@@ -374,6 +375,7 @@ class MainWindow(QMainWindow):
         """
         host = '10.8.86.1'  # deneb address
         port = 5880
+        # create a dummy connection to test the server reachability
         try:
             s = socket.create_connection((host, port), timeout=2)
             return True
