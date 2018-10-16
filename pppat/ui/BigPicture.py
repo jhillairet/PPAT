@@ -7,10 +7,6 @@ from matplotlib import gridspec
 
 from pppat.libpulse.waveform import get_waveform
 
-# Black background for better readbility in the control room
-#plt.style.use('dark_background')
-
-
 
 def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
     # Figure window size parameters. Note that NX adjusts the vertical size if too tall.
@@ -59,9 +55,7 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
     signal_list.append(['rts:WEST_PCS/Actuators/Heating/ICRH/phase/2/waveform.ref', '8', 'Phi_ICRH2'])
     signal_list.append(['rts:WEST_PCS/Actuators/Heating/ICRH/phase/3/waveform.ref', '8', 'Phi_ICRH3'])
 
-    #signal_number = int(len(signal_list)/3)
-
-    # Reshaping of the signal list into an array.
+    # Reshaping of the signal list into an array for compatibility with legacy code
     # signal_array[:,1] = DCS signal name
     # signal_array[:,2] = subplot to be plotted in.
     # signal_array[:,3] = name of the waveform, to be displayed in legend
@@ -155,7 +149,7 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
     axarr[0].tick_params(axis='x', bottom='off', labelbottom='off')
     axarr[0].tick_params(axis='y', left='off', labelleft='off')
 
-    # Plasma current (subplot 1, left axis)
+    # -- Plasma current (subplot 1, left axis)
     for i in np.where(signal_array[:,1]=='1')[0]:
         # Plot signal
         axarr[1].plot(wform[i].times, wform[i].values,
@@ -163,7 +157,7 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
     # Display legend near the relevant axis (left or right). To be improved.
     axarr[1].legend(loc=2, fontsize=11)
 
-    # R,Z (subplot 1, right axis)
+    # -- R,Z (subplot 1, right axis)
     for i in np.where(signal_array[:,1] == '2')[0]:
         if wform[i]:  # avoid case where it's None
             # Do not display non-existent waveforms (unused shape control modes).
@@ -172,45 +166,45 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
                              'x--', linewidth=2, label=signal_array[i,2])
     axarr[2].legend(loc=1,fontsize=11)
 
-    # Coil currents (subplot 2, left axis)
+    # -- Coil currents (subplot 2, left axis)
     for i in np.where(signal_array[:,1] == '3')[0]:
         axarr[3].plot(wform[i].times, wform[i].values, 
                       'x-', label=signal_array[i,2], linewidth=2)
     axarr[3].legend(loc=2, fontsize=8)
     
-    # Divertor coil currents (subplot 2, right axis)
+    # -- Divertor coil currents (subplot 2, right axis)
     for i in np.where(signal_array[:,1] == '4')[0]:
         axarr[4].plot(wform[i].times, wform[i].values,
                       'x--', label=signal_array[i,2], linewidth=2)
     axarr[4].legend(loc=1,fontsize=11)
 
-    # Density request (subplot 3, left axis)
+    # -- Density request (subplot 3, left axis)
     for i in np.where(signal_array[:,1]=='5')[0]:
         if len(np.where(wform[i].values!=0)[0])>0:
             axarr[5].plot(wform[i].times,wform[i].values,
                           'x-', label=signal_array[i,2], linewidth=2)
     axarr[5].legend(loc=2, fontsize=11)
 
-    # Gas valve opening requests (subplot 3, right axis)
+    # -- Gas valve opening requests (subplot 3, right axis)
     for i in np.where(signal_array[:,1] == '6')[0]:
         if len(np.where(wform[i].values != 0)[0]) > 0:
             axarr[6].plot(wform[i].times, wform[i].values, 
                           'x--', label=signal_array[i,2], linewidth=2)
     axarr[6].legend(loc=1, fontsize=10)
 
-    # Heating powers (subplot 4, left axis)
+    # -- Heating powers (subplot 4, left axis)
     for i in np.where(signal_array[:,1] == '7')[0]:
         axarr[7].plot(wform[i].times, wform[i].values,
                       'x-', label=signal_array[i,2], linewidth=2)
     axarr[7].legend(loc=2, fontsize=10)
 
-    # Heating phases (subplot 4, right axis)
+    # -- Heating phases (subplot 4, right axis)
     for i in np.where(signal_array[:,1] == '8')[0]:
         axarr[8].plot(wform[i].times, wform[i].values, 
                       'x--', label=signal_array[i,2], linewidth=2)
     axarr[8].legend(loc=1, fontsize=12)
 
-    # generic to all subplots
+    # -- generic to all subplots
     for (ind_ax, ax) in enumerate(axarr):
         # Display white vertical lines to mark segment transitions
         for segment in segmentTrajectory:
