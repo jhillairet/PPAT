@@ -28,6 +28,7 @@ class PulseSettings():
     def __init__(self):
         logger.info('init Pulse Setting')
         
+        self.pulse_nb = None  # pulse number
         self.files = None  # dictionnary containing 'dp' and 'sup' xml file paths
         self.waveforms = None  # list of Waveform objects
 
@@ -56,6 +57,9 @@ class PulseSettings():
         # Load DCS waveforms (DP.xml)
         self.waveforms = get_all_waveforms(self.nominal_scenario, self.files['dp'])
 
+        # TODO : recuperer le numero de choc à partir des fichiers de settings?
+        self.pulse_nb = None
+
         return self.DCS_settings.isLoaded
 
     @property
@@ -83,6 +87,7 @@ class PulseSettings():
         """
         # TODO: ? IRFMtb.tsrfile(pulse, 'FPCSPARAM', 'FPCSPARAM.tgz')
         XEDIT2DCS_archive = 'FXEDIT2DCS.tgz'
+        self.pulse_nb = None
         # extract DP.xml and Sup.xml from the tar.gz obtained from the
         # database (if they exist in the database) and load them
         result = IRFMtb.tsrfile(pulse, 'FXEDIT2DCS', XEDIT2DCS_archive)
@@ -94,7 +99,9 @@ class PulseSettings():
                     # load pulse settings
                     # TODO : download/move the file is correct temp directory
                     res_load = self.load_from_file(self.XEDIT2DCS_FILENAMES)
-
+                    # update the pulse number
+                    self.pulse_nb = pulse
+                    
                     return res_load
 #                # TODO: should we clean the xml files when reading from a file?
 #                # only if local file! Should not delete files on Nunki !!
@@ -121,6 +128,7 @@ class PulseSettings():
             True if the pulse settings have been correctly loaded, else False
 
         """
+        self.pulse_nb = None
         # Check the DCS settings are available are read them if they are
         computer_name = platform.node()
         if not computer_name == self.XEDIT2DCS_SERVER:
@@ -136,12 +144,18 @@ class PulseSettings():
                 logger.info('Session leader DCS setting files found!')	
                 # load pulse settings
                 res_load = self.load_from_file(self.files)
+                self.pulse_nb = self.next_pulse()
     
                 return res_load
             else:
                 logger.error('Unable to read the DCS Settings from session leader')
     
                 return False
+
+    def next_pulse(self):
+        ' determine the next pulse number '
+        return IRFMtb.tsdernier_choc() + 1
+        
 
     def check_all(self, is_online=True):
         """

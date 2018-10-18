@@ -72,7 +72,7 @@ class MainWindow(QMainWindow):
         self.pulse_settings = None
         self.pulse_settings_dir = None
         self.pulse_settings_files = None
-        self.pulse_settings_shot = None
+#▄        self.pulse_settings_shot = None
 
         # Display user role in the status Bar
         logger.info(f'PPPAT has been launched by user {self.user_login}')
@@ -309,9 +309,8 @@ class MainWindow(QMainWindow):
     
                     self.panel_pre_pulse.widget.pulse_setting_origin.setText(
                             f'WEST shot number {pulse_nb}')
-                    self.pulse_settings_shot = int(pulse_nb)
     
-                    res_load = self.pulse_settings.load_from_pulse(self.pulse_settings_shot)
+                    res_load = self.pulse_settings.load_from_pulse(int(pulse_nb))
 
         # if the pulse settings have been correctly loaded
         # some widgets (buttons) are enabled
@@ -350,8 +349,9 @@ class MainWindow(QMainWindow):
             QFileDialog.getExistingDirectory(self,
                                              'Select XML/DCS files directory',
                                              directory=QDir.currentPath(),
-                                             options=QFileDialog.DontUseNativeDialog
+                                             options=QFileDialog.ShowDirsOnly,  # DontUseNativeDialog
                                              )
+            
         _pulse_settings_files = {
                 'sup': f'{_pulse_settings_dir}/Sup.xml',
                 'dp': f'{_pulse_settings_dir}/DP.xml'
@@ -377,9 +377,9 @@ class MainWindow(QMainWindow):
         nominal_scenario = self.pulse_settings.DCS_settings.nominal_scenario
         dp_file = self.pulse_settings.files['dp']
         wfs = self.pulse_settings.waveforms
-
-        BigPicture_disp(nominal_scenario, dp_file, wfs, 
-                        self.pulse_settings_shot)
+        pulse_nb = self.pulse_settings.pulse_nb
+        
+        BigPicture_disp(nominal_scenario, dp_file, wfs, pulse_nb)
 
     @staticmethod
     def is_online():
