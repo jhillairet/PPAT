@@ -7,8 +7,8 @@ from qtpy.QtWidgets import (QMainWindow, QApplication, QWidget,
                             QHBoxLayout, QVBoxLayout, QAction, qApp,
                             QScrollArea, QTextBrowser, QFrame, QTextEdit,
                             QFileDialog, QPlainTextEdit, QTableWidgetItem)
-from qtpy.QtGui import QIcon, QCursor
-from qtpy.QtCore import QDir, Slot, Qt
+from qtpy.QtGui import QIcon, QCursor, QDesktopServices
+from qtpy.QtCore import QDir, Slot, Qt, QUrl
 
 from pppat.ui.reminder import EiCReminderWidget
 from pppat.ui.console import ConsoleWidget
@@ -19,12 +19,19 @@ from pppat.ui.log import QPlainTextEditLogger
 from pppat.libpulse.pulse_settings import PulseSettings
 from pppat.ui.BigPicture import BigPicture_disp
 
+from functools import partial  # used to pass parameters for open_url
+
 import logging
 logger = logging.getLogger(__name__)
 
 # PPPAT minimum width in pixels
 MINIMUM_WIDTH = 800
 
+# Usefull URLs
+URLS = {
+        'WOI': 'http://www-irfm.intra.cea.fr/Phocea/Page/index.php?id=563',
+        'annuaire': 'http://asterope.intra.cea.fr/Phocea/Membres/Annuaire/index.php'
+        }
 
 class MainWindow(QMainWindow):
     """
@@ -71,25 +78,36 @@ class MainWindow(QMainWindow):
         logger.info(f'PPPAT has been launched by user {self.user_login}')
         self.statusBar().showMessage(f'PPPAT launched by {self.user_role}')
 
-#        # Depending of the user's role, enable/disable loading pulse setup from SL
-#        if self.user_role == 'eic':
-#            self.panel_pre_pulse.widget.radio_sl.setChecked(True)
-#        else:
-#            self.panel_pre_pulse.widget.radio_sl.setDisabled(True)
-#            self.panel_pre_pulse.widget.radio_shot.setChecked(True)
-
         logger.info('Starting PPPAT')
 
     def menu_bar(self):
         """ Menu bar """
         self.menuBar = self.menuBar()
 
-        file_menu = self.menuBar.addMenu('&File')
+        # file menu
+        menu_file = self.menuBar.addMenu('&File')
         action_file_exit = QAction('&Exit', self)
         action_file_exit.setStatusTip('Exit')
         action_file_exit.setShortcut('Ctrl+Q')
         action_file_exit.triggered.connect(qApp.quit)
-        file_menu.addAction(action_file_exit)
+        menu_file.addAction(action_file_exit)
+
+        # usefull links menu
+        menu_links = self.menuBar.addMenu('Useful &Links')
+
+        action_links_WOI = QAction('&WOI list', parent=self, 
+                                   statusTip='Open the intranet page with the list of WOIs',
+                                   triggered=partial(self.open_url_woi, URLS['WOI']))
+        action_links_annuaire = QAction('&Annuaire', parent=self, 
+                                   statusTip='Open the intranet page with the annuaire',
+                                   triggered=partial(self.open_url_woi, URLS['annuaire']))
+
+        menu_links.addAction(action_links_WOI)
+        menu_links.addAction(action_links_annuaire)
+
+    def open_url_woi(self, url):
+        " Open an URL in an external browser "
+        QDesktopServices.openUrl(QUrl(url))
 
     def generate_central_widget(self):
         """
