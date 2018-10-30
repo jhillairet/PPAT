@@ -168,7 +168,19 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
 
     # -- Coil currents (subplot 2, left axis)
     for i in np.where(signal_array[:,1] == '3')[0]:
-        axarr[3].plot(wform[i].times, wform[i].values, 
+        
+        # TODO : deal with this in waveform()
+        # The poloidal current values are given proportional to the Ip.
+        # 1st we interpolate the plasma current to the time of the current
+        
+        ip = wform[0].values
+        current = wform[i].values
+
+        ip = np.interp(wform[i].times, wform[0].times, wform[0].values)
+        current = current * ip
+        #import ipdb; ipdb.set_trace()
+                
+        axarr[3].plot(wform[i].times, current, 
                       'x-', label=signal_array[i,2], linewidth=2)
     axarr[3].legend(loc=2, fontsize=8)
     
@@ -230,7 +242,7 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
     
     # BUG : IA current is -5000 for some end segment (>900)
     # contain the y-lim to physical values
-    axarr[3].set_ylim(-5e-3, +5e-3)
+    #axarr[3].set_ylim(-5e-3, +5e-3)
     
     #fig.tight_layout()
     plt.show()

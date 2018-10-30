@@ -1,6 +1,9 @@
 import numpy as np
 import xml.etree.ElementTree as Et
 
+import logging
+logger = logging.getLogger(__name__)
+
 class Waveform():
     """
     Waveform data
@@ -197,7 +200,7 @@ class Signal():
 
     """
     _defaults = ['name', 'signal_type', 'type', 'dimension', 'default_value',
-                 'time', 'segment_name', 'value', 'signal_name', 'exec_rule']
+                 'time', 'segment_name', 'value', 'name', 'exec_rule']
     _default_value = None
 
     def __init__(self, **kwargs):
@@ -205,7 +208,7 @@ class Signal():
         self.__dict__.update(kwargs)
 
     def __repr__(self):
-        return f'Signal({self.signal_name}): value({self.segment_name}@t={self.time})={self.value} [{self.exec_rule}]; {self.signal_type}({self.type})={self.default_value} .\n'
+        return f'Signal({self.name}): value({self.segment_name}@t={self.time})={self.value} [{self.exec_rule}]; {self.signal_type}({self.type})={self.default_value} .\n'
 
 
 
@@ -336,11 +339,11 @@ def prepare_final(xmlroot, arrSegment, arrsignalTrajectory, arrSignal):
 
     signal_trajectory_names = []
     for signal in arrsignalTrajectory:
-        signal_trajectory_names.append(signal.signal_name)
+        signal_trajectory_names.append(signal.name)
 
     # Iterate segments and build the waveform segment by segment.
     for j, segment in enumerate(arrSegment):
-        segment_name = segment[0]#arrSegment[j,0]
+        segment_name = segment[0]
 
         # Guard test to make sure there is at least one explicit data point.
         # Otherwise there is no point determining the waveform type (relative/absolute)
@@ -462,12 +465,15 @@ def prepare_final(xmlroot, arrSegment, arrsignalTrajectory, arrSignal):
                     # to build the absolute time vectors.
                     else:
                         segmentTime = float(arrSegment[j-1][1])
-#                    print(f'arrSegment={arrSegment}')
-#                    print(f'Normalpoint: segmentTime = {segmentTime}')
 
-                    # Treatment of execution mode:
+                    # TODO : Attention !
+                    # Polo :les courants sont définis de façon relative
+                    # par rapport au courant plasma, mais pas toujours !
+
+                    # Treatment of execution mode: linear, relative or step
                     # Case 1: Linear interpolation in between points
-                    if str.lower(arrsignalTrajectory[i].exec_rule) == 'linear':
+                    exec_rule = str.lower(arrsignalTrajectory[i].exec_rule)
+                    if exec_rule == 'linear':
 
                         # Treatment of the waveform type (absolute/relative)
                         # Case for absolute waveform
@@ -497,7 +503,7 @@ def prepare_final(xmlroot, arrSegment, arrsignalTrajectory, arrSignal):
                     # time vector. The point is therefore rejected. TO BE COMPARED WITH WHAT DCS ACTUALLY DOES.
                     # Note that two points are added to the waveform: the one juste before the step, and
                     # another one at the top of the step.
-                    elif (str.lower(arrsignalTrajectory[i].exec_rule) == 'step') and \
+                    elif (exec_rule == 'step') and \
                           ((waveformTime_rel + segmentTime) < (float(arrSegment[j][1]) - PCS_CYCLE_TIME)):
                         waveformValue = lastValue
                         waveformTime = segmentTime + waveformTime_rel
@@ -528,8 +534,7 @@ def prepare_final(xmlroot, arrSegment, arrsignalTrajectory, arrSignal):
                 # Any subsequent point is ignored.
                 # Step-executed points defined after the end of the segment are obviously ignored.
                 elif ((arrsignalTrajectory[i].time > segment_duration) and
-                      lastPointIn and
-                      str.lower(arrsignalTrajectory[i].exec_rule) == 'linear'):
+                      lastPointIn and exec_rule == 'linear'):
                     segmentName = arrSegment[j][0]
                     segmentTime = float(arrSegment[j-1][1])
 
