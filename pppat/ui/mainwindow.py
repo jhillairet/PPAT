@@ -1,5 +1,5 @@
 import os.path
-import socket
+
 from contextlib import contextmanager
 
 from getpass import getuser
@@ -15,8 +15,10 @@ from pppat.ui.console import ConsoleWidget
 from pppat.ui.collapsible_toolbox import QCollapsibleToolbox
 from pppat.ui.pre_pulse_analysis import PrePulseAnalysisWidget
 from pppat.ui.pre_pulse_display import PrePulseDisplayWidget
+from pppat.ui.post_pulse_analysis import PostPulseAnalysisWidget
 from pppat.ui.log import QPlainTextEditLogger
 from pppat.libpulse.pulse_settings import PulseSettings
+from pppat.libpulse.utils import is_online
 from pppat.ui.BigPicture import BigPicture_disp
 
 from functools import partial  # used to pass parameters for open_url
@@ -26,6 +28,7 @@ logger = logging.getLogger(__name__)
 
 # PPPAT minimum width in pixels
 MINIMUM_WIDTH = 800
+
 
 # Usefull URLs
 URLS = {
@@ -118,7 +121,7 @@ class MainWindow(QMainWindow):
         self.panel_rappels = QCollapsibleToolbox(child=EiCReminderWidget(), title='Cahier de liaison des EiC / EiC\'s Notebook')
         self.panel_pre_pulse = QCollapsibleToolbox(child=PrePulseAnalysisWidget(), title='Pre-pulse Analysis')
         self.panel_pulse_display = QCollapsibleToolbox(child=PrePulseDisplayWidget(), title='Pre-pulse Display')
-        self.panel_post_pulse = QCollapsibleToolbox(child=QTextBrowser(), title='Post-pulse Analysis')
+        self.panel_post_pulse = QCollapsibleToolbox(child=PostPulseAnalysisWidget(), title='Post-pulse Analysis')
         self.panel_log = QCollapsibleToolbox(child=QPlainTextEditLogger(), title='Logs')
         self.panel_console = QCollapsibleToolbox(child=ConsoleWidget(), title='Python Console')
 
@@ -168,7 +171,7 @@ class MainWindow(QMainWindow):
         """ Check pulse setting vs all tests """
         
         with self.wait_cursor():
-            check_results = self.pulse_settings.check_all(self.is_online())
+            check_results = self.pulse_settings.check_all(is_online())
 
         # display the check results into the table
         for i, result in enumerate(check_results):
@@ -302,15 +305,19 @@ class MainWindow(QMainWindow):
             # Load pulse settings from a pulse number
             elif self.panel_pre_pulse.widget.radio_shot.isChecked():
                 pulse_nb = self.panel_pre_pulse.widget.edit_shot.text()
-                if not pulse_nb:
-                    logger.error('Set pulse number first !')
+                
+                if is_online():
+                    if not pulse_nb:
+                        logger.error('Set pulse number first !')
+                    else:
+                        logger.info(f'loading pulse setting from WEST shot #{pulse_nb}')
+        
+                        self.panel_pre_pulse.widget.pulse_setting_origin.setText(
+                                f'WEST shot number {pulse_nb}')
+        
+                        res_load = self.pulse_settings.load_from_pulse(int(pulse_nb))
                 else:
-                    logger.info(f'loading pulse setting from WEST shot #{pulse_nb}')
-    
-                    self.panel_pre_pulse.widget.pulse_setting_origin.setText(
-                            f'WEST shot number {pulse_nb}')
-    
-                    res_load = self.pulse_settings.load_from_pulse(int(pulse_nb))
+                    logger.error('WEST database not reachable !')
 
         # if the pulse settings have been correctly loaded
         # some widgets (buttons) are enabled
@@ -380,26 +387,6 @@ class MainWindow(QMainWindow):
         pulse_nb = self.pulse_settings.pulse_nb
         
         BigPicture_disp(nominal_scenario, dp_file, wfs, pulse_nb)
-
-    @staticmethod
-    def is_online():
-        """
-        Return the online status (True or False).
-
-        Returns
-        -------
-        status: Boolean
-                The online status True is the IRFM database can be
-                reached on the network. False if not ('offline' mode).
-        """
-        host = '10.8.86.1'  # deneb address
-        port = 5880
-        # create a dummy connection to test the server reachability
-        try:
-            s = socket.create_connection((host, port), timeout=2)
-            return True
-        except socket.error:
-            return False
 
     @staticmethod
     @contextmanager
