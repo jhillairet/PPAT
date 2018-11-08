@@ -33,7 +33,8 @@ MINIMUM_WIDTH = 800
 # Usefull URLs
 URLS = {
         'WOI': 'http://www-irfm.intra.cea.fr/Phocea/Page/index.php?id=563',
-        'annuaire': 'http://asterope.intra.cea.fr/Phocea/Membres/Annuaire/index.php'
+        'annuaire': 'http://asterope.intra.cea.fr/Phocea/Membres/Annuaire/index.php',
+        'FAQ': 'http://maia/EIC/faq'
         }
 
 class MainWindow(QMainWindow):
@@ -104,9 +105,12 @@ class MainWindow(QMainWindow):
         action_links_annuaire = QAction('&Annuaire', parent=self, 
                                    statusTip='Open the intranet page with the annuaire',
                                    triggered=partial(self.open_url_woi, URLS['annuaire']))
-
+        action_links_FAQ = QAction('&FAQ des EiC', parent=self, 
+                                   statusTip='Open the intranet page with the EiC FAQ',
+                                   triggered=partial(self.open_url_woi, URLS['FAQ']))
         menu_links.addAction(action_links_WOI)
         menu_links.addAction(action_links_annuaire)
+        menu_links.addAction(action_links_FAQ)
 
     def open_url_woi(self, url):
         " Open an URL in an external browser "
