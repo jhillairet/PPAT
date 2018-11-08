@@ -175,12 +175,14 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
         
         ip = wform[0].values
         current = wform[i].values
-
-        ip = np.interp(wform[i].times, wform[0].times, wform[0].values)
-        current = current * ip
-        #import ipdb; ipdb.set_trace()
+        
+        # Only plot the poloidal current if the ip waveform is not empty
+        # This case happens during cleaning pulses
+        if ip.size != 0:
+            ip = np.interp(wform[i].times, wform[0].times, wform[0].values)
+            current = current * ip
                 
-        axarr[3].plot(wform[i].times, current, 
+            axarr[3].plot(wform[i].times, current, 
                       'x-', label=signal_array[i,2], linewidth=2)
     axarr[3].legend(loc=2, fontsize=8)
     
