@@ -44,41 +44,43 @@ class check_disruption_characteristic_time(Result):
         """
         Post-test
         """
-        with wait_cursor():
+        with wait_cursor():  # show the GUI user that something is going on...
             logger.info(f'Testing disruption for pulse {pulse_nb}')
             if is_online():
-                ip, t_ip = pw.tsbase(pulse_nb, 'SMAG_IP', nargout=2)
-                # squeeze arrays for compatibility with np.gradient
-                ip, t_ip = np.squeeze(ip), np.squeeze(t_ip)
-                # time derivative of the plasma current
-                dip_dt = np.gradient(ip, t_ip)
-                # search for the maximum of the derivative : 
-                # this should matches the time of the disruption
-                index_disruption = np.argmax(np.abs(dip_dt))
-                t_disruption = t_ip[index_disruption]
-                logger.info(f'Plasma disruption found at t={t_disruption}')
-                # plasma current values few points before and after the disruption
-                ip_before = ip[index_disruption - 20]
-    
-                # find the time at which we have 80% of ip before disruption
-                idx_80 = np.abs(ip[index_disruption - 20:index_disruption] - 0.8*ip_before).argmin()
-                t_80 = t_ip[index_disruption - 20:index_disruption][idx_80]
-                # find the time at which we have 20% of ip after disruption
-                idx_20 = np.abs(ip[index_disruption:index_disruption + 20] - 0.2*ip_before).argmin()
-                t_20 = t_ip[index_disruption:index_disruption + 20][idx_20]
-                
-                t_80_20 = t_20 - t_80
-                
-                logger.info(f'Plasma disruption characteristic time : t_80-20 = {t_80_20*1e3} ms')
-                self.text = f'Plasma disruption characteristic time : t_80-20 = {t_80_20*1e3} ms'
-    
-                if t_80_20 < 1e-3:
-                    self.code = self.ERROR
-                elif (t_80_20 > 1e-3) and (t_80_20 < 5e-3):
-                    self.code = self.WARNING
-                else:
-                    self.code = self.OK
-    
+                try:
+                    ip, t_ip = pw.tsbase(pulse_nb, 'SMAG_IP', nargout=2)
+                    # squeeze arrays for compatibility with np.gradient
+                    ip, t_ip = np.squeeze(ip), np.squeeze(t_ip)
+                    # time derivative of the plasma current
+                    dip_dt = np.gradient(ip, t_ip)
+                    # search for the maximum of the derivative : 
+                    # this should matches the time of the disruption
+                    index_disruption = np.argmax(np.abs(dip_dt))
+                    t_disruption = t_ip[index_disruption]
+                    logger.info(f'Plasma disruption found at t={t_disruption}')
+                    # plasma current values few points before and after the disruption
+                    ip_before = ip[index_disruption - 20]
+        
+                    # find the time at which we have 80% of ip before disruption
+                    idx_80 = np.abs(ip[index_disruption - 20:index_disruption] - 0.8*ip_before).argmin()
+                    t_80 = t_ip[index_disruption - 20:index_disruption][idx_80]
+                    # find the time at which we have 20% of ip after disruption
+                    idx_20 = np.abs(ip[index_disruption:index_disruption + 20] - 0.2*ip_before).argmin()
+                    t_20 = t_ip[index_disruption:index_disruption + 20][idx_20]
+                    
+                    t_80_20 = t_20 - t_80
+                    
+                    logger.info(f'Plasma disruption characteristic time : t_80-20 = {t_80_20*1e3} ms')
+                    self.text = f'Plasma disruption characteristic time : t_80-20 = {t_80_20*1e3} ms'
+        
+                    if t_80_20 < 1e-3:
+                        self.code = self.ERROR
+                    elif (t_80_20 > 1e-3) and (t_80_20 < 5e-3):
+                        self.code = self.WARNING
+                    else:
+                        self.code = self.OK
+                except ValueError as e:
+                    self.code = self.BROKEN
             else:
                 self.text = 'Cannot access WEST database.'
                 self.code = self.UNAVAILABLE

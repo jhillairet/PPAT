@@ -482,6 +482,20 @@ class MainWindow(QMainWindow):
         button_res.setText(post_pulse_test.code_name)
         label_res.setText(post_pulse_test.text)
         
+        if post_pulse_test.code == post_pulse_test.OK:
+            button_res.setStyleSheet("background-color: green")
+        elif post_pulse_test.code == post_pulse_test.WARNING:
+            button_res.setStyleSheet("background-color: yellow")
+        elif post_pulse_test.code == post_pulse_test.ERROR:
+            button_res.setStyleSheet("background-color: red")
+        elif post_pulse_test.code == post_pulse_test.UNAVAILABLE:
+            button_res.setStyleSheet("background-color: purple")
+        elif post_pulse_test.code == post_pulse_test.BROKEN:
+            button_res.setStyleSheet("background-color: grey")
+        else:
+            logger.error(f'Unknow post test result code {post_pulse_test.code}')
+            
+        
 
     def get_post_pulse_test_list(self):
         """
