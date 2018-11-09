@@ -1,10 +1,8 @@
 import os.path
 
-from contextlib import contextmanager
-
 from getpass import getuser
-from qtpy.QtWidgets import (QMainWindow, QApplication, QWidget,
-                            QHBoxLayout, QVBoxLayout, QAction, qApp,
+from qtpy.QtWidgets import (QMainWindow, QApplication, QWidget, QPushButton,
+                            QHBoxLayout, QVBoxLayout, QAction, qApp, QLabel,
                             QScrollArea, QTextBrowser, QFrame, QTextEdit,
                             QFileDialog, QPlainTextEdit, QTableWidgetItem)
 from qtpy.QtGui import QIcon, QCursor, QDesktopServices
@@ -18,10 +16,13 @@ from pppat.ui.pre_pulse_display import PrePulseDisplayWidget
 from pppat.ui.post_pulse_analysis import PostPulseAnalysisWidget
 from pppat.ui.log import QPlainTextEditLogger
 from pppat.libpulse.pulse_settings import PulseSettings
-from pppat.libpulse.utils import is_online
+from pppat.libpulse.utils import is_online, wait_cursor, last_pulse_nb
 from pppat.ui.BigPicture import BigPicture_disp
 
 from functools import partial  # used to pass parameters for open_url
+
+import pkgutil
+from importlib import import_module
 
 import logging
 logger = logging.getLogger(__name__)
@@ -57,11 +58,13 @@ class MainWindow(QMainWindow):
         self.generate_central_widget()
         self.setCentralWidget(self.central_widget)
 
-        # connect the various button to their controller
+        # connect the various buttons to their controller
         self.panel_pre_pulse.widget.push_load.clicked.connect(self.load_pulse_settings)
         self.panel_pre_pulse.widget.push_browse.clicked.connect(self.browse_pulse_settings_directory)
         self.panel_pre_pulse.widget.push_check.clicked.connect(self.check_pulse_settings)
         self.panel_pulse_display.widget.push_bigpicture.clicked.connect(self.display_big_picture)
+        self.panel_post_pulse.widget.edit_pulse_nb.editingFinished.connect(self.get_post_pulse_analysis_nb)
+        self.panel_post_pulse.widget.button_check_all.clicked.connect(self.check_post_pulse_all)
 
         # Application icon
         self.setWindowIcon(QIcon('resources/icons/pppat.png'))
@@ -76,7 +79,13 @@ class MainWindow(QMainWindow):
         self.pulse_settings = None
         self.pulse_settings_dir = None
         self.pulse_settings_files = None
-#▄        self.pulse_settings_shot = None
+
+        # look into the post-test directory and get the number of post-tests
+        self.post_pulse_tests = self.get_post_pulse_test_list()
+        self.post_pulse_nb = 0
+        # fill the table with available post tests
+        self.fill_post_tests_table()
+
 
         # Display user role in the status Bar
         logger.info(f'PPPAT has been launched by user {self.user_login}')
@@ -99,13 +108,13 @@ class MainWindow(QMainWindow):
         # usefull links menu
         menu_links = self.menuBar.addMenu('Useful &Links')
 
-        action_links_WOI = QAction('&WOI list', parent=self, 
+        action_links_WOI = QAction('&WOI list', parent=self,
                                    statusTip='Open the intranet page with the list of WOIs',
                                    triggered=partial(self.open_url_woi, URLS['WOI']))
-        action_links_annuaire = QAction('&Annuaire', parent=self, 
+        action_links_annuaire = QAction('&Annuaire', parent=self,
                                    statusTip='Open the intranet page with the annuaire',
                                    triggered=partial(self.open_url_woi, URLS['annuaire']))
-        action_links_FAQ = QAction('&FAQ des EiC', parent=self, 
+        action_links_FAQ = QAction('&FAQ des EiC', parent=self,
                                    statusTip='Open the intranet page with the EiC FAQ',
                                    triggered=partial(self.open_url_woi, URLS['FAQ']))
         menu_links.addAction(action_links_WOI)
@@ -173,8 +182,8 @@ class MainWindow(QMainWindow):
     @Slot()
     def check_pulse_settings(self):
         """ Check pulse setting vs all tests """
-        
-        with self.wait_cursor():
+
+        with wait_cursor():
             check_results = self.pulse_settings.check_all(is_online())
 
         # display the check results into the table
@@ -182,9 +191,9 @@ class MainWindow(QMainWindow):
             self.panel_pre_pulse.widget.check_table.setItem(i, 0, QTableWidgetItem(result.name))
             self.panel_pre_pulse.widget.check_table.setItem(i, 1, QTableWidgetItem(result.code_name))
             self.panel_pre_pulse.widget.check_table.setItem(i, 2, QTableWidgetItem(result.text))
-            # # Stretch 
+            # # Stretch
             # self.panel_pre_pulse.widget.check_table.horizontalHeader().setStretchLastSection(True)
-            
+
             # Add color to the result item (OK, WARNING, ERROR or UNAVAILABLE)
             if result.code == result.ERROR:
                 self.panel_pre_pulse.widget.check_table.item(i, 1).setForeground(Qt.red)
@@ -196,11 +205,11 @@ class MainWindow(QMainWindow):
                 self.panel_pre_pulse.widget.check_table.item(i, 1).setForeground(Qt.darkMagenta)
             # else leave it black (default)
 
-##            # Check if a watchdog already exists in order not to create a new one for each folder change               
+##            # Check if a watchdog already exists in order not to create a new one for each folder change
 ##            if not hasattr(self, 'FolderWatcher'):
 ##                # No pre existing watchdog
 ##                self.FolderWatcher = ModifFolderWatcher(self.parent,self.LoadFolderName)
-##                
+##
 ##            else:
 ##                # preexisting watchdog: stop and recreate a new one.
 ##                self.FolderWatcher.resetModifFolderWatcher(self.LoadFolderName)
@@ -280,21 +289,21 @@ class MainWindow(QMainWindow):
         # default loading state
         res_load = False
 
-        with self.wait_cursor():
+        with wait_cursor():
             # Load the pulse setting depending on the loading option
             # Load pulse settings from the Session Leader proposal
             if self.panel_pre_pulse.widget.radio_sl.isChecked():
                 # TODO : check if SL pulse setting is available
                 pulse_settings_SL_avail = True
-    
+
                 if not pulse_settings_SL_avail:
                     logger.error('Pulse settings from SL are not available!')
                 else:
                     logger.info('Loading pulse setting from SL')
                     self.panel_pre_pulse.widget.pulse_setting_origin.setText('from SL')
-    
+
                     res_load = self.pulse_settings.load_from_session_leader()
-    
+
             # Load pulse settings from a set of .xml files
             elif self.panel_pre_pulse.widget.radio_file.isChecked():
                 if not self.pulse_settings_dir:
@@ -303,22 +312,22 @@ class MainWindow(QMainWindow):
                     self.panel_pre_pulse.widget.pulse_setting_origin.setText(
                             self.pulse_settings_dir)
                     logger.info('loading pulse setting from files')
-    
+
                     res_load = self.pulse_settings.load_from_file(self.pulse_settings_files)
-    
+
             # Load pulse settings from a pulse number
             elif self.panel_pre_pulse.widget.radio_shot.isChecked():
                 pulse_nb = self.panel_pre_pulse.widget.edit_shot.text()
-                
+
                 if is_online():
                     if not pulse_nb:
                         logger.error('Set pulse number first !')
                     else:
                         logger.info(f'loading pulse setting from WEST shot #{pulse_nb}')
-        
+
                         self.panel_pre_pulse.widget.pulse_setting_origin.setText(
                                 f'WEST shot number {pulse_nb}')
-        
+
                         res_load = self.pulse_settings.load_from_pulse(int(pulse_nb))
                 else:
                     logger.error('WEST database not reachable !')
@@ -362,7 +371,7 @@ class MainWindow(QMainWindow):
                                              directory=QDir.currentPath(),
                                              options=QFileDialog.ShowDirsOnly,  # DontUseNativeDialog
                                              )
-            
+
         _pulse_settings_files = {
                 'sup': f'{_pulse_settings_dir}/Sup.xml',
                 'dp': f'{_pulse_settings_dir}/DP.xml'
@@ -389,139 +398,120 @@ class MainWindow(QMainWindow):
         dp_file = self.pulse_settings.files['dp']
         wfs = self.pulse_settings.waveforms
         pulse_nb = self.pulse_settings.pulse_nb
-        
+
         BigPicture_disp(nominal_scenario, dp_file, wfs, pulse_nb)
 
-    @staticmethod
-    @contextmanager
-    def wait_cursor():
-        try:
-            QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-            yield
-        finally:
-            QApplication.restoreOverrideCursor()
 
-#     def __init__(self, title, config_file):
-#        super(mainWindow, self).__init__()  # top-level window creator
-#
-#        self.setWindowTitle(title)
-#
-#        self.centralwidget = QtWidgets.QWidget(self)
-#        self.setObjectName("MainWindow")
-#
-#        self.resize(1165, 723)
-#        font = QtGui.QFont()
-#        self.setFont(font)
-#        icon = QtGui.QIcon()
-#        icon.addPixmap(QtGui.QPixmap("gui/ppat.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-#        self.setWindowIcon(icon)
-#
-#        self.setTabShape(QtWidgets.QTabWidget.Rounded)
-#        self.centralwidget.setObjectName("centralwidget")
-#
-#        self.centralwidget.config_file_name = config_file
-#
-#
-#
-#        self.centralwidget.statusAreaWidget = statusArea.statusArea(self.centralwidget)
-#        # Check if PPAt is started in online or offline mode.
-#        self.centralwidget.statusAreaWidget.update_status(1)
-#
-#        # Initialization:
-#        # Instance of a class defining the top part of the GUI where the scenario (i.e. the sequence of
-#        # segments is defined. Contains methods to load DCS files and update the display accordingly.
-#        self.centralwidget.scenarioAreaWidget = scenarioArea.scenarioArea(self.centralwidget)
-#
-#        # Initialization:
-#        # Class defining the lower right part of the GUI displaying pulse number and time of last DCS file.
-#        # Contains methods to update these numbers.
-#        self.centralwidget.OnlineSituationAreaWidget = OnlineSituationArea.OnlineSituationArea(self.centralwidget)
-#
-#
-#        # Geometry of upper right part of GUI (external tools)
-#        # Probably to be defined in a separate class in the future.
-#        # VerticalLayout to stack buttons.
-#        self.verticalLayoutWidget = QtWidgets.QWidget(self.centralwidget)
-#        self.verticalLayoutWidget.setGeometry(QtCore.QRect(850, 100, 240, 240))
-#        self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
-#        self.verticalLayout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
-#        self.verticalLayout.setObjectName("verticalLayout")
-#
-#        # Button to run the Big Picture
-#        # Improvement suggestion: gray it out if no scenario is loaded.
-#        self.pushButton_BigPicture = QtWidgets.QPushButton(self.verticalLayoutWidget)
-#        font = QtGui.QFont()
-#        font.setPixelSize(15)
-#        self.pushButton_BigPicture.setFont(font)
-#        self.pushButton_BigPicture.setObjectName("pushButton_BigPicture")
-#        self.pushButton_BigPicture.setText("Big Picture")
-#        self.verticalLayout.addWidget(self.pushButton_BigPicture)
-#
-#        # Button to run ICRH resonance calculation tool
-#        # Deactivated for the moment.
-#        self.pushButton_ICRHres = QtWidgets.QPushButton(self.verticalLayoutWidget)
-#        font = QtGui.QFont()
-#        font.setPixelSize(15)
-#        self.pushButton_ICRHres.setFont(font)
-#        self.pushButton_ICRHres.setAutoRepeat(False)
-#        self.pushButton_ICRHres.setObjectName("pushButton_ICRHres")
-#        self.pushButton_ICRHres.setText("ICRH resonance calculator")
-#        self.verticalLayout.addWidget(self.pushButton_ICRHres)
-#        self.pushButton_ICRHres.setEnabled(False)
-#
-#        # Button to run the magnetic connections tool (whatever that is) for the current scenario.
-#        # Deactivated for the moment.
-#        self.pushButton_Magnetic_connections = QtWidgets.QPushButton(self.verticalLayoutWidget)
-#        font = QtGui.QFont()
-#        font.setPixelSize(15)
-#        self.pushButton_Magnetic_connections.setFont(font)
-#        self.pushButton_Magnetic_connections.setObjectName("pushButton_Magnetic_connections")
-#        self.pushButton_Magnetic_connections.setText("Magnetic connections")
-#        self.verticalLayout.addWidget(self.pushButton_Magnetic_connections)
-#        self.pushButton_Magnetic_connections.setEnabled(False)
-#
-#        # Button to run Plato
-#        # Deactivatedfor the moment.
-#        self.pushButton_Plato = QtWidgets.QPushButton(self.verticalLayoutWidget)
-#        font = QtGui.QFont()
-#        font.setPixelSize(15)
-#        self.pushButton_Plato.setFont(font)
-#        self.pushButton_Plato.setObjectName("pushButton_Plato")
-#        self.pushButton_Plato.setText("Run Plato")
-#        self.verticalLayout.addWidget(self.pushButton_Plato)
-#        self.pushButton_Plato.setEnabled(False)
-#
-#
-#        # Initialization:
-#        # Instance of the class defining the central part of the GUI (colored squares
-#        # and text area)
-#
-#
-#        self.centralwidget.CheckAreaWidget = CheckArea.CheckArea(self.centralwidget)
-#
-#
-#
-#        # Cosmetic improvements
-#
-#        self.line = QtWidgets.QFrame(self.centralwidget)
-#        self.line.setGeometry(QtCore.QRect(10, 80, 1131, 16))
-#        self.line.setFrameShape(QtWidgets.QFrame.HLine)
-#        self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
-#        self.line.setObjectName("line")
-#        self.line_2 = QtWidgets.QFrame(self.centralwidget)
-#        self.line_2.setGeometry(QtCore.QRect(770, 100, 20, 521))
-#        self.line_2.setFrameShape(QtWidgets.QFrame.VLine)
-#        self.line_2.setFrameShadow(QtWidgets.QFrame.Sunken)
-#        self.line_2.setObjectName("line_2")
-#        self.line_3 = QtWidgets.QFrame(self.centralwidget)
-#        self.line_3.setGeometry(QtCore.QRect(800, 330, 311, 20))
-#        self.line_3.setFrameShape(QtWidgets.QFrame.HLine)
-#        self.line_3.setFrameShadow(QtWidgets.QFrame.Sunken)
-#        self.line_3.setObjectName("line_3")
-#
-#        # Central Widget final display
-#        self.setCentralWidget(self.centralwidget)
-#
-#
-#        # Connexion of the Big Picture button to the associated function.
-#        self.pushButton_BigPicture.clicked.connect(lambda: BigPicture_disp(self.centralwidget.scenarioAreaWidget.segmentTrajectory,self.centralwidget.scenarioAreaWidget.dpFilename))
+
+    @Slot()
+    def get_post_pulse_analysis_nb(self):
+        """ Return the post pulse number from its dedicated QLineEdit """
+        try:
+            self.post_pulse_nb = int(self.panel_post_pulse.widget.edit_pulse_nb.text())
+        except ValueError as e:  # no shot number value entered yet
+            self.post_pulse_nb = 0
+        logger.info(f'Post-Pulse selected: #{self.post_pulse_nb}')
+
+
+    @Slot()
+    def check_post_pulse_all(self):
+        """ Check all the (default) post pulse tests """
+        # retrieve the post pulse number
+        if self.panel_post_pulse.widget.radio_last_pulse.isChecked():
+            self.post_pulse_nb = last_pulse_nb()
+        elif self.panel_post_pulse.widget.radio_pulse_nb.isChecked():
+            self.get_post_pulse_analysis_nb()
+        
+                    
+        # pulse nb is 0 if not yet set by the user on the GUI
+        # pulse nb is -1 if last pulse choosen but user is offline
+        # otherwise assume the shot number is correct and perform all the tests
+        if self.post_pulse_nb == 0:
+            logger.error('Please first enter a valid shot number!')
+        elif self.post_pulse_nb < 0:
+            logger.error('Cannot connect to WEST database. Skipping tests...')
+        else:
+            # perform all the default post pulse tests
+            with wait_cursor():
+                logger.info(f'Post-pulse checking... pulse {self.post_pulse_nb}')
+                # TODO: For all checked tests, perform the tests
+
+
+    def fill_post_tests_table(self):
+        """
+        Fill the post test table
+        """
+        # each row correspond to a specific post-test
+        for (row, post_pulse_test) in enumerate(self.post_pulse_tests):
+            # checkbox
+            checkbox_item = QTableWidgetItem()
+            checkbox_item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
+
+            if post_pulse_test.default:
+                checkbox_item.setCheckState(Qt.Checked)
+            else:
+                checkbox_item.setCheckState(Qt.Unchecked)
+
+            self.panel_post_pulse.widget.check_table.setItem(row, 0, checkbox_item)
+
+            # launch button
+            button_test = QPushButton(post_pulse_test.name)
+            self.panel_post_pulse.widget.check_table.setCellWidget(row, 1, button_test)
+            
+            # result button
+            button_res = QPushButton('  ')
+            button_res.resize(10, 30)  # all button have same size
+            self.panel_post_pulse.widget.check_table.setCellWidget(row, 2, button_res)
+            
+            # result description
+            label_res = QLabel('')
+            self.panel_post_pulse.widget.check_table.setCellWidget(row, 3, label_res)
+
+            # connect row buttons to test methods            
+            button_test.clicked.connect(lambda : self.execute_post_pulse_test(post_pulse_test, button_res, label_res))
+#            button_test.clicked.connect(lambda : post_pulse_test.test(self.post_pulse_nb) )
+            button_res.clicked.connect(lambda : post_pulse_test.plot(self.post_pulse_nb))
+            
+            
+
+    @Slot()
+    def execute_post_pulse_test(self, post_pulse_test, button_res, label_res):
+        # execute the test and update the result button and result description
+        post_pulse_test.test(self.post_pulse_nb)
+
+        button_res.setText(post_pulse_test.code_name)
+        label_res.setText(post_pulse_test.text)
+        
+
+    def get_post_pulse_test_list(self):
+        """
+        Return a list of dictionnaries which describe all available
+        post pulse test functions
+
+        Return
+        ------
+
+        """
+        post_pulse_tests = []
+
+        # list of the Python file located in the tests post-pulse directory
+        check_filenames = [name for _, name, _ in pkgutil.iter_modules(['tests/post_pulse'])]
+        check_importers = [imp for imp, _, _ in pkgutil.iter_modules(['tests/post_pulse'])]
+        logger.debug(check_filenames)
+        logger.debug(check_importers)
+
+
+        logger.info("########## Looking into post-pulse directory ###########")
+        for (importer, file) in zip(check_importers, check_filenames):
+            # import the module (here=file)
+            i = import_module(importer.path.replace('/', '.') + '.' + file)
+
+            # create a list of all post-pulse Result objects
+            # which name starts by 'check_'
+            fun_names = dir(i)
+            for fun_name in fun_names:
+                if 'check_' in fun_name:
+                    post_pulse_test = eval(f'i.{fun_name}()')
+                    post_pulse_tests.append(post_pulse_test)
+
+        return post_pulse_tests

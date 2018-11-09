@@ -4,17 +4,14 @@ PPPAT - Post pulse analysis ui
 """
 from qtpy.QtWidgets import (QWidget, QGridLayout, QRadioButton, QGroupBox,
                             QVBoxLayout, QTextBrowser, QLabel, QPushButton,
-                            QFormLayout, QLineEdit, QFileDialog, QComboBox,
+                            QFormLayout, QLineEdit, QFileDialog, QCheckBox,
                             QErrorMessage, QTableView, QAbstractItemView,
                             QTableWidget, QTableWidgetItem, QHeaderView)
 from qtpy.QtGui import QIntValidator, QFont
-from qtpy.QtCore import Slot
+from qtpy.QtCore import Slot, Qt
 
 import logging
 logger = logging.getLogger(__name__)
-
-
-
 
 TABLE_HEADER_FONT_SIZE = 10
 TABLE_ROW_FONT_SIZE = 8
@@ -34,13 +31,13 @@ class PostPulseAnalysisWidget(QWidget):
     def __init__(self, parent=None):
         super(PostPulseAnalysisWidget, self).__init__(parent=parent)
 
+        # construct the GUI 
         grid = QGridLayout()
         grid.setColumnStretch(1, 2) # more space for pulse informations
         grid.addWidget(self._create_top_left_group(), 0, 0)
         grid.addWidget(self._create_top_right_group(), 0, 1)
         grid.addWidget(self._create_bottom_group(), 1, 0, 1, 2)
         self.setLayout(grid)
-
 
     def _create_top_left_group(self):
         """
@@ -50,24 +47,24 @@ class PostPulseAnalysisWidget(QWidget):
 
         self.radio_last_pulse = QRadioButton('Last pulse')
         self.radio_last_pulse.setChecked(True)
-        self.radio_shot = QRadioButton('Pulse number')
+        self.radio_pulse_nb = QRadioButton('Pulse number')
 
-        self.edit_shot = QLineEdit()
-        self.edit_shot.setPlaceholderText('Pulse Number')
-        self.edit_shot.textChanged.connect(self._validate_radio_shot)
-        self.edit_shot.setValidator(QIntValidator())  # only integer for shot#
-
+        self.edit_pulse_nb = QLineEdit()
+        self.edit_pulse_nb.setPlaceholderText('Pulse Number')
+        self.edit_pulse_nb.textChanged.connect(self._validate_radio_pulse_nb)
+        self.edit_pulse_nb.setValidator(QIntValidator())  # only integer for shot#
+        
         layout = QGridLayout()
         layout.addWidget(self.radio_last_pulse, 0, 0)
-        layout.addWidget(self.radio_shot, 1, 0)
-        layout.addWidget(self.edit_shot, 1, 1)
+        layout.addWidget(self.radio_pulse_nb, 1, 0)
+        layout.addWidget(self.edit_pulse_nb, 1, 1)
         top_left_group.setLayout(layout)
 
         return top_left_group
 
     @Slot()
-    def _validate_radio_shot(self):
-        self.radio_shot.setChecked(True)
+    def _validate_radio_pulse_nb(self):
+        self.radio_pulse_nb.setChecked(True)
 
     def _create_top_right_group(self):
         """
@@ -75,14 +72,14 @@ class PostPulseAnalysisWidget(QWidget):
         """
         top_right_group = QGroupBox('Pulse informations')
 
-        self.pulse_number = QLabel()
-        self.push_check = QPushButton('Post pulse analysis - all')
+        self.pulse_number_label = QLabel()
+        self.button_check_all = QPushButton('Post pulse analysis - all')
 
         layout0 = QVBoxLayout()
         layout1 = QFormLayout()
-        layout1.addRow(QLabel('Pulse number:'), self.pulse_number)
+        layout1.addRow(QLabel('Pulse number:'), self.pulse_number_label)
         layout0.addLayout(layout1)
-        layout0.addWidget(self.push_check)
+        layout0.addWidget(self.button_check_all)
 
         top_right_group.setLayout(layout0)
 
@@ -95,13 +92,13 @@ class PostPulseAnalysisWidget(QWidget):
         bottom_group = QGroupBox('Check results')
         layout = QVBoxLayout()
 
-        self.check_table = QTableWidget(12, 4)
-        self.check_table.setHorizontalHeaderLabels(['State', 'Check', 
-                                                    'Result',
+        self.check_table = QTableWidget(1, 4)
+        self.check_table.setHorizontalHeaderLabels(['Do', 'Test Name',
+                                                    'Result',  # TODO : result should be a button to click for display
                                                     'Result description'])
         # # Columns config
         # resize the column widths
-        self.check_table.horizontalHeader().resizeSection(0, 20)
+        self.check_table.horizontalHeader().resizeSection(0, 15)
         self.check_table.horizontalHeader().resizeSection(1, 200)
         self.check_table.horizontalHeader().resizeSection(2, 100)
         # Strech last column to fill the remaining space
@@ -123,8 +120,4 @@ class PostPulseAnalysisWidget(QWidget):
         bottom_group.setLayout(layout)
         return bottom_group
 
-    def _fill_table(self):
-        """
-        Fill the post test table 
-        """
-    
+
