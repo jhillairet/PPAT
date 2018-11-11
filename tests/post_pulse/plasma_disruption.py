@@ -7,6 +7,7 @@ Plasma disruption tests
 
 import pywed as pw
 import numpy as np
+import matplotlib.pyplot as plt
 from pppat.libpulse.check_result import CheckResult as Result
 from pppat.libpulse.utils import is_online, wait_cursor
 
@@ -70,8 +71,8 @@ class check_disruption_characteristic_time(Result):
                     
                     t_80_20 = t_20 - t_80
                     
-                    logger.info(f'Plasma disruption characteristic time : t_80-20 = {t_80_20*1e3} ms')
-                    self.text = f'Plasma disruption characteristic time : t_80-20 = {t_80_20*1e3} ms'
+                    logger.info(f'Plasma disruption @t={t_disruption:.2f}, characteristic time: t_80-20={t_80_20*1e3:.1f} ms')
+                    self.text = f'Plasma disruption @t={t_disruption:.2f}, characteristic time: t_80-20={t_80_20*1e3:.1f} ms'
         
                     if t_80_20 < 1e-3:
                         self.code = self.ERROR
@@ -90,5 +91,18 @@ class check_disruption_characteristic_time(Result):
         """
         Post-test display
         """
-        pass
+        if is_online():
+            with wait_cursor():
+                ip, t_ip = pw.tsbase(pulse_nb, 'SMAG_IP', nargout=2)
+                
+                fig, ax = plt.subplots()
+                ax.plot(t_ip, ip)
+                ax.grid(True)
+                ax.set_xlabel('t [s]')
+                ax.set_ylabel('Ip [kA]')
+                plt.show()
+            
+        else:
+            logger.error('Cannot access WEST database.')
+       
 

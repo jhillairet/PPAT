@@ -65,6 +65,7 @@ class MainWindow(QMainWindow):
         self.panel_pulse_display.widget.push_bigpicture.clicked.connect(self.display_big_picture)
         self.panel_post_pulse.widget.edit_pulse_nb.editingFinished.connect(self.get_post_pulse_analysis_nb)
         self.panel_post_pulse.widget.button_check_all.clicked.connect(self.check_post_pulse_all)
+        self.panel_post_pulse.widget.radio_last_pulse.clicked.connect(self.set_post_pulse_to_last)
 
         # Application icon
         self.setWindowIcon(QIcon('resources/icons/pppat.png'))
@@ -79,7 +80,13 @@ class MainWindow(QMainWindow):
         self.pulse_settings = None
         self.pulse_settings_dir = None
         self.pulse_settings_files = None
-
+        # the default post pulse is the last pulse
+        if is_online():
+            self.post_pulse_nb = last_pulse_nb()
+        else:
+            self.post_pulse_nb = None
+        self.panel_post_pulse.widget.pulse_number_label.setText(str(self.post_pulse_nb))
+                    
         # look into the post-test directory and get the number of post-tests
         self.post_pulse_tests = self.get_post_pulse_test_list()
         self.post_pulse_nb = 0
@@ -401,7 +408,13 @@ class MainWindow(QMainWindow):
 
         BigPicture_disp(nominal_scenario, dp_file, wfs, pulse_nb)
 
-
+    @Slot()
+    def set_post_pulse_to_last(self):
+        if is_online():
+            self.post_pulse_nb = last_pulse_nb()
+        else:
+            self.post_pulse_nb = None
+        self.panel_post_pulse.widget.pulse_number_label.setText(str(self.post_pulse_nb))
 
     @Slot()
     def get_post_pulse_analysis_nb(self):
@@ -410,6 +423,8 @@ class MainWindow(QMainWindow):
             self.post_pulse_nb = int(self.panel_post_pulse.widget.edit_pulse_nb.text())
         except ValueError as e:  # no shot number value entered yet
             self.post_pulse_nb = 0
+        
+        self.panel_post_pulse.widget.pulse_number_label.setText(str(self.post_pulse_nb))
         logger.info(f'Post-Pulse selected: #{self.post_pulse_nb}')
 
 
