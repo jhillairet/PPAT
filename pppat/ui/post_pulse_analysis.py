@@ -13,8 +13,8 @@ from qtpy.QtCore import Slot, Qt
 import logging
 logger = logging.getLogger(__name__)
 
-TABLE_HEADER_FONT_SIZE = 10
-TABLE_ROW_FONT_SIZE = 8
+TABLE_HEADER_FONT_SIZE = 12
+TABLE_ROW_FONT_SIZE = 10
 TABLE_ROW_SIZE = 30
 
 class PostPulseAnalysisWidget(QWidget):
