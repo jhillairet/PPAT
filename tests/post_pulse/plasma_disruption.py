@@ -9,8 +9,7 @@ import pywed as pw
 import numpy as np
 import matplotlib.pyplot as plt
 from pppat.libpulse.check_result import CheckResult as Result
-from pppat.libpulse.utils import is_online, wait_cursor
-
+from pppat.libpulse.utils import is_online, wait_cursor, post_pulse_test
 
 import logging
 logger = logging.getLogger(__name__)
@@ -40,75 +39,74 @@ class check_disruption_characteristic_time(Result):
         self.name = 'Disruption characteristic time'
         self.default = False
         
+        # Time at which the disruption is detected
+        self.t_disruption = None
+        self.t_20, self.t_80 = None, None
+        self.ip_20, self.ip_80, self.delta_ip = None, None, None
 
+    @post_pulse_test  # Do not remove
     def test(self, pulse_nb):
         """
-        Post-test
+        Plasma disruption Post-test
         """
-        with wait_cursor():  # show the GUI user that something is going on...
-            logger.info(f'Testing disruption for pulse {pulse_nb}')
-            if is_online():
-                try:
-                    ip, t_ip = pw.tsbase(pulse_nb, 'SMAG_IP', nargout=2)
-                    # squeeze arrays for compatibility with np.gradient
-                    ip, t_ip = np.squeeze(ip), np.squeeze(t_ip)
-                    # time derivative of the plasma current
-                    dip_dt = np.gradient(ip, t_ip)
-                    # search for the maximum of the derivative : 
-                    # this should matches the time of the disruption
-                    index_disruption = np.argmax(np.abs(dip_dt))
-                    t_disruption = t_ip[index_disruption]
-                    logger.info(f'Plasma disruption found at t={t_disruption}')
-                    # plasma current values few points before and after the disruption
-                    ip_before = ip[index_disruption - 20]
-        
-                    # find the time at which we have 80% of ip before disruption
-                    idx_80 = np.abs(ip[index_disruption - 20:index_disruption] - 0.8*ip_before).argmin()
-                    t_80 = t_ip[index_disruption - 20:index_disruption][idx_80]
-                    # find the time at which we have 20% of ip after disruption
-                    idx_20 = np.abs(ip[index_disruption:index_disruption + 20] - 0.2*ip_before).argmin()
-                    t_20 = t_ip[index_disruption:index_disruption + 20][idx_20]
-                    
-                    t_80_20 = t_20 - t_80
-                    
-                    logger.info(f'Plasma disruption @t={t_disruption:.2f}, characteristic time: t_80-20={t_80_20*1e3:.1f} ms')
-                    self.text = f'Plasma disruption @t={t_disruption:.2f}, characteristic time: t_80-20={t_80_20*1e3:.1f} ms'
-        
-                    if t_80_20 < 1e-3:
-                        self.code = self.ERROR
-                    elif (t_80_20 > 1e-3) and (t_80_20 < 5e-3):
-                        self.code = self.WARNING
-                    else:
-                        self.code = self.OK
-                except ValueError as e:
-                    # problem with manipulating the data (our fault!)
-                    self.text = str(e)
-                    self.code = self.BROKEN
-                except pw.PyWEDException as e:
-                    # problem to get the data from database (not our fault!)
-                    self.text = str(e)
-                    self.code = self.UNAVAILABLE
-            else:
-                self.text = 'Cannot access WEST database.'
-                self.code = self.UNAVAILABLE
-                logger.error(self.text)
+        logger.info(f'Testing disruption for pulse {pulse_nb}')
 
+        ip, t_ip = pw.tsbase(pulse_nb, 'SMAG_IP', nargout=2)
+        # squeeze arrays for compatibility with np.gradient
+        ip, t_ip = np.squeeze(ip), np.squeeze(t_ip)
+        # time derivative of the plasma current
+        dip_dt = np.gradient(ip, t_ip)
+        # search for the maximum of the derivative :
+        # this should matches the time of the disruption
+        index_disruption = np.argmax(np.abs(dip_dt))
+        self.t_disruption = t_ip[index_disruption]
+        logger.info(f'Plasma disruption found at t={self.t_disruption}')
+        # plasma current values few points before and after the disruption
+        ip_before = ip[index_disruption - 20]
+
+        # find the time and current at which we have 80% of ip before disruption
+        idx_80 = np.abs(ip[index_disruption - 20:index_disruption] - 0.8*ip_before).argmin()
+        self.t_80 = t_ip[index_disruption - 20:index_disruption][idx_80]
+        self.ip_80 = ip[np.argmin(np.abs(t_ip - self.t_80))]
+        # find the time and current at which we have 20% of ip after disruption
+        idx_20 = np.abs(ip[index_disruption:index_disruption + 20] - 0.2*ip_before).argmin()
+        self.t_20 = t_ip[index_disruption:index_disruption + 20][idx_20]
+        self.ip_20 = ip[np.argmin(np.abs(t_ip - self.t_20))]
+        
+        t_80_20 = self.t_20 - self.t_80
+        self.delta_ip = ip_before 
+
+        logger.info(f'Plasma disruption @t={self.t_disruption:.2f}, characteristic time: t_80-20={t_80_20*1e3:.1f} ms')
+        self.text = f'Plasma disruption @t={self.t_disruption:.2f}, characteristic time: t_80-20={t_80_20*1e3:.1f} ms'
+
+        if t_80_20 < 1e-3:
+            self.code = self.ERROR
+        elif (t_80_20 > 1e-3) and (t_80_20 < 5e-3):
+            self.code = self.WARNING
+        else:
+            self.code = self.OK
+
+
+    @post_pulse_test  # Do not remove
     def plot(self, pulse_nb):
         """
         Post-test display
         """
-        if is_online():
-            with wait_cursor():
-                ip, t_ip = pw.tsbase(pulse_nb, 'SMAG_IP', nargout=2)
-                
-                fig, ax = plt.subplots()
-                ax.plot(t_ip, ip)
-                ax.grid(True)
-                ax.set_xlabel('t [s]')
-                ax.set_ylabel('Ip [kA]')
-                plt.show()
-            
-        else:
-            logger.error('Cannot access WEST database.')
-       
+        ip, t_ip = pw.tsbase(pulse_nb, 'SMAG_IP', nargout=2)
+
+        fig, ax = plt.subplots()
+        ax.plot(t_ip, ip)
+        ax.grid(True)
+        ax.set_xlabel('t [s]')
+        ax.set_ylabel('Ip [kA]')
+        # if the test has been prealably run, display additional information
+        if self.t_20:
+            # ax.axvline(self.t_disruption, color='gray', ls='--')
+            ax.axvline(self.t_20, color='red', ls='--')    
+            ax.axvline(self.t_80, color='red', ls='--')
+            ax.axhline(self.ip_20, color='red', ls='--')    
+            ax.axhline(self.ip_80, color='red', ls='--') 
+        plt.show()
+
+
 
