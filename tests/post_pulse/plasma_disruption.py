@@ -81,7 +81,13 @@ class check_disruption_characteristic_time(Result):
                     else:
                         self.code = self.OK
                 except ValueError as e:
+                    # problem with manipulating the data (our fault!)
+                    self.text = str(e)
                     self.code = self.BROKEN
+                except pw.PyWEDException as e:
+                    # problem to get the data from database (not our fault!)
+                    self.text = str(e)
+                    self.code = self.UNAVAILABLE
             else:
                 self.text = 'Cannot access WEST database.'
                 self.code = self.UNAVAILABLE

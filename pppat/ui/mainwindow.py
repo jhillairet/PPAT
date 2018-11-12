@@ -65,7 +65,7 @@ class MainWindow(QMainWindow):
         self.panel_pulse_display.widget.push_bigpicture.clicked.connect(self.display_big_picture)
         self.panel_post_pulse.widget.edit_pulse_nb.editingFinished.connect(self.get_post_pulse_analysis_nb)
         self.panel_post_pulse.widget.button_check_all.clicked.connect(self.check_post_pulse_all)
-        self.panel_post_pulse.widget.radio_last_pulse.clicked.connect(self.set_post_pulse_to_last)
+        self.panel_post_pulse.widget.radio_last_pulse.clicked.connect(self.get_post_pulse_analysis_nb)
 
         # Application icon
         self.setWindowIcon(QIcon('resources/icons/pppat.png'))
@@ -408,22 +408,31 @@ class MainWindow(QMainWindow):
 
         BigPicture_disp(nominal_scenario, dp_file, wfs, pulse_nb)
 
-    @Slot()
-    def set_post_pulse_to_last(self):
-        if is_online():
-            self.post_pulse_nb = last_pulse_nb()
-        else:
-            self.post_pulse_nb = None
-        self.panel_post_pulse.widget.pulse_number_label.setText(str(self.post_pulse_nb))
 
     @Slot()
     def get_post_pulse_analysis_nb(self):
-        """ Return the post pulse number from its dedicated QLineEdit """
-        try:
-            self.post_pulse_nb = int(self.panel_post_pulse.widget.edit_pulse_nb.text())
-        except ValueError as e:  # no shot number value entered yet
-            self.post_pulse_nb = 0
-        
+        """ 
+        Update the post pulse number (self.post_pulse_nb) 
+        from the GUI setup, ie. either the 'last pulse' radio button selected
+        or the dedicated QLineEdit 
+        """
+        if self.panel_post_pulse.widget.radio_last_pulse.isChecked():
+            # last pulse number
+            if is_online():
+                self.post_pulse_nb = last_pulse_nb()
+            else:
+                self.post_pulse_nb = None
+        elif self.panel_post_pulse.widget.radio_pulse_nb.isChecked():
+            # user defined pulse number
+            try:
+                self.post_pulse_nb = int(self.panel_post_pulse.widget.edit_pulse_nb.text())
+            except ValueError as e:  # no shot number value entered yet
+                self.post_pulse_nb = None            
+        else: 
+            # this case should not exist !
+            logger.error('GUI problem? Cannot read which post pulse to read')
+
+        # Update the QLabel with the post pulse number
         self.panel_post_pulse.widget.pulse_number_label.setText(str(self.post_pulse_nb))
         logger.info(f'Post-Pulse selected: #{self.post_pulse_nb}')
 
@@ -456,6 +465,9 @@ class MainWindow(QMainWindow):
         """
         Fill the post test table
         """
+        # first update the post pulse number
+        self.get_post_pulse_analysis_nb()
+        
         # each row correspond to a specific post-test
         for (row, post_pulse_test) in enumerate(self.post_pulse_tests):
             # checkbox
