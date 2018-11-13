@@ -9,6 +9,8 @@ from pppat.libpulse.check_result import CheckResult as Result
 import logging
 logger = logging.getLogger(__name__)
 
+MARGIN_MIN = 2  # bars
+MARGIN_MAX = 2  # bars
 
 def check_WOI_2p2_B30_pressure(is_online=True, waveforms=None):
     """
@@ -20,9 +22,13 @@ def check_WOI_2p2_B30_pressure(is_online=True, waveforms=None):
         pB30 = pw.tsmat(0, 'EXP=T=S;General;PB30')
         logger.info(f'B30 pressure: {pB30:.1f}')
 
-        if (pB30 < 15) or (pB30 > 24):  # TODO : margins ?
+        if (pB30 < 15):  # TODO : margins ?
             return Result(name=check_name, code=Result.ERROR,
                           text=f'B30 Pressure below 15 bars: {pB30:.1f}')
+        elif  (pB30 > 24+6+2):
+            return Result(name=check_name, code=Result.ERROR,
+                          text=f'B30 Pressure higher than 24 bars: {pB30:.1f}')
+            
         else:
             return Result(name=check_name, code=Result.OK,
                           text=f'B30 Pressure between 15 and 24 bars: {pB30:.1f}')
