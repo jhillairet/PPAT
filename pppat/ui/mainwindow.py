@@ -467,9 +467,13 @@ class MainWindow(QMainWindow):
         """
         # first update the post pulse number
         self.get_post_pulse_analysis_nb()
-        
         # each row correspond to a specific post-test
         for (row, post_pulse_test) in enumerate(self.post_pulse_tests):
+            # add a row
+            rowPosition = self.panel_post_pulse.widget.check_table.rowCount()
+            logger.info(str(rowPosition))
+            self.panel_post_pulse.widget.check_table.insertRow(rowPosition)
+
             # checkbox
             checkbox_item = QTableWidgetItem()
             checkbox_item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
@@ -479,27 +483,30 @@ class MainWindow(QMainWindow):
             else:
                 checkbox_item.setCheckState(Qt.Unchecked)
 
-            self.panel_post_pulse.widget.check_table.setItem(row, 0, checkbox_item)
+            self.panel_post_pulse.widget.check_table.setItem(rowPosition, 0, checkbox_item)
 
             # launch button
-            button_test = QPushButton(post_pulse_test.name)
-            self.panel_post_pulse.widget.check_table.setCellWidget(row, 1, button_test)
+            buttons_test = QPushButton(post_pulse_test.name)
+            self.panel_post_pulse.widget.check_table.setCellWidget(rowPosition, 1, buttons_test)
             
             # result button
-            button_res = QPushButton('  ')
-            button_res.resize(10, 30)  # all button have same size
-            self.panel_post_pulse.widget.check_table.setCellWidget(row, 2, button_res)
+            buttons_res = QPushButton('  ')
+            buttons_res.resize(10, 30)  # all button have same size
+            self.panel_post_pulse.widget.check_table.setCellWidget(rowPosition, 2, buttons_res)
             
             # result description
-            label_res = QLabel('')
-            self.panel_post_pulse.widget.check_table.setCellWidget(row, 3, label_res)
+            test_labels = QLabel('')
+            self.panel_post_pulse.widget.check_table.setCellWidget(rowPosition, 3, test_labels)
 
             # connect row buttons to test methods            
-            button_test.clicked.connect(lambda : self.execute_post_pulse_test(post_pulse_test, button_res, label_res))
-#            button_test.clicked.connect(lambda : post_pulse_test.test(self.post_pulse_nb) )
-            button_res.clicked.connect(lambda : post_pulse_test.plot(self.post_pulse_nb))
+            buttons_test.clicked.connect(partial(self.execute_post_pulse_test, post_pulse_test, buttons_res, test_labels))
+            buttons_res.clicked.connect(partial(self.plot_post_pulse_test, post_pulse_test))
             
-            
+    @Slot()
+    def plot_post_pulse_test(self, post_pulse_test):
+        # plot the test 
+        post_pulse_test.plot(self.post_pulse_nb)
+        
 
     @Slot()
     def execute_post_pulse_test(self, post_pulse_test, button_res, label_res):
@@ -526,11 +533,8 @@ class MainWindow(QMainWindow):
 
     def get_post_pulse_test_list(self):
         """
-        Return a list of dictionnaries which describe all available
+        Define a list of dictionnaries which describe all available
         post pulse test functions
-
-        Return
-        ------
 
         """
         post_pulse_tests = []
@@ -540,8 +544,7 @@ class MainWindow(QMainWindow):
         check_importers = [imp for imp, _, _ in pkgutil.iter_modules(['tests/post_pulse'])]
         logger.debug(check_filenames)
         logger.debug(check_importers)
-
-
+        
         logger.info("########## Looking into post-pulse directory ###########")
         for (importer, file) in zip(check_importers, check_filenames):
             # import the module (here=file)
@@ -551,8 +554,11 @@ class MainWindow(QMainWindow):
             # which name starts by 'check_'
             fun_names = dir(i)
             for fun_name in fun_names:
-                if 'check_' in fun_name:
+                if 'check_' in fun_name:   
                     post_pulse_test = eval(f'i.{fun_name}()')
                     post_pulse_tests.append(post_pulse_test)
+#                    except TypeError as e:
+#                        logger.error(f'Error in {fun_name}: {e}')
 
+        
         return post_pulse_tests

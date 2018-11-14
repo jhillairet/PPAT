@@ -92,7 +92,7 @@ class PostPulseAnalysisWidget(QWidget):
         bottom_group = QGroupBox('Check results')
         layout = QVBoxLayout()
 
-        self.check_table = QTableWidget(1, 4)
+        self.check_table = QTableWidget(0, 4)
         self.check_table.setHorizontalHeaderLabels(['Do', 'Test Name',
                                                     'Result',  # TODO : result should be a button to click for display
                                                     'Result description'])
