@@ -3,35 +3,13 @@
 Various utility functions for PPPAT
 
 """
-import socket
 from contextlib import contextmanager
 from qtpy.QtWidgets import QApplication
 from qtpy.QtGui import QCursor
 from qtpy.QtCore import Qt
-from IRFMtb import tsdernier_choc
-
 from pppat.libpulse.check_result import CheckResult as Result
-import pywed as pw
-
-def is_online():
-    """
-    Return the online status (True or False).
-
-    Returns
-    -------
-    status: Boolean
-            The online status True is the IRFM database can be
-            reached on the network. False if not ('offline' mode).
-    """
-    host = '10.8.86.1'  # deneb address
-    port = 5880
-    # create a dummy connection to test the server reachability
-    try:
-        s = socket.create_connection((host, port), timeout=2)
-        return True
-    except socket.error:
-        return False
-
+from pppat.libpulse.utils_west import is_online
+from pywed import PyWEDException
 
 @contextmanager
 def wait_cursor():
@@ -45,14 +23,6 @@ def wait_cursor():
         yield
     finally:
         QApplication.restoreOverrideCursor()
-
-
-def last_pulse_nb():
-    """ Return the latest WEST pulse number """
-    if is_online():
-        return tsdernier_choc()
-    else:
-        return -1
 
 
 def post_pulse_test(test_func):
@@ -80,7 +50,7 @@ def post_pulse_test(test_func):
                     args[0].text = str(e)
                     args[0].code = Result.BROKEN
                     test = args[0]
-                except pw.PyWEDException as e:
+                except PyWEDException as e:
                     # problem to get the data from database (not our fault!)
                     args[0].text = str(e)
                     args[0].code = Result.UNAVAILABLE
