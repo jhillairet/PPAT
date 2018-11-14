@@ -441,25 +441,33 @@ class MainWindow(QMainWindow):
     @Slot()
     def check_post_pulse_all(self):
         """ Check all the (default) post pulse tests """
-        # retrieve the post pulse number
-        if self.panel_post_pulse.widget.radio_last_pulse.isChecked():
-            self.post_pulse_nb = last_pulse_nb()
-        elif self.panel_post_pulse.widget.radio_pulse_nb.isChecked():
-            self.get_post_pulse_analysis_nb()
-
+        # retrieve the post pulse number from the user UI
+        self.get_post_pulse_analysis_nb()
 
         # pulse nb is 0 if not yet set by the user on the GUI
         # pulse nb is -1 if last pulse choosen but user is offline
         # otherwise assume the shot number is correct and perform all the tests
-        if self.post_pulse_nb == 0:
+        if not self.post_pulse_nb:
             logger.error('Please first enter a valid shot number!')
-        elif self.post_pulse_nb < 0:
+        elif self.post_pulse_nb <= 0:
             logger.error('Cannot connect to WEST database. Skipping tests...')
         else:
             # perform all the default post pulse tests
             with wait_cursor():
                 logger.info(f'Post-pulse checking... pulse {self.post_pulse_nb}')
-                # TODO: For all checked tests, perform the tests
+                # For all checked tests, perform the tests
+                nb_tests = self.panel_post_pulse.widget.check_table.rowCount()
+                if nb_tests != len(self.post_pulse_tests):  # just in case ...
+                    logger.error(f'The number of available post tests ({len(self.post_pulse_tests)}) does not fit the number of row in the table ({nb_tests}) ?')
+                else:
+                    for (row, test) in enumerate(self.post_pulse_tests):
+                        # assume order of test in the table is the same than order of self.post_pulse_tests
+                        status = self.panel_post_pulse.widget.check_table.item(row,0).checkState()
+                        if status == Qt.Checked:
+                            logger.info(f'Testing {test}')
+                            button_res = self.panel_post_pulse.widget.check_table.cellWidget(row,2)
+                            label_res = self.panel_post_pulse.widget.check_table.cellWidget(row,3)
+                            self.execute_post_pulse_test(test, button_res, label_res)
 
 
     def fill_post_tests_table(self):
