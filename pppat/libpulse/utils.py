@@ -55,6 +55,11 @@ def post_pulse_test(test_func):
                     args[0].text = str(e)
                     args[0].code = Result.UNAVAILABLE
                     test = args[0]
+                except Exception as e:
+                    # any other problem 
+                    args[0].text = str(e)
+                    args[0].code = Result.UNAVAILABLE
+                    test = args[0]                    
             else:
                 args[0].text = 'Cannot access WEST database.'
                 args[0].code = Result.UNAVAILABLE
