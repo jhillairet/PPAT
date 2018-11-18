@@ -7,7 +7,8 @@ import pywed as pw
 import numpy as np
 import matplotlib.pyplot as plt
 from pppat.libpulse.check_result import CheckResult as Result
-from pppat.libpulse.utils import is_online, wait_cursor, post_pulse_test
+from pppat.libpulse.utils import wait_cursor, post_pulse_test
+from pppat.libpulse.utils_west import is_online
 import logging  # pour ajouter des informations au log de PPPPAT
 logger = logging.getLogger(__name__)
 

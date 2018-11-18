@@ -106,7 +106,7 @@ class check_disruption_characteristic_time(Result):
             ax.axvline(self.t_80, color='red', ls='--')
             ax.axhline(self.ip_20, color='red', ls='--')    
             ax.axhline(self.ip_80, color='red', ls='--') 
-        plt.show()
+        fig.show()
 
 
 

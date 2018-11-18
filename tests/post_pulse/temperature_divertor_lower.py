@@ -88,6 +88,5 @@ class check_temperature_divertor_lower(Result):
             ax.axhline(T_WARNING, lw=2, ls='--', color='orange')
             ax.set_ylim(ylim)
         
-
         ax.set_xlabel('t [s]')
-        plt.show()
+        fig.show()

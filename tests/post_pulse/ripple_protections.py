@@ -57,7 +57,14 @@ def ripple_protection_loss_for_pulse(pulse):
     -------
      - P_rp: np.array
          Ripple protection power loss in kW
-
+     - t_ip: np.array
+         Time array from plasma current
+     - ip: np.array
+         Plasma current
+     - nl: np.array
+         Central Lineic density interpolated on plasma current timebase
+     - p_lh: np.array
+         Total coupled lH power interpolated on plasma current timebase
     """
     # retrieve plasma current, total coupled LH power and lineic density
     ip, t_ip = pw.tsbase(pulse, 'SMAG_IP', nargout=2)
@@ -71,11 +78,13 @@ def ripple_protection_loss_for_pulse(pulse):
 
     # current shot power loss in kW
     P_rp = ripple_protection_loss(ip/1e3, nl, p_lh)
+    # replace inf (where density is measured as 0) to Nan
+    P_rp[np.isinf(P_rp)] = np.nan
 
     return P_rp, t_ip, ip, nl, p_lh
 
 
-class check_temperature_divertor_lower(Result):
+class check_ripple_protection(Result):
     """
     Test the heat load deposited on the ripple protection according to
     the scale law defined in WOI 6.6:
@@ -109,13 +118,13 @@ class check_temperature_divertor_lower(Result):
         else:
             if P_rp_max >= P_ERROR:
                 self.code = self.ERROR
-                self.text = f'Maw Ripple loss: {P_rp_max:.1f} kW > {P_ERROR} kW '
+                self.text = f'Max Ripple loss: {P_rp_max:.1f} kW > {P_ERROR} kW '
             elif (P_rp_max >= P_WARNING) and (P_rp_max < P_ERROR):
                 self.code = self.WARNING
                 self.text = f'Max Ripple loss: {P_rp_max:.1f} kW > {P_WARNING} kW '
             else:
                 self.code = self.OK
-                self.text = f'Max Ripple loss: {P_rp_max:.1f} kW OK'
+                self.text = f'Max Ripple loss: {P_rp_max:.1f} kW < {P_WARNING} kW'
 
     # La méthode suivante sert à tracer des choses utiles. À modifier.
     @post_pulse_test  # Do not remove
@@ -134,7 +143,7 @@ class check_temperature_divertor_lower(Result):
         axes[3].plot(t_ip, P_rp, label='Ripple Loss [kW]')
         for ax in axes:
             ax.legend()
-        plt.show(True)
+        fig.show(True)
 
         # plot the specific WOI figure (P_rp = 25 kW)
         fig, ax = plt.subplots()
@@ -151,10 +160,16 @@ class check_temperature_divertor_lower(Result):
         ax.grid(True)
         ax.legend()
 
-        plt.show(True)
+        fig.show(True)
 
         
+if __name__ == '__main__':
+    # testing 
+    pulse = 53640
+    test_ripple = check_ripple_protection()
+    test_ripple.test(pulse)
 
+    
 
 
 

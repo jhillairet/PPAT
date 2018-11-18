@@ -79,4 +79,4 @@ class check_temperature_baffle(Result):
             ax.set_ylim(ylim)
 
         ax.set_xlabel('t [s]')
-        plt.show()
+        fig.show()
