@@ -464,7 +464,6 @@ class MainWindow(QMainWindow):
                         # assume order of test in the table is the same than order of self.post_pulse_tests
                         status = self.panel_post_pulse.widget.check_table.item(row,0).checkState()
                         if status == Qt.Checked:
-                            logger.info(f'Testing {test}')
                             button_res = self.panel_post_pulse.widget.check_table.cellWidget(row,2)
                             label_res = self.panel_post_pulse.widget.check_table.cellWidget(row,3)
                             self.execute_post_pulse_test(test, button_res, label_res)
