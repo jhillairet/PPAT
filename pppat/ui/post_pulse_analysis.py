@@ -9,13 +9,18 @@ from qtpy.QtWidgets import (QWidget, QGridLayout, QRadioButton, QGroupBox,
                             QTableWidget, QTableWidgetItem, QHeaderView)
 from qtpy.QtGui import QIntValidator, QFont
 from qtpy.QtCore import Slot, Qt
-
+import os
 import logging
 logger = logging.getLogger(__name__)
 
-TABLE_HEADER_FONT_SIZE = 12
-TABLE_ROW_FONT_SIZE = 10
-TABLE_ROW_SIZE = 30
+# Smaller font sizes on windows than on Linux for a better UI experience
+if os.name == 'nt':  
+    TABLE_HEADER_FONT_SIZE = 10
+    TABLE_ROW_FONT_SIZE = 8
+else:
+    TABLE_HEADER_FONT_SIZE = 12
+    TABLE_ROW_FONT_SIZE = 10
+TABLE_ROW_SIZE = 24  # vertical height
 
 class PostPulseAnalysisWidget(QWidget):
     """
