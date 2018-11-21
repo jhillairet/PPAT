@@ -29,7 +29,7 @@ def check_WOI_5p2_antenna_max_powers(is_online=False, waveforms=None):
     # retrieve LHCD waveforms
     wfs = []
     for wf_name in wf_names:
-        wfs.append(get_waveform(wf_name, ps.waveforms))
+        wfs.append(get_waveform(wf_name, waveforms))
 
     # Check max antenna power
     LH1_max_power = np.amax(wfs[0].values)/1e6
