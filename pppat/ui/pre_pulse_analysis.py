@@ -99,7 +99,7 @@ class PrePulseAnalysisWidget(QWidget):
         self.check_table.setHorizontalHeaderLabels(['Test Name',
                                                     'Result',
                                                     'Result description'])
-        self.check_table.setSortingEnabled(True)
+        #self.check_table.setSortingEnabled(True)
         # # Columns config
         # resize the column widths
         self.check_table.horizontalHeader().resizeSection(0, 200)
