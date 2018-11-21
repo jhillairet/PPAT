@@ -36,7 +36,8 @@ MINIMUM_WIDTH = 800
 URLS = {
         'WOI': 'http://www-irfm.intra.cea.fr/Phocea/Page/index.php?id=563',
         'annuaire': 'http://asterope.intra.cea.fr/Phocea/Membres/Annuaire/index.php',
-        'FAQ': 'http://maia/EIC/faq'
+        'FAQ': 'http://maia/EIC/faq',
+        'PPPAT GitHub': 'https://github.com/IRFM/PPPAT' 
         }
 
 class MainWindow(QMainWindow):
@@ -126,9 +127,13 @@ class MainWindow(QMainWindow):
         action_links_FAQ = QAction('&FAQ des EiC', parent=self,
                                    statusTip='Open the intranet page with the EiC FAQ',
                                    triggered=partial(self.open_url_woi, URLS['FAQ']))
+        action_links_github = QAction('&PPPAT GitHub repository', parent=self,
+                                   statusTip='Open the official PPPAT github repository',
+                                   triggered=partial(self.open_url_woi, URLS['PPPAT GitHub']))
         menu_links.addAction(action_links_WOI)
         menu_links.addAction(action_links_annuaire)
         menu_links.addAction(action_links_FAQ)
+        menu_links.addAction(action_links_github)
 
     def open_url_woi(self, url):
         " Open an URL in an external browser "

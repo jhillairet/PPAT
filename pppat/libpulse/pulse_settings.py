@@ -25,12 +25,16 @@ class PulseSettings():
     DP.xml and SUP.xml. Each WEST pulse is defined following the information
     contained in these two files.
     """
-    def __init__(self):
+    def __init__(self, pulse_nb=None):
         logger.info('init Pulse Setting')
         
         self.pulse_nb = None  # pulse number
         self.files = None  # dictionnary containing 'dp' and 'sup' xml file paths
         self.waveforms = None  # list of Waveform objects
+        
+        # directly load the pulse settings if the pulse number is provided
+        if pulse_nb:
+            self.load_from_pulse(pulse_nb)
 
     def load_from_file(self, pulse_settings_files):
         """
