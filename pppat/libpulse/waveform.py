@@ -22,7 +22,7 @@ class Waveform():
         
     def __repr__(self):
         " meaningfull representation "
-        return f'DCS Waveform {self.name} ({len(self.segments)} segments)'
+        return f'DCS Waveform: "{self.name}", ({len(self.segments)} segments)'
 
 def get_waveform(waveform_name, waveforms):
     """
