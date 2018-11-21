@@ -91,22 +91,25 @@ def check_WOI_5p5_duration_limits(is_online=False, waveforms=None):
         except IndexError as e:
             # case if no IC power is expected on an antenna
             pass
-           
-    # check if one of the waveform is higher than the limits
-    if np.any(np.array(ic_durations) > MAX_DURATION_WITH_IR):
-        return Result(name=CHECK_NAME, code=Result.ERROR,
-                      text=f'max IC programmed duration: {np.amax(ic_durations):.3f} s > {MAX_DURATION_WITH_IR} s (no IR)')
+    if ic_durations:
+        # check if one of the waveform is higher than the limits
+        if np.any(np.array(ic_durations) > MAX_DURATION_WITH_IR):
+            return Result(name=CHECK_NAME, code=Result.ERROR,
+                          text=f'max IC programmed duration: {np.amax(ic_durations):.3f} s > {MAX_DURATION_WITH_IR} s (no IR)')
+        else:
+            return Result(name=CHECK_NAME, code=Result.OK,
+                          text=f'max IC programmed duration: {np.amax(ic_durations):.3f} s < {MAX_DURATION_WITH_IR} s (no IR)')
     else:
-        return Result(name=CHECK_NAME, code=Result.OK,
-                      text=f'max IC programmed duration: {np.amax(ic_durations):.3f} s < {MAX_DURATION_WITH_IR} s (no IR)')
-
+            return Result(name=CHECK_NAME, code=Result.OK,
+                          text=f'No IC programmed')
+        
 
 # For debug and testing purpose
 if __name__ == '__main__':
     from pppat.libpulse.waveform import get_waveform
     from pppat.libpulse.pulse_settings import PulseSettings
     # get pulse settings
-    ps = PulseSettings(53701)
+    ps = PulseSettings(53726)
 
     wf_names = ['rts:WEST_PCS/Actuators/Heating/ICRH/power/1/waveform.ref',
                 'rts:WEST_PCS/Actuators/Heating/ICRH/power/2/waveform.ref',
