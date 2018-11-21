@@ -11,6 +11,9 @@ from pppat.libpulse.check_result import CheckResult as Result
 from pppat.libpulse.utils_west import is_online
 from pywed import PyWEDException
 
+import logging  # pour ajouter des informations au log de PPPPAT
+logger = logging.getLogger(__name__)
+
 @contextmanager
 def wait_cursor():
     """
@@ -50,19 +53,23 @@ def post_pulse_test(test_func):
                     args[0].text = str(e)
                     args[0].code = Result.BROKEN
                     test = args[0]
+                    logger.error(str(e))
                 except PyWEDException as e:
                     # problem to get the data from database (not our fault!)
                     args[0].text = str(e)
                     args[0].code = Result.UNAVAILABLE
                     test = args[0]
+                    logger.error(str(e))
                 except Exception as e:
                     # any other problem 
                     args[0].text = str(e)
                     args[0].code = Result.UNAVAILABLE
-                    test = args[0]                    
+                    test = args[0]     
+                    logger.error(str(e))
             else:
                 args[0].text = 'Cannot access WEST database.'
                 args[0].code = Result.UNAVAILABLE
                 test = args[0]
+                logger.error(args[0].text)
             return test
     return wrapper
