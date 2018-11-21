@@ -73,3 +73,36 @@ def post_pulse_test(test_func):
                 logger.error(args[0].text)
             return test
     return wrapper
+
+def pre_pulse_test(test_func):
+    '''
+    Decorator for Pre-Pulse tests.
+
+    This decorator should be used as a convenient way to avoid error detection
+    code in pre test functions.
+
+    This decorator returns a Result object with all the possible errors 
+    into the test object.
+    '''
+    def wrapper(*args, **kwargs):
+        # change the GUI cursor to show the user that something is going on...
+        with wait_cursor():
+            try:
+                # perform the test
+                test = test_func(*args, **kwargs)
+            except ValueError as e:
+                # problem with manipulating the data (our fault!)
+                test = Result(text = str(e), code = Result.BROKEN)
+                logger.error(str(e))
+            except PyWEDException as e:
+                # problem to get the data from database (not our fault!)
+                test = Result(text = str(e), code = Result.UNAVAILABLE)
+                logger.error(str(e))
+            except Exception as e:
+                # any other problem 
+                test = Result(text = str(e), code = Result.UNAVAILABLE)
+                logger.error(str(e))
+
+            return test
+    return wrapper
+
