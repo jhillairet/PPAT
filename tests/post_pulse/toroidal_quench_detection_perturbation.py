@@ -146,17 +146,25 @@ def plot_toro_vs_Ip_RF(pulse_nb, toro_t, toro_y):
     """
     # Plasma current
     Ip, t1 = pw.tsbase(pulse_nb, 'smag_ip', '+', nargout=2)
-    # Puissance FCI
-    Pfci, tfci = pw.tsbase(pulse_nb, 'SICHPTOT', '+', nargout=2)
-    # Puissance Hybride
-    Phyb, thyb = pw.tsbase(pulse_nb, 'SHYBPTOT', '+', nargout=2)
-
     fig, axes = plt.subplots(3, 1, sharex=True)
     axes[0].plot(t1, Ip, color='k', lw=2, label='Ip [kA]')
     axes[0].set_ylabel('Current [kA]')
     axes[0].legend()
-    axes[1].plot(tfci[:,0], Pfci, lw=2, label='IC Power [kW]')
-    axes[1].plot(thyb[:,0], Phyb, lw=2, label='LH Power [kW]')
+
+    # Puissance FCI
+    try:
+        Pfci, tfci = pw.tsbase(pulse_nb, 'SICHPTOT', '+', nargout=2)
+        axes[1].plot(tfci[:,0], Pfci, lw=2, label='IC Power [kW]')
+    except pw.PyWEDException:
+        logger.info(f'No ICRH power pulse #{pulse_nb}')
+                    
+    # Puissance Hybride
+    try:
+        Phyb, thyb = pw.tsbase(pulse_nb, 'SHYBPTOT', '+', nargout=2)
+        axes[1].plot(thyb[:,0], Phyb, lw=2, label='LH Power [kW]')
+    except pw.PyWEDException:
+        logger.info(f'No ICRH power pulse #{pulse_nb}')
+
     axes[1].set_ylabel('RF Power [kW]')
     axes[1].legend()
     axes[2].plot(toro_t, toro_y)
