@@ -19,7 +19,7 @@ if os.name == 'nt':
     TABLE_ROW_FONT_SIZE = 8
 else:
     TABLE_HEADER_FONT_SIZE = 12
-    TABLE_ROW_FONT_SIZE = 10
+    TABLE_ROW_FONT_SIZE = 12
 TABLE_ROW_SIZE = 24  # vertical height
 
 class PrePulseAnalysisWidget(QWidget):
