@@ -9,10 +9,18 @@ from qtpy.QtWidgets import (QWidget, QGridLayout, QRadioButton, QGroupBox,
                             QTableWidget, QTableWidgetItem, QHeaderView)
 from qtpy.QtGui import QIntValidator, QFont
 from qtpy.QtCore import Slot
-
+import os
 import logging
 logger = logging.getLogger(__name__)
 
+# Smaller font sizes on windows than on Linux for a better UI experience
+if os.name == 'nt':
+    TABLE_HEADER_FONT_SIZE = 10
+    TABLE_ROW_FONT_SIZE = 8
+else:
+    TABLE_HEADER_FONT_SIZE = 12
+    TABLE_ROW_FONT_SIZE = 10
+TABLE_ROW_SIZE = 24  # vertical height
 
 class PrePulseAnalysisWidget(QWidget):
     """
@@ -111,14 +119,14 @@ class PrePulseAnalysisWidget(QWidget):
 
         # # Rows config
         self.check_table.verticalHeader().hide()
-        self.check_table.verticalHeader().setDefaultSectionSize(20)
+        self.check_table.verticalHeader().setDefaultSectionSize(TABLE_ROW_SIZE)
         # font size of the header
         header_font = self.check_table.horizontalHeader().font()
-        header_font.setPointSize(10)
+        header_font.setPointSize(TABLE_HEADER_FONT_SIZE)
         self.check_table.horizontalHeader().setFont(header_font)
         # font size of the table
         font = self.check_table.font()
-        font.setPointSize(8)
+        font.setPointSize(TABLE_ROW_FONT_SIZE)
         self.check_table.setFont(font)
 
         layout.addWidget(self.check_table)
