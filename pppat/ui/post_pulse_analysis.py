@@ -6,7 +6,8 @@ from qtpy.QtWidgets import (QWidget, QGridLayout, QRadioButton, QGroupBox,
                             QVBoxLayout, QTextBrowser, QLabel, QPushButton,
                             QFormLayout, QLineEdit, QFileDialog, QCheckBox,
                             QErrorMessage, QTableView, QAbstractItemView,
-                            QTableWidget, QTableWidgetItem, QHeaderView)
+                            QTableWidget, QTableWidgetItem, QHeaderView,
+                            QButtonGroup)
 from qtpy.QtGui import QIntValidator, QFont
 from qtpy.QtCore import Slot, Qt
 import os
@@ -49,11 +50,15 @@ class PostPulseAnalysisWidget(QWidget):
         Top Left widgets group
         """
         top_left_group = QGroupBox("Pulse selection:")
-
+        
         self.radio_last_pulse = QRadioButton('Last pulse')
         self.radio_last_pulse.setChecked(True)
         self.radio_pulse_nb = QRadioButton('Pulse number')
-
+        # put all the radio button into a group
+        self.radio_buttons_group = QButtonGroup()
+        self.radio_buttons_group.addButton(self.radio_last_pulse)
+        self.radio_buttons_group.addButton(self.radio_pulse_nb)
+        
         self.edit_pulse_nb = QLineEdit()
         self.edit_pulse_nb.setPlaceholderText('Pulse Number')
         self.edit_pulse_nb.textChanged.connect(self._validate_radio_pulse_nb)
