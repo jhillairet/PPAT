@@ -68,6 +68,8 @@ class MainWindow(QMainWindow):
         self.panel_post_pulse.widget.edit_pulse_nb.editingFinished.connect(self.get_post_pulse_analysis_nb)
         self.panel_post_pulse.widget.button_check_all.clicked.connect(self.check_post_pulse_all)
         self.panel_post_pulse.widget.radio_last_pulse.clicked.connect(self.get_post_pulse_analysis_nb)
+        self.panel_post_pulse.widget.radio_last_pulse.toggled.connect(self.clean_table)
+        #self.panel_post_pulse.widget.radio_pulse_nb.toggled.connect(self.clean_table)
 
         # Application icon
         self.setWindowIcon(QIcon('resources/icons/pppat.png'))
@@ -515,11 +517,28 @@ class MainWindow(QMainWindow):
             buttons_test.clicked.connect(partial(self.execute_post_pulse_test, post_pulse_test, buttons_res, test_labels))
             buttons_res.clicked.connect(partial(self.plot_post_pulse_test, post_pulse_test))
 
+        # Enable sorting once the table has been filled
+        self.panel_post_pulse.widget.check_table.setSortingEnabled(True)
+
+    @Slot()
+    def clean_table(self):
+        """
+        Clean the post test results table (code name, text and button color)
+        """
+        logger.debug('Changing pulse number: Clean the post pulse table')
+        
+        row_nb = self.panel_post_pulse.widget.check_table.rowCount()
+        for idx_row in range(row_nb):
+            # remove the result code name and text
+            self.panel_post_pulse.widget.check_table.cellWidget(idx_row, 2).setText('')
+            self.panel_post_pulse.widget.check_table.cellWidget(idx_row, 3).setText('')
+            # reset background color
+            self.panel_post_pulse.widget.check_table.cellWidget(idx_row, 2).setStyleSheet("")
+
     @Slot()
     def plot_post_pulse_test(self, post_pulse_test):
         """ plot something meaningfull about a test """
         post_pulse_test.plot(self.post_pulse_nb)
-
 
     @Slot()
     def execute_post_pulse_test(self, post_pulse_test, button_res, label_res):
@@ -543,8 +562,6 @@ class MainWindow(QMainWindow):
             button_res.setStyleSheet("background-color: grey")
         else:
             logger.error(f'Unknow post test result code {post_pulse_test.code}')
-
-
 
     def get_post_pulse_test_list(self):
         """
@@ -574,6 +591,5 @@ class MainWindow(QMainWindow):
                     post_pulse_tests.append(post_pulse_test)
 #                    except TypeError as e:
 #                        logger.error(f'Error in {fun_name}: {e}')
-
 
         return post_pulse_tests

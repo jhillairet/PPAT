@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pppat.libpulse.check_result import CheckResult as Result
 from pppat.libpulse.utils import post_pulse_test
-from pppat.libpulse.utils_west import temperature_from_pulse, temperature_from_time
+from pppat.libpulse.utils_west import temperature_from_pulse
 
 import logging
 logger = logging.getLogger(__name__)
@@ -53,7 +53,10 @@ class check_temperature_divertor_lower(Result):
         max_temp = []
         for sig in sig_TCs_divertor:
             T, t = temperature_from_pulse(pulse_nb, sig)
-            max_temp.append(np.amax(T))
+            # replace unrealistic temperatures (<10°C) by -1
+            T2 = np.where(T > 10, T, -1)
+            
+            max_temp.append(np.amax(T2))
 
         max_max_temp = np.amax(max_temp)
 
@@ -80,7 +83,10 @@ class check_temperature_divertor_lower(Result):
 
         for (sig, ax) in zip(sig_TCs_divertor, axes):
             T, t = temperature_from_pulse(pulse_nb, sig)
-            ax.plot(t, T)
+            # replace unrealistic temperatures (<10°C) by -1
+            T2 = np.where(T > 10, T, np.NaN)
+            t2 = np.where(T > 10, t, np.NaN)
+            ax.plot(t2, T2, '.')
             ax.set_title(sig)
             # Display thresholds without changing the ylim
             ylim = ax.get_ylim() 

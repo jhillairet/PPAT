@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pppat.libpulse.check_result import CheckResult as Result
 from pppat.libpulse.utils import post_pulse_test
-from pppat.libpulse.utils_west import temperature_from_pulse, temperature_from_time
+from pppat.libpulse.utils_west import temperature_from_pulse
 
 import logging
 logger = logging.getLogger(__name__)
