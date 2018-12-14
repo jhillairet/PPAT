@@ -43,9 +43,9 @@ class check_temperature_baffle(Result):
         max_temp = []
         for sig in sig_TCs_baffle:
             T, t = temperature_from_pulse(pulse_nb, sig)
-            max_temp.append(np.amax(T))
+            max_temp.append(np.nanmax(T))
 
-        max_max_temp = np.amax(max_temp)
+        max_max_temp = np.nanmax(max_temp)
 
         if max_max_temp > T_ERROR:
             self.code = self.ERROR
