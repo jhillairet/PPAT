@@ -20,12 +20,13 @@ def check_WOI_6p1_initial_temperature(is_online=True, waveforms=None):
     CHECK_NAME = 'WOI 6.1: lower PFUs. Initial temperature.'
     T_ERROR = 200  # °C
     T_WARNING = 150  # °C
+    dT = 5  # minutes before for calculating max temperature
 
     # get the current time and deduce the time 10 minutes before
     now = datetime.datetime.now()
     date = now.strftime('%d/%m/%y')
     time_now = now.strftime('%H:%M:%S')
-    time_ten_min_before = (now - datetime.timedelta(minutes=10)).strftime('%H:%M:%S')
+    time_ten_min_before = (now - datetime.timedelta(minutes=dT)).strftime('%H:%M:%S')
 
     # get the max temperature from Lower Divertor Thermocouples
     sig_TCs_divertor = ['GETC_ISP_6A',  # TC inner strike point Q6A
@@ -45,13 +46,13 @@ def check_WOI_6p1_initial_temperature(is_online=True, waveforms=None):
 
     if max_max_temp > T_ERROR:
         return Result(name=CHECK_NAME, code=Result.ERROR,
-                      text=f'Max Temp Lower Divertor during last 10min: {max_max_temp:.0f}°C > {T_ERROR}')
+                      text=f'Max Temp Lower Divertor during last {dT}min: {max_max_temp:.0f}°C > {T_ERROR}')
     elif max_max_temp > T_WARNING:
         return Result(name=CHECK_NAME, code=Result.WARNING,
-                      text=f'Max Temp Lower Divertor during last 10min: {max_max_temp:.0f}°C > {T_WARNING}')
+                      text=f'Max Temp Lower Divertor during last {dT}min: {max_max_temp:.0f}°C > {T_WARNING}')
     else:  # I guess it is OK then
         return Result(name=CHECK_NAME, code=Result.OK,
-                      text=f'Max Temp Lower Divertor during last 10min: {max_max_temp:.0f}°C')
+                      text=f'Max Temp Lower Divertor during last {dT}min: {max_max_temp:.0f}°C')
 
 
 #def check_WOI_6p1_Xpoint_duration(is_online=False, waveforms=None):
