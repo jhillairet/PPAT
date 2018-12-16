@@ -73,8 +73,8 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
     # Array containing axes y-labels.
     # Should be the same size as the number of subplots times 2 (2 axes per subplot)
     ylabels = {'0': '',  # No label on patch subplot
-              '1': '[A]', '2': '[m]', '3': '[A]', '4': '[A]',
-              '5': '[m^-2]', '6': '[Pa.m^3.s^-1]', '7': '[W]', '8':'[deg]'}
+              '1': '[kA]', '2': '[m]', '3': '[A]', '4': '[A]',
+              '5': '[m^-2]', '6': '[Pa.m^3.s^-1]', '7': '[MW]', '8':'[deg]'}
 
     # Figure initialization
     fig = plt.figure()
@@ -152,7 +152,7 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
     # -- Plasma current (subplot 1, left axis)
     for i in np.where(signal_array[:,1]=='1')[0]:
         # Plot signal
-        axarr[1].plot(wform[i].times, wform[i].values,
+        axarr[1].plot(wform[i].times, wform[i].values/1e3,  # in kA
                       'x-', label=signal_array[i,2], linewidth=2, markersize=10)
     # Display legend near the relevant axis (left or right). To be improved.
     axarr[1].legend(loc=2, fontsize=11)
@@ -208,7 +208,7 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
 
     # -- Heating powers (subplot 4, left axis)
     for i in np.where(signal_array[:,1] == '7')[0]:
-        axarr[7].plot(wform[i].times, wform[i].values,
+        axarr[7].plot(wform[i].times, wform[i].values/1e6,  # in MW
                       'x-', label=signal_array[i,2], linewidth=2)
     axarr[7].legend(loc=2, fontsize=10)
 
