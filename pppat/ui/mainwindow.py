@@ -17,6 +17,7 @@ from pppat.ui.post_pulse_analysis import PostPulseAnalysisWidget
 from pppat.ui.log import QPlainTextEditLogger
 from pppat.libpulse.pulse_settings import PulseSettings
 from pppat.libpulse.utils import wait_cursor
+from pppat.libpulse.check_result import CheckResultQTableWidgetItem
 from pppat.libpulse.utils_west import is_online, last_pulse_nb
 from pppat.ui.BigPicture import BigPicture_disp
 
@@ -37,7 +38,7 @@ URLS = {
         'WOI': 'http://www-irfm.intra.cea.fr/Phocea/Page/index.php?id=563',
         'annuaire': 'http://asterope.intra.cea.fr/Phocea/Membres/Annuaire/index.php',
         'FAQ': 'http://maia/EIC/faq',
-        'PPPAT GitHub': 'https://github.com/IRFM/PPPAT' 
+        'PPPAT GitHub': 'https://github.com/IRFM/PPPAT'
         }
 
 class MainWindow(QMainWindow):
@@ -64,12 +65,16 @@ class MainWindow(QMainWindow):
         self.panel_pre_pulse.widget.push_load.clicked.connect(self.load_pulse_settings)
         self.panel_pre_pulse.widget.push_browse.clicked.connect(self.browse_pulse_settings_directory)
         self.panel_pre_pulse.widget.push_check.clicked.connect(self.check_pulse_settings)
+        self.panel_pre_pulse.widget.radio_sl.toggled.connect(self.clean_table_pre_test)  # clean table when toggling radio
+        self.panel_pre_pulse.widget.radio_shot.toggled.connect(self.clean_table_pre_test)  # clean table when toggling radio
+        self.panel_pre_pulse.widget.radio_file.toggled.connect(self.clean_table_pre_test)  # clean table when toggling radio
+
         self.panel_pulse_display.widget.push_bigpicture.clicked.connect(self.display_big_picture)
+
         self.panel_post_pulse.widget.edit_pulse_nb.editingFinished.connect(self.get_post_pulse_analysis_nb)
         self.panel_post_pulse.widget.button_check_all.clicked.connect(self.check_post_pulse_all)
         self.panel_post_pulse.widget.radio_last_pulse.clicked.connect(self.get_post_pulse_analysis_nb)
-        self.panel_post_pulse.widget.radio_last_pulse.toggled.connect(self.clean_table)
-        #self.panel_post_pulse.widget.radio_pulse_nb.toggled.connect(self.clean_table)
+        self.panel_post_pulse.widget.radio_last_pulse.toggled.connect(self.clean_table_post_test)
 
         # Application icon
         self.setWindowIcon(QIcon('resources/icons/pppat.png'))
@@ -198,28 +203,30 @@ class MainWindow(QMainWindow):
     @Slot()
     def check_pulse_settings(self):
         """ Check pulse setting vs all tests """
+        #  disable table sorting before filling the table (otherwise it bugs)
+        self.panel_pre_pulse.widget.check_table.setSortingEnabled(False)
 
         with wait_cursor():
             check_results = self.pulse_settings.check_all(is_online())
 
-        # display the check results into the table
+        # Fill the check results table with the result property items
         for i, result in enumerate(check_results):
+            # The first item in the row is the result name. 
+            # I do not use the CheckResultQTableWidgetItem(result, kind='name')
+            # otherwise the sorting will be base on the error code, not on the 
+            # test name
             self.panel_pre_pulse.widget.check_table.setItem(i, 0, QTableWidgetItem(result.name))
-            self.panel_pre_pulse.widget.check_table.setItem(i, 1, QTableWidgetItem(result.code_name))
-            self.panel_pre_pulse.widget.check_table.setItem(i, 2, QTableWidgetItem(result.text))
-            # # Stretch
-            # self.panel_pre_pulse.widget.check_table.horizontalHeader().setStretchLastSection(True)
+            # other items (result code and result description) 
+            # use CheckResultQTableWidgetItem, in order to sort them wrt error
+            self.panel_pre_pulse.widget.check_table.setItem(i, 1, CheckResultQTableWidgetItem(result, kind='result'))
+            self.panel_pre_pulse.widget.check_table.setItem(i, 2, CheckResultQTableWidgetItem(result, kind='text'))
 
-            # Add color to the result item (OK, WARNING, ERROR or UNAVAILABLE)
-            if result.code == result.ERROR:
-                self.panel_pre_pulse.widget.check_table.item(i, 1).setForeground(Qt.red)
-            elif result.code == result.WARNING:
-                self.panel_pre_pulse.widget.check_table.item(i, 1).setForeground(Qt.darkYellow)
-            elif result.code == result.OK:
-                self.panel_pre_pulse.widget.check_table.item(i, 1).setForeground(Qt.darkGreen)
-            elif result.code == result.UNAVAILABLE:
-                self.panel_pre_pulse.widget.check_table.item(i, 1).setForeground(Qt.darkMagenta)
-            # else leave it black (default)
+        # enable table sorting 
+        self.panel_pre_pulse.widget.check_table.setSortingEnabled(True)
+
+
+
+
 
 ##            # Check if a watchdog already exists in order not to create a new one for each folder change
 ##            if not hasattr(self, 'FolderWatcher'):
@@ -300,6 +307,9 @@ class MainWindow(QMainWindow):
     @Slot()
     def load_pulse_settings(self):
         """ Load the pulse settings when user clicks on 'load' """
+        # clean the pre pulse test result table
+        self.clean_table_pre_test()
+
         # construct the pulse settings
         self.pulse_settings = PulseSettings()
         # default loading state
@@ -519,14 +529,14 @@ class MainWindow(QMainWindow):
 
         # Enable sorting once the table has been filled
         self.panel_post_pulse.widget.check_table.setSortingEnabled(True)
-
+        
     @Slot()
-    def clean_table(self):
+    def clean_table_post_test(self):
         """
         Clean the post test results table (code name, text and button color)
         """
         logger.debug('Changing pulse number: Clean the post pulse table')
-        
+
         row_nb = self.panel_post_pulse.widget.check_table.rowCount()
         for idx_row in range(row_nb):
             # remove the result code name and text
@@ -535,6 +545,24 @@ class MainWindow(QMainWindow):
             # reset background color
             self.panel_post_pulse.widget.check_table.cellWidget(idx_row, 2).setStyleSheet("")
 
+    def clean_table_pre_test(self):
+        """
+        Clean the pre pulse test results table
+        """
+        logger.debug('Cleaning the pre pulse table')
+        #  disable table sorting before cleaning the table (otherwise it bugs)
+        self.panel_pre_pulse.widget.check_table.setSortingEnabled(False)
+        
+        row_nb = self.panel_pre_pulse.widget.check_table.rowCount()
+        col_nb = self.panel_pre_pulse.widget.check_table.columnCount ()
+        # remove the test names and results for all cells
+        for idx_row in range(row_nb):
+            for idx_col in range(col_nb):
+                # clean only if something is allready in the cell
+                current_cell = self.panel_pre_pulse.widget.check_table.item(idx_row, idx_col)
+                if current_cell:
+                    current_cell.setText('')
+
     @Slot()
     def plot_post_pulse_test(self, post_pulse_test):
         """ plot something meaningfull about a test """
@@ -542,7 +570,7 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def execute_post_pulse_test(self, post_pulse_test, button_res, label_res):
-        """ 
+        """
         Execute the test and update the result button and result description
         """
         post_pulse_test.test(self.post_pulse_nb)

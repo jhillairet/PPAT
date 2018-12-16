@@ -1,3 +1,7 @@
+from qtpy.QtWidgets import QTableWidgetItem
+from qtpy.QtCore import Qt
+
+
 class CheckResult():
     # define code as constant
     OK = 3
@@ -47,8 +51,66 @@ class CheckResult():
 
     def __repr__(self):
         return f'Checking: [{self.DIC[self.code]}] for "{self.name}": {self.text}'
-    
+
     @property
     def code_name(self):
         """ convenient representation of the result code as a string """
         return self.DIC[self.code]
+
+
+
+class CheckResultQTableWidgetItem(QTableWidgetItem):
+    """
+    QTableWidgetItem representation of a check result
+
+    Used to define the UI properties of a result (color, background) as well
+    as sorting order (ERROR < WARNING < UNAVAILABLE < OK < BROKEN)
+    """
+    def __init__(self, result, kind='result'):
+        """
+        Create a QTableWidget which contains either (kind parameter):
+        the result code, result name or result description
+        of a CheckResult result.
+        The font formatting is setup depending of the kind
+
+        Parameter:
+        ----------
+         - result: CheckResult
+         - kind: str
+             'result' (default), 'name' or 'text'.
+        Return
+        ------
+         - QTableWidgetItem
+
+        """
+        self.result = result
+
+        if kind == 'name':
+            super(CheckResultQTableWidgetItem, self).__init__(self.result.name)
+        elif kind == 'result':
+            super(CheckResultQTableWidgetItem, self).__init__(self.result.code_name)
+
+            # Define the colors to the result item (OK, WARNING, ERROR or UNAVAILABLE)
+            if self.result.code == result.ERROR:
+                self.setForeground(Qt.red)
+            elif result.code == result.WARNING:
+                self.setForeground(Qt.darkYellow)
+            elif result.code == result.OK:
+                self.setForeground(Qt.darkGreen)
+            elif result.code == result.UNAVAILABLE:
+                self.setForeground(Qt.darkMagenta)
+
+        elif kind == 'text':
+            super(CheckResultQTableWidgetItem, self).__init__(self.result.text)
+
+    def __lt__(self, other):
+        """
+        Override method bool QTableWidgetItem.__lt__(self, QTableWidgetItem other)
+        to compare error code numbers instead of error code names
+        """
+        if (isinstance(other, CheckResultQTableWidgetItem)):
+            selfDataValue  = self.result.code
+            otherDataValue = other.result.code
+            return selfDataValue < otherDataValue
+        else:
+            return QTableWidgetItem.__lt__(self, other)
