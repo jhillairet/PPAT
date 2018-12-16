@@ -76,8 +76,9 @@ class check_disruption_characteristic_time(Result):
         t_80_20 = self.t_20 - self.t_80
         self.delta_ip = ip_before 
 
-        logger.info(f'Plasma disruption @t={self.t_disruption:.2f}, characteristic time: t_80-20={t_80_20*1e3:.1f} ms')
-        self.text = f'Plasma disruption @t={self.t_disruption:.2f}, characteristic time: t_80-20={t_80_20*1e3:.1f} ms'
+        text = f'Disruption @t={self.t_disruption:.2f}, char. time: t_80-20={t_80_20*1e3:.1f} ms from Ip={ip_before} kA'
+        logger.info(text)
+        self.text = text
 
         if t_80_20 < 1e-3:
             self.code = self.ERROR
