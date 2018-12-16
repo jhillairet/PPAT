@@ -21,14 +21,14 @@ def check_WOI_1p1_torus_pressure(is_online=True, waveforms=None):
 
         if torus_pressure < PRESSURE_LIMIT_LOW:
             return Result(name=CHECK_NAME, code=Result.OK,
-                          text=f'Torus pressure {torus_pressure} Pa < {PRESSURE_LIMIT_LOW} Pa: OK)')
+                          text=f'Torus pressure {torus_pressure:.1e} Pa < {PRESSURE_LIMIT_LOW} Pa: OK)')
         elif torus_pressure > PRESSURE_LIMIT_HIGH:
             return Result(name=CHECK_NAME, code=Result.ERROR,
-                          text=f'Torus pressure {torus_pressure} Pa > {PRESSURE_LIMIT_HIGH} Pa: ERROR')            
+                          text=f'Torus pressure {torus_pressure:.1e} Pa > {PRESSURE_LIMIT_HIGH} Pa: ERROR')            
         elif (torus_pressure >= PRESSURE_LIMIT_LOW) and \
             (torus_pressure < PRESSURE_LIMIT_HIGH):
             return Result(name=CHECK_NAME, code=Result.WARNING,
-                          text=f'Torus pressure {torus_pressure} Pa > {PRESSURE_LIMIT_LOW} Pa: WARNING')
+                          text=f'Torus pressure {torus_pressure:.1e} Pa > {PRESSURE_LIMIT_LOW} Pa: WARNING')
 
 
     else:
