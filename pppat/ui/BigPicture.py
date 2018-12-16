@@ -7,6 +7,8 @@ from matplotlib import gridspec
 
 from pppat.libpulse.waveform import get_waveform
 
+plt.style.use('dark_background')
+
 
 def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
     # Figure window size parameters. Note that NX adjusts the vertical size if too tall.
@@ -39,7 +41,7 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
     signal_list.append(['rts:WEST_PCS/Actuators/Poloidal/IXb/waveform.ref', '4', 'IXb'])
     # Density and gaz injection
     signal_list.append(['rts:WEST_PCS/Actuators/Gas/REF1/waveform.ref', '5', 'ne'])
-    for ind in range(1, 21):  # les 21 vannes de gaz
+    for ind in range(1, 22):  # les 21 vannes de gaz
         signal_list.append([f'rts:WEST_PCS/Actuators/Gas/valve{ind:02d}/waveform.ref', 
                             '6', f'valve {ind}'])
     # External heating system
@@ -74,7 +76,7 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
     # Should be the same size as the number of subplots times 2 (2 axes per subplot)
     ylabels = {'0': '',  # No label on patch subplot
               '1': '[kA]', '2': '[m]', '3': '[A]', '4': '[A]',
-              '5': '[m^-2]', '6': '[Pa.m^3.s^-1]', '7': '[MW]', '8':'[deg]'}
+              '5': '[$m^{-2}$]', '6': '[$Pa.m^3.s^{-1}$]', '7': '[MW]', '8':'[deg]'}
 
     # Figure initialization
     fig = plt.figure()
@@ -82,7 +84,7 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
 
     # Axes creation. 2 y axes per suplot using twinx.
     axarr = np.array([])
-    gs = gridspec.GridSpec(5, 1, height_ratios=[1,6,6,6,6])
+    gs = gridspec.GridSpec(5, 1, height_ratios=[1,6,6,6,6], hspace=0.05)
     axarr = np.append(axarr, plt.subplot(gs[0]))
     axarr = np.append(axarr, plt.subplot(gs[1]))
     axarr = np.append(axarr, axarr[-1].twinx())
@@ -105,8 +107,11 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
         # Color maps for curves.        
         plot_color_map = ['#FF0000','#00FF00','#FF00FF','#0000FF','#FFFF00',
                           '#00FFFF','#669900','#cccccc','#996600',]
+        plot_color_map = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+                          '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
         #axarr[i].set_color_cycle(plot_color_map)
         axarr[i].set_prop_cycle('color', plot_color_map) # since https://stackoverflow.com/questions/44806598/matplotlib-set-color-cycle-versus-set-prop-cycle
+
     # convert the segment scenario into a numpy array for compatibility with the code below
     segmentTrajectory = np.array(segmentTrajectory)
 
@@ -128,7 +133,7 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
         rect = mpatches.Rectangle([segment_start_time,0.0], segment_duration,
                                    1.0, ec='none')
         segments_patches.append(rect)
-    #p_collec = PatchCollection(segments_patches, cmap=mpl.cm.jet, alpha=0.4)
+
     colors = np.linspace(0, 1, len(segments_patches))
     p_collec = PatchCollection(segments_patches, cmap=plt.cm.Dark2)
     p_collec.set_array(np.array(colors))
@@ -156,12 +161,15 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
                       'x-', label=signal_array[i,2], linewidth=2, markersize=10)
     # Display legend near the relevant axis (left or right). To be improved.
     axarr[1].legend(loc=2, fontsize=11)
-
+    #advance the color cycler in order to NOT have the same color for twinx
+    axarr[2]._get_lines.prop_cycler.__next__()
+    
     # -- R,Z (subplot 1, right axis)
     for i in np.where(signal_array[:,1] == '2')[0]:
         if wform[i]:  # avoid case where it's None
             # Do not display non-existent waveforms (unused shape control modes).
             if len(wform[i].values != 0) > 0:
+                
                 axarr[2].plot(wform[i].times, wform[i].values,
                              'x--', linewidth=2, label=signal_array[i,2])
     axarr[2].legend(loc=1,fontsize=11)
@@ -200,6 +208,9 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
     axarr[5].legend(loc=2, fontsize=11)
 
     # -- Gas valve opening requests (subplot 3, right axis)
+    #advance the color cycler in order to NOT have the same color for twinx
+    axarr[6]._get_lines.prop_cycler.__next__()
+    
     for i in np.where(signal_array[:,1] == '6')[0]:
         if len(np.where(wform[i].values != 0)[0]) > 0:
             axarr[6].plot(wform[i].times, wform[i].values, 
@@ -223,7 +234,7 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
         # Display white vertical lines to mark segment transitions
         for segment in segmentTrajectory:
             segment_time = float(segment[1])
-            ax.axvline(segment_time, color='w', lw=0.5)
+            ax.axvline(segment_time, color='w', ls='--', lw=0.5)
 
         # Y-axis labels
         ax.set_ylabel(ylabels[str(ind_ax)])
@@ -239,12 +250,9 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
                                           fig_width,fig_height)
 
     # Reduce spaces between subplots to compactify the display
-    fig.subplots_adjust(left=0.12, bottom=0.02, right=0.90, top=0.98,
-                        wspace=0.15, hspace=0.10)
+    fig.subplots_adjust(left=0.12, bottom=0.04, right=0.90, top=0.98,
+                        wspace=0.15, hspace=0.05)
     
-    # BUG : IA current is -5000 for some end segment (>900)
-    # contain the y-lim to physical values
-    #axarr[3].set_ylim(-5e-3, +5e-3)
     axarr[0].set_xlim(left=32)  # zoom to t>ignitron
     
     #fig.tight_layout()
