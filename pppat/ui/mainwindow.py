@@ -309,6 +309,8 @@ class MainWindow(QMainWindow):
         """ Load the pulse settings when user clicks on 'load' """
         # clean the pre pulse test result table
         self.clean_table_pre_test()
+        # clean the post pulse test result table
+        self.clean_table_post_test()
 
         # construct the pulse settings
         self.pulse_settings = PulseSettings()
