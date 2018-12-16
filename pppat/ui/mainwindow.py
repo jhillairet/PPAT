@@ -209,28 +209,24 @@ class MainWindow(QMainWindow):
         with wait_cursor():
             check_results = self.pulse_settings.check_all(is_online())
 
-        # display the check results into the table
+        # Fill the check results table with the result property items
         for i, result in enumerate(check_results):
+            # The first item in the row is the result name. 
+            # I do not use the CheckResultQTableWidgetItem(result, kind='name')
+            # otherwise the sorting will be base on the error code, not on the 
+            # test name
             self.panel_pre_pulse.widget.check_table.setItem(i, 0, QTableWidgetItem(result.name))
-            #self.panel_pre_pulse.widget.check_table.setItem(i, 1, QTableWidgetItem(result.code_name))
-            self.panel_pre_pulse.widget.check_table.setItem(i, 1, CheckResultQTableWidgetItem(result))
-            self.panel_pre_pulse.widget.check_table.setItem(i, 2, QTableWidgetItem(result.text))
-            # # Stretch
-            # self.panel_pre_pulse.widget.check_table.horizontalHeader().setStretchLastSection(True)
-
-            # Add color to the result item (OK, WARNING, ERROR or UNAVAILABLE)
-            if result.code == result.ERROR:
-                self.panel_pre_pulse.widget.check_table.item(i, 1).setForeground(Qt.red)
-            elif result.code == result.WARNING:
-                self.panel_pre_pulse.widget.check_table.item(i, 1).setForeground(Qt.darkYellow)
-            elif result.code == result.OK:
-                self.panel_pre_pulse.widget.check_table.item(i, 1).setForeground(Qt.darkGreen)
-            elif result.code == result.UNAVAILABLE:
-                self.panel_pre_pulse.widget.check_table.item(i, 1).setForeground(Qt.darkMagenta)
-            # else leave it black (default)
+            # other items (result code and result description) 
+            # use CheckResultQTableWidgetItem, in order to sort them wrt error
+            self.panel_pre_pulse.widget.check_table.setItem(i, 1, CheckResultQTableWidgetItem(result, kind='result'))
+            self.panel_pre_pulse.widget.check_table.setItem(i, 2, CheckResultQTableWidgetItem(result, kind='text'))
 
         # enable table sorting 
         self.panel_pre_pulse.widget.check_table.setSortingEnabled(True)
+
+
+
+
 
 ##            # Check if a watchdog already exists in order not to create a new one for each folder change
 ##            if not hasattr(self, 'FolderWatcher'):
