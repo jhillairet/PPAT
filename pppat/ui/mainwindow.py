@@ -37,7 +37,7 @@ URLS = {
         'WOI': 'http://www-irfm.intra.cea.fr/Phocea/Page/index.php?id=563',
         'annuaire': 'http://asterope.intra.cea.fr/Phocea/Membres/Annuaire/index.php',
         'FAQ': 'http://maia/EIC/faq',
-        'PPPAT GitHub': 'https://github.com/IRFM/PPPAT' 
+        'PPPAT GitHub': 'https://github.com/IRFM/PPPAT'
         }
 
 class MainWindow(QMainWindow):
@@ -64,12 +64,16 @@ class MainWindow(QMainWindow):
         self.panel_pre_pulse.widget.push_load.clicked.connect(self.load_pulse_settings)
         self.panel_pre_pulse.widget.push_browse.clicked.connect(self.browse_pulse_settings_directory)
         self.panel_pre_pulse.widget.push_check.clicked.connect(self.check_pulse_settings)
+        self.panel_pre_pulse.widget.radio_sl.toggled.connect(self.clean_table_pre_test)  # clean table when toggling radio
+        self.panel_pre_pulse.widget.radio_shot.toggled.connect(self.clean_table_pre_test)  # clean table when toggling radio
+        self.panel_pre_pulse.widget.radio_file.toggled.connect(self.clean_table_pre_test)  # clean table when toggling radio
+
         self.panel_pulse_display.widget.push_bigpicture.clicked.connect(self.display_big_picture)
+
         self.panel_post_pulse.widget.edit_pulse_nb.editingFinished.connect(self.get_post_pulse_analysis_nb)
         self.panel_post_pulse.widget.button_check_all.clicked.connect(self.check_post_pulse_all)
         self.panel_post_pulse.widget.radio_last_pulse.clicked.connect(self.get_post_pulse_analysis_nb)
-        self.panel_post_pulse.widget.radio_last_pulse.toggled.connect(self.clean_table)
-        #self.panel_post_pulse.widget.radio_pulse_nb.toggled.connect(self.clean_table)
+        self.panel_post_pulse.widget.radio_last_pulse.toggled.connect(self.clean_table_post_test)
 
         # Application icon
         self.setWindowIcon(QIcon('resources/icons/pppat.png'))
@@ -300,6 +304,9 @@ class MainWindow(QMainWindow):
     @Slot()
     def load_pulse_settings(self):
         """ Load the pulse settings when user clicks on 'load' """
+        # clean the pre pulse test result table
+        self.clean_table_pre_test()
+
         # construct the pulse settings
         self.pulse_settings = PulseSettings()
         # default loading state
@@ -521,12 +528,12 @@ class MainWindow(QMainWindow):
         self.panel_post_pulse.widget.check_table.setSortingEnabled(True)
 
     @Slot()
-    def clean_table(self):
+    def clean_table_post_test(self):
         """
         Clean the post test results table (code name, text and button color)
         """
         logger.debug('Changing pulse number: Clean the post pulse table')
-        
+
         row_nb = self.panel_post_pulse.widget.check_table.rowCount()
         for idx_row in range(row_nb):
             # remove the result code name and text
@@ -535,6 +542,22 @@ class MainWindow(QMainWindow):
             # reset background color
             self.panel_post_pulse.widget.check_table.cellWidget(idx_row, 2).setStyleSheet("")
 
+    def clean_table_pre_test(self):
+        """
+        Clean the pre pulse test results table
+        """
+        logger.debug('Cleaning the pre pulse table')
+
+        row_nb = self.panel_pre_pulse.widget.check_table.rowCount()
+        col_nb = self.panel_pre_pulse.widget.check_table.columnCount ()
+        # remove the test names and results for all cells
+        for idx_row in range(row_nb):
+            for idx_col in range(col_nb):
+                # clean only if something is allready in the cell
+                current_cell = self.panel_pre_pulse.widget.check_table.item(idx_row, idx_col)
+                if current_cell:
+                    current_cell.setText('')
+
     @Slot()
     def plot_post_pulse_test(self, post_pulse_test):
         """ plot something meaningfull about a test """
@@ -542,7 +565,7 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def execute_post_pulse_test(self, post_pulse_test, button_res, label_res):
-        """ 
+        """
         Execute the test and update the result button and result description
         """
         post_pulse_test.test(self.post_pulse_nb)
