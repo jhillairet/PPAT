@@ -105,8 +105,8 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
         # Color maps for curves.        
         plot_color_map = ['#FF0000','#00FF00','#FF00FF','#0000FF','#FFFF00',
                           '#00FFFF','#669900','#cccccc','#996600',]
-        axarr[i].set_color_cycle(plot_color_map)
-
+        #axarr[i].set_color_cycle(plot_color_map)
+        axarr[i].set_prop_cycle('color', plot_color_map) # since https://stackoverflow.com/questions/44806598/matplotlib-set-color-cycle-versus-set-prop-cycle
     # convert the segment scenario into a numpy array for compatibility with the code below
     segmentTrajectory = np.array(segmentTrajectory)
 
@@ -245,6 +245,7 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
     # BUG : IA current is -5000 for some end segment (>900)
     # contain the y-lim to physical values
     #axarr[3].set_ylim(-5e-3, +5e-3)
+    axarr[0].set_xlim(left=32)  # zoom to t>ignitron
     
     #fig.tight_layout()
     plt.show()
