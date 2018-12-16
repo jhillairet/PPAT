@@ -8,7 +8,7 @@ from qtpy.QtWidgets import (QWidget, QGridLayout, QRadioButton, QGroupBox,
                             QErrorMessage, QTableView, QAbstractItemView,
                             QTableWidget, QTableWidgetItem, QHeaderView)
 from qtpy.QtGui import QIntValidator, QFont
-from qtpy.QtCore import Slot
+from qtpy.QtCore import Slot, Qt
 import os
 import logging
 logger = logging.getLogger(__name__)
@@ -107,7 +107,6 @@ class PrePulseAnalysisWidget(QWidget):
         self.check_table.setHorizontalHeaderLabels(['Test Name',
                                                     'Result',
                                                     'Result description'])
-        #self.check_table.setSortingEnabled(True)
         # # Columns config
         # resize the column widths
         self.check_table.horizontalHeader().resizeSection(0, 200)
@@ -128,6 +127,8 @@ class PrePulseAnalysisWidget(QWidget):
         font = self.check_table.font()
         font.setPointSize(TABLE_ROW_FONT_SIZE)
         self.check_table.setFont(font)
+        
+        self.check_table.sortByColumn(1, Qt.AscendingOrder) # sort by error type
 
         layout.addWidget(self.check_table)
         bottom_group.setLayout(layout)

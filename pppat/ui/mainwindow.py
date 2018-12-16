@@ -17,6 +17,7 @@ from pppat.ui.post_pulse_analysis import PostPulseAnalysisWidget
 from pppat.ui.log import QPlainTextEditLogger
 from pppat.libpulse.pulse_settings import PulseSettings
 from pppat.libpulse.utils import wait_cursor
+from pppat.libpulse.check_result import CheckResultQTableWidgetItem
 from pppat.libpulse.utils_west import is_online, last_pulse_nb
 from pppat.ui.BigPicture import BigPicture_disp
 
@@ -202,6 +203,8 @@ class MainWindow(QMainWindow):
     @Slot()
     def check_pulse_settings(self):
         """ Check pulse setting vs all tests """
+        #  disable table sorting before filling the table (otherwise it bugs)
+        self.panel_pre_pulse.widget.check_table.setSortingEnabled(False)
 
         with wait_cursor():
             check_results = self.pulse_settings.check_all(is_online())
@@ -209,7 +212,8 @@ class MainWindow(QMainWindow):
         # display the check results into the table
         for i, result in enumerate(check_results):
             self.panel_pre_pulse.widget.check_table.setItem(i, 0, QTableWidgetItem(result.name))
-            self.panel_pre_pulse.widget.check_table.setItem(i, 1, QTableWidgetItem(result.code_name))
+            #self.panel_pre_pulse.widget.check_table.setItem(i, 1, QTableWidgetItem(result.code_name))
+            self.panel_pre_pulse.widget.check_table.setItem(i, 1, CheckResultQTableWidgetItem(result))
             self.panel_pre_pulse.widget.check_table.setItem(i, 2, QTableWidgetItem(result.text))
             # # Stretch
             # self.panel_pre_pulse.widget.check_table.horizontalHeader().setStretchLastSection(True)
@@ -224,6 +228,9 @@ class MainWindow(QMainWindow):
             elif result.code == result.UNAVAILABLE:
                 self.panel_pre_pulse.widget.check_table.item(i, 1).setForeground(Qt.darkMagenta)
             # else leave it black (default)
+
+        # enable table sorting 
+        self.panel_pre_pulse.widget.check_table.setSortingEnabled(True)
 
 ##            # Check if a watchdog already exists in order not to create a new one for each folder change
 ##            if not hasattr(self, 'FolderWatcher'):
@@ -526,7 +533,7 @@ class MainWindow(QMainWindow):
 
         # Enable sorting once the table has been filled
         self.panel_post_pulse.widget.check_table.setSortingEnabled(True)
-
+        
     @Slot()
     def clean_table_post_test(self):
         """
@@ -547,7 +554,9 @@ class MainWindow(QMainWindow):
         Clean the pre pulse test results table
         """
         logger.debug('Cleaning the pre pulse table')
-
+        #  disable table sorting before cleaning the table (otherwise it bugs)
+        self.panel_pre_pulse.widget.check_table.setSortingEnabled(False)
+        
         row_nb = self.panel_pre_pulse.widget.check_table.rowCount()
         col_nb = self.panel_pre_pulse.widget.check_table.columnCount ()
         # remove the test names and results for all cells

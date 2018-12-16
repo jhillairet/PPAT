@@ -52,3 +52,34 @@ class CheckResult():
     def code_name(self):
         """ convenient representation of the result code as a string """
         return self.DIC[self.code]
+
+from qtpy.QtWidgets import QTableWidgetItem
+from qtpy.QtCore import Qt
+
+class CheckResultQTableWidgetItem(QTableWidgetItem):
+    """
+    QTableWidgetItem representation of a check result
+    
+    Used to define the UI properties of a result (color, background) as well
+    as sorting order (ERROR < WARNING < UNAVAILABLE < OK < BROKEN)
+    """
+    def __init__(self, result):
+        """
+        Parameter:
+        ----------
+         - result: CheckResult
+        """
+        self.result = result
+        super(CheckResultQTableWidgetItem, self).__init__(self.result.code_name)
+
+    def __lt__ (self, other):
+        """
+        Override method bool QTableWidgetItem.__lt__(self, QTableWidgetItem other) 
+        to compare our own case
+        """
+        if (isinstance(other, CheckResultQTableWidgetItem)):
+            selfDataValue  = self.result.code
+            otherDataValue = other.result.code
+            return selfDataValue < otherDataValue
+        else:
+            return QTableWidgetItem.__lt__(self, other)
