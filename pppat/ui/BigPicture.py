@@ -1,5 +1,6 @@
 from xml.dom import minidom
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.collections import PatchCollection
@@ -7,8 +8,10 @@ from matplotlib import gridspec
 
 from pppat.libpulse.waveform import get_waveform
 
+# default color style : black style but using the default line color cycle
+default_colors_cycle = matplotlib.rcParams['axes.prop_cycle']  # default values
 plt.style.use('dark_background')
-
+matplotlib.rcParams['axes.prop_cycle'] = default_colors_cycle  # put back default values
 
 def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
     # Figure window size parameters. Note that NX adjusts the vertical size if too tall.
@@ -97,20 +100,6 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
 
     # Link the x axes to be able to zoom all suplots simultaneously
     axarr[0].get_shared_x_axes().join(axarr[0], axarr[1], axarr[3], axarr[5], axarr[7])
-
-
-
-    # Black background for better readbility in the control room   
-    for i in np.arange(9):
-        axarr[i].set_facecolor('black')
-
-        # Color maps for curves.        
-        plot_color_map = ['#FF0000','#00FF00','#FF00FF','#0000FF','#FFFF00',
-                          '#00FFFF','#669900','#cccccc','#996600',]
-        plot_color_map = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
-                          '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
-        #axarr[i].set_color_cycle(plot_color_map)
-        axarr[i].set_prop_cycle('color', plot_color_map) # since https://stackoverflow.com/questions/44806598/matplotlib-set-color-cycle-versus-set-prop-cycle
 
     # convert the segment scenario into a numpy array for compatibility with the code below
     segmentTrajectory = np.array(segmentTrajectory)
