@@ -26,6 +26,8 @@ from functools import partial  # used to pass parameters for open_url
 import pkgutil
 from importlib import import_module
 
+from IRFMtb import tsdernier_choc
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -328,7 +330,9 @@ class MainWindow(QMainWindow):
                     logger.error('Pulse settings from SL are not available!')
                 else:
                     logger.info('Loading pulse setting from SL')
-                    self.panel_pre_pulse.widget.pulse_setting_origin.setText('from SL')
+                    next_pulse = tsdernier_choc() + 1
+                    
+                    self.panel_pre_pulse.widget.pulse_setting_origin.setText(f'from SL: #{next_pulse}')
 
                     res_load = self.pulse_settings.load_from_session_leader()
 
