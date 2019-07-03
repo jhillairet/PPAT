@@ -22,6 +22,11 @@ def check_WOI_4p1_plasma_density(is_online=False, waveforms=None):
     if not waveform:
         raise(ValueError(f'waveform {waveform_name} not found!?'))
     else:
+        # If the waveform has no segment, means was not defined by SL
+        if len(waveform.segments) == 0:
+            return Result(name=CHECK_NAME, code=Result.WARNING,
+                          text="No plasma density waveform")
+        
         # check the min density (excluding 0 values)
         n_min = 1e18*np.amin(waveform.values[np.nonzero(waveform.values)])
         logger.info(f'Min density from waveform: {n_min}')

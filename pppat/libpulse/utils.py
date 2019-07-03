@@ -9,10 +9,14 @@ from qtpy.QtGui import QCursor
 from qtpy.QtCore import Qt
 from pppat.libpulse.check_result import CheckResult as Result
 from pppat.libpulse.utils_west import is_online
-from pywed import PyWEDException
+from pywed import PyWEDException, tsmat
 
 import logging  # pour ajouter des informations au log de PPPPAT
 logger = logging.getLogger(__name__)
+
+# Top parameters
+AUTORISATION_LHCD = 'EXP=T=S;Autorisation;ChocLHCD'  # 1 or 0
+AUTORISATION_ICRH = 'EXP=T=S;Autorisation;ChocICRH'  # 1 or 0
 
 @contextmanager
 def wait_cursor():
@@ -106,3 +110,38 @@ def pre_pulse_test(test_func):
             return test
     return wrapper
 
+
+
+def is_LHCD_on_pulse(pulse=0):
+    """
+    Test if LHCD was set 'on pulse' for the specified pulse number
+
+    Parameters
+    ----------
+    pulse : int, optional
+        Pulse number. The default is 0 (next pulse).
+
+    Returns
+    -------
+    res : bool
+        True or False
+
+    """
+    return bool(tsmat(pulse, AUTORISATION_LHCD))
+
+def is_ICRH_on_pulse(pulse=0):
+    """
+    Test if ICRH was set 'on pulse' for the specified pulse number
+
+    Parameters
+    ----------
+    pulse : int, optional
+        Pulse number. The default is 0 (next pulse).
+
+    Returns
+    -------
+    res : bool
+        True or False
+
+    """
+    return bool(tsmat(pulse, AUTORISATION_ICRH))
