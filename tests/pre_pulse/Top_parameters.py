@@ -4,8 +4,7 @@ Check current PCS Top parameters
 """
 from pppat.libpulse.check_result import CheckResult as Result
 from pppat.libpulse.waveform import get_waveform
-from pppat.libpulse.utils import (pre_pulse_test, 
-                                  is_ICRH_on_pulse, is_LHCD_on_pulse)
+from pppat.libpulse.utils import pre_pulse_test 
 from pywed import tsmat
 import numpy as np
 import logging
@@ -76,11 +75,14 @@ def test_against_default_values(Top_productor, default_values, pulse_nb=0):
     """
     # get current Top configuration
     # NB: At the moment of this test, Top configuration should be frozen!
-    parameter_descriptions, values = tsmat(pulse_nb, Top_productor)
+    try:
+        parameter_descriptions, values = tsmat(pulse_nb, Top_productor)
+    except Exception as e:
+        return [f'failed to get the tsmat data: {e}']
 
     # for each security parameter check if equal to its associated default value
     passed_tests = np.isclose(values, default_values)
-    
+
     # for all tests, extract the one not passed.
     not_passed_test = []
     for (desc, val, val_def, is_test_passed) in \
@@ -98,7 +100,7 @@ def check_Top_safety_heating_parameters(is_online=True, waveforms=None):
     against default values.
     """
     CHECK_NAME = 'Top Heating Permissions'
-    
+
     if not is_online:
         return Result(name=CHECK_NAME, code=Result.UNAVAILABLE,
                       text='Top configuration not available')        
