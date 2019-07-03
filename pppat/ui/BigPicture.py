@@ -164,23 +164,26 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
     axarr[2].legend(loc=1,fontsize=11)
 
     # -- Coil currents (subplot 2, left axis)
-    for i in np.where(signal_array[:,1] == '3')[0]:
-        
-        # TODO : deal with this in waveform()
-        # The poloidal current values are given proportional to the Ip.
-        # 1st we interpolate the plasma current to the time of the current
-        
+    for i in np.where(signal_array[:,1] == '3')[0]:    
         ip = wform[0].values
         current = wform[i].values
-        
-        # Only plot the poloidal current if the ip waveform is not empty
-        # This case happens during cleaning pulses
-        if ip.size != 0:
+ 
+        # The poloidal current values are given proportional to the Ip.
+        # 1st we interpolate the plasma current to the time of the current
+        #
+        # however it is possible that no plasma current are planned
+        # for example during poloidal/divertor tests or cleaning pulses. 
+        # In this case the poloidal current are not normalized
+        if ip.size != 0: # Ip has been defined
             ip = np.interp(wform[i].times, wform[0].times, wform[0].values)
             current = current * ip
-                
-            axarr[3].plot(wform[i].times, current, 
-                      'x-', label=signal_array[i,2], linewidth=2)
+
+        axarr[3].plot(wform[i].times, current, 
+                      'x-', label=signal_array[i,2], linewidth=2) 
+
+            
+ 
+        
     axarr[3].legend(loc=2, fontsize=8)
     
     # -- Divertor coil currents (subplot 2, right axis)
