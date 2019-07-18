@@ -50,15 +50,15 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
     # External heating system
     signal_list.append(['rts:WEST_PCS/Actuators/Heating/LHCD/power/1/waveform.ref', '7', 'P_LH1'])
     signal_list.append(['rts:WEST_PCS/Actuators/Heating/LHCD/power/2/waveform.ref', '7', 'P_LH2'])
-    signal_list.append(['rts:WEST_PCS/Actuators/Heating/ICRH/power/1/waveform.ref', '7', 'P_ICRH1'])
-    signal_list.append(['rts:WEST_PCS/Actuators/Heating/ICRH/power/2/waveform.ref', '7', 'P_ICRH2'])
-    signal_list.append(['rts:WEST_PCS/Actuators/Heating/ICRH/power/3/waveform.ref', '7', 'P_ICRH3'])
+    signal_list.append(['rts:WEST_PCS/Actuators/Heating/ICRH/power/1/waveform.ref', '7', 'P_ICRH_Q1'])
+    signal_list.append(['rts:WEST_PCS/Actuators/Heating/ICRH/power/2/waveform.ref', '7', 'P_ICRH_Q2'])
+    signal_list.append(['rts:WEST_PCS/Actuators/Heating/ICRH/power/3/waveform.ref', '7', 'P_ICRH_Q4'])
 
     signal_list.append(['rts:WEST_PCS/Actuators/Heating/LHCD/phase/1/waveform.ref', '8', 'Phi_LH1'])
     signal_list.append(['rts:WEST_PCS/Actuators/Heating/LHCD/phase/2/waveform.ref', '8', 'Phi_LH2'])
-    signal_list.append(['rts:WEST_PCS/Actuators/Heating/ICRH/phase/1/waveform.ref', '8', 'Phi_ICRH1'])
-    signal_list.append(['rts:WEST_PCS/Actuators/Heating/ICRH/phase/2/waveform.ref', '8', 'Phi_ICRH2'])
-    signal_list.append(['rts:WEST_PCS/Actuators/Heating/ICRH/phase/3/waveform.ref', '8', 'Phi_ICRH3'])
+    signal_list.append(['rts:WEST_PCS/Actuators/Heating/ICRH/phase/1/waveform.ref', '8', 'Phi_ICRH_Q1'])
+    signal_list.append(['rts:WEST_PCS/Actuators/Heating/ICRH/phase/2/waveform.ref', '8', 'Phi_ICRH_Q2'])
+    signal_list.append(['rts:WEST_PCS/Actuators/Heating/ICRH/phase/3/waveform.ref', '8', 'Phi_ICRH_Q4'])
 
     # Reshaping of the signal list into an array for compatibility with legacy code
     # signal_array[:,1] = DCS signal name
