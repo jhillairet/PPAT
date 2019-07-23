@@ -82,7 +82,7 @@ class MainWindow(QMainWindow):
         self.setWindowIcon(QIcon('resources/icons/pppat.png'))
 
         # open some panels at startup
-        # self.panel_rappels.toggleButton.click()
+        self.panel_rappels.toggleButton.click()
         self.panel_pre_pulse.toggleButton.click()
         self.panel_pulse_display.toggleButton.click()
         self.panel_post_pulse.toggleButton.click()
