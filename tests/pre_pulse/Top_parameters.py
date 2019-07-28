@@ -15,9 +15,10 @@ HEATING_SECURITY_PARAMETERS = 'DPCS;HEATING_PARA;HEATING_SECU'
 HEATING_PERMISSIONS = 'DPCS;HEATING_PARA;HEATING_PERM'
 
 # Default values given by Remy NOUAILLETAS 25/06/2019
+# Update JH 28/07/2019: the LH Fe impurity 1 --> 0 as Fe not used for LH
 HEATING_SECURITY_PARAMETERS_DEFAULT_VALUES = np.r_[
         1,  # 'LH Cu impurity protection enable',
-        1,  # 'LH Fe impurity protection enable',
+        0,  # 'LH Fe impurity protection enable',
         1,  # 'IC Cu impurity protection enable',
         1,  # 'IC Fe impurity protection enable',
         0.05,  # 'power reduction time [sec]',
