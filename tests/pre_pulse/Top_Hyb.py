@@ -30,8 +30,9 @@ def _get_times_values_waveform(waveforms, name):
     """
     convenience function to return times and values of a given waveform name.
     Return nan if values not defined.
+    Only get nominal segments (not segments >900)
     """
-    wf = get_waveform(WF_NAMES[name], waveforms)   
+    wf = get_waveform(WF_NAMES[name], waveforms).nominal
     idx = wf.values.nonzero()
     if np.any(idx): # if no codes emittited (strange case, but just in case...)
         codes = wf.values[idx]
@@ -45,7 +46,7 @@ def _get_LH(waveforms, name='LH1'):
     Interpolate LH waveform on a finer time basis in order to not miss case of 
     relatively long power ramp-up or ramp-down
     """
-    wf = get_waveform(WF_NAMES[name], waveforms)   
+    wf = get_waveform(WF_NAMES[name], waveforms)
     times = wf.times - np.min(wf.times)
     power = wf.values
     # interpolating waveform
@@ -55,27 +56,27 @@ def _get_LH(waveforms, name='LH1'):
     return _power, _t
 
 @pre_pulse_test
-def check_TOPHYB1(is_online=False, waveforms=None, antenna='LH1'):
+def check_TOPHYB1(is_online=False, waveforms=None):
     """Check that the TOPHYB for LH1 is correctly set wrt to power waveform."""
-    return _TOPHYB(waveforms=waveforms, antenna=antenna)
+    return _TOPHYB(waveforms=waveforms, antenna='LH1')
 
 
 @pre_pulse_test
-def check_TOPHYB2(is_online=False, waveforms=None, antenna='LH2'):
+def check_TOPHYB2(is_online=False, waveforms=None):
     """Check that the TOPHYB for LH2 is correctly set wrt to power waveform."""
-    return _TOPHYB(waveforms=waveforms, antenna=antenna)
+    return _TOPHYB(waveforms=waveforms, antenna='LH2')
 
 
 @pre_pulse_test
-def check_FTOPHYB1(is_online=False, waveforms=None, antenna='LH1'):
+def check_FTOPHYB1(is_online=False, waveforms=None):
     """Check that the FTOPHYB for LH1 is correctly set wrt to power waveform."""
-    return _FTOPHYB(waveforms=waveforms, antenna=antenna)
+    return _FTOPHYB(waveforms=waveforms, antenna='LH1')
 
 
 @pre_pulse_test
-def check_FTOPHYB2(is_online=False, waveforms=None, antenna='LH2'):
+def check_FTOPHYB2(is_online=False, waveforms=None):
     """Check that the FTOPHYB for LH2 is correctly set wrt to power waveform."""
-    return _FTOPHYB(waveforms=waveforms, antenna=antenna)
+    return _FTOPHYB(waveforms=waveforms, antenna='LH2')
 
 def _FTOPHYB(waveforms=None, antenna='LH1'):
     """Check that the FTOPHYB if not before the expected LH power waveform end."""
@@ -129,7 +130,7 @@ def _TOPHYB(waveforms=None, antenna='LH1'):
         CHECK_NAME = 'TOPHYB2 (LH2)'
         TOPHYB = CODES['TOPHYB2']
     else:  # just in case
-        return Result(name='FTOPHYB', code=Result.UNAVAILABLE,
+        return Result(name='TOPHYB', code=Result.UNAVAILABLE,
                       text=f'ValueError: bad antenna name!. Check the code')
 
     if np.any(np.isnan(t_LH)):  # no LH Power expected
@@ -139,13 +140,14 @@ def _TOPHYB(waveforms=None, antenna='LH1'):
     # find the nearest time 
     # TOPHYB corresponding to the antenna
     ts_TOPHYB = t_codes[codes == TOPHYB]
+
     # keep only the last one
     t_TOPHYB = np.amax(ts_TOPHYB)
     # integrate the LH power from 0 to t_TOPHYB
     # if OK, result should be negligible (<1kJ), otherwise -> error
     idx_t_TOPHYB = np.argmin(np.abs(t_LH - t_TOPHYB))
     energy = np.trapz(P_LH[0:idx_t_TOPHYB], t_LH[0:idx_t_TOPHYB])
-    
+
     if energy > 1e3:
         return Result(name=CHECK_NAME, code=Result.ERROR,
                       text=f'A TOPHYB{antenna[-1]} is set at {t_TOPHYB:.3f} after {antenna} should start. Ask the SL.')
@@ -157,8 +159,7 @@ def _TOPHYB(waveforms=None, antenna='LH1'):
     
 # For debug and testing purpose
 if __name__ == '__main__':
-    # ok situation, except a TOPHYB is located AFTER LH 
-    # (-->error also, SL should clean the extra TOPHYBs in XEdit...)
+    # A TOPHYB located after KLH pulse (SL shoud clean the mess...)
     ps = PulseSettings(54529)
     print(check_TOPHYB1(waveforms=ps.waveforms))
     print(check_FTOPHYB1(waveforms=ps.waveforms))
@@ -197,7 +198,7 @@ if __name__ == '__main__':
     
     #%% affichage
     import matplotlib.pyplot as plt
-    pulse = 54669
+    pulse = 54529
     ps = PulseSettings(pulse)
     
     P_LH1, t_LH1 = _get_LH(ps.waveforms, name='LH1')

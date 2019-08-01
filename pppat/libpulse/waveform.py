@@ -1,5 +1,6 @@
 import numpy as np
 import xml.etree.ElementTree as Et
+import re
 
 import logging
 logger = logging.getLogger(__name__)
@@ -23,6 +24,29 @@ class Waveform():
     def __repr__(self):
         " meaningfull representation "
         return f'DCS Waveform: "{self.name}", ({len(self.segments)} segments)'
+    
+    @property
+    def nominal(self):
+        """
+        Return the waveform without the termination segments (segments # >=900)
+        """
+        # get the indexes of termination segments
+        idxs = []
+        for (ids, segment) in enumerate(self.segments):
+            # regular expression to find other segments than termination segments
+            if re.match('(segment9)[0-9][0-9]', segment) is None:
+                idxs.append(ids)
+        # create a new waveform
+        times = [self.times[i] for i in idxs]
+        reltimes = [self.reltimes[i] for i in idxs]
+        values = [self.values[i] for i in idxs]
+        segments = [self.segments[i] for i in idxs]
+        name = self.name
+        
+        return Waveform(name=name, 
+                        times=times, reltimes=reltimes,
+                        values=values, segments=segments)
+        
 
 def get_waveform(waveform_name, waveforms):
     """
