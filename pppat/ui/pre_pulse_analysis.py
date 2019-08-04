@@ -82,6 +82,7 @@ class PrePulseAnalysisWidget(QWidget):
 
         self.pulse_setting_origin = QLabel()
         self.pulse_properties = QLabel()
+        self.pulse_gas_valves = QLabel()
         self.push_check = QPushButton('Check Pulse Settings')
         self.push_check.setEnabled(False) # disable per default
 
@@ -89,6 +90,7 @@ class PrePulseAnalysisWidget(QWidget):
         layout1 = QFormLayout()
         layout1.addRow(QLabel('Pulse settings from:'), self.pulse_setting_origin)
         layout1.addRow(QLabel('Pulse properties:'), self.pulse_properties)
+        layout1.addRow(QLabel('Gas Valve(s) used:'), self.pulse_gas_valves)
         layout0.addLayout(layout1)
         layout0.addWidget(self.push_check)
 

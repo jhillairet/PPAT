@@ -1,6 +1,7 @@
 import numpy as np
 import xml.etree.ElementTree as Et
 import re
+import pandas as pd
 
 import logging
 logger = logging.getLogger(__name__)
@@ -47,6 +48,22 @@ class Waveform():
                         times=times, reltimes=reltimes,
                         values=values, segments=segments)
         
+    @property
+    def dataframe(self):
+        """
+        Returns the waveform as a Pandas DataFrame.
+        """
+        df = pd.DataFrame(data={
+                'segment':  self.segments,
+                'reltime':  self.reltimes,
+                'time':     self.times,
+                'value':    self.values
+                })
+        return df
+    
+    # convenience alias
+    df = dataframe
+
 
 def get_waveform(waveform_name, waveforms):
     """

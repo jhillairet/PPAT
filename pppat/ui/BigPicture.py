@@ -204,7 +204,7 @@ def BigPicture_disp(segmentTrajectory, dpFile, waveforms, pulse_nb=None):
     axarr[6]._get_lines.prop_cycler.__next__()
     
     for i in np.where(signal_array[:,1] == '6')[0]:
-        if len(np.where(wform[i].values != 0)[0]) > 0:
+        if np.any(wform[i].values != 0):
             axarr[6].plot(wform[i].times, wform[i].values, 
                           'x--', label=signal_array[i,2], linewidth=2)
     axarr[6].legend(loc=1, fontsize=10)

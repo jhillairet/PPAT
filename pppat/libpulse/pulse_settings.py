@@ -5,8 +5,9 @@ import os
 import platform
 from pppat.libpulse.DCS_settings import DCSSettings
 from pppat.libpulse.check_result import CheckResult
-from pppat.libpulse.waveform import get_all_waveforms
+from pppat.libpulse.waveform import get_all_waveforms, get_waveform
 from importlib import import_module
+import numpy as np
 
 import logging
 logger = logging.getLogger(__name__)
@@ -220,11 +221,33 @@ class PulseSettings():
 
         return check_results
 
+    @property
+    def fuelling_valves(self):
+        """
+        Returns the list of fueling valves numbers used in a pulse
+        """
+        # get the gaz valve distribution matrix (for all valves)
+        G_dist = [get_waveform(f'rts:WEST_PCS/Actuators/Gas/REF1/G_dist_{i}.ref', self.waveforms).nominal for i in range(1, 22)]
+        # test if any of the valve has non null values during nominal segments
+        valve_nbs = []
+        for (idx, G) in enumerate(G_dist):
+            if np.any(G_dist[idx].values > 0):
+                valve_nbs.append(idx + 1)        
+        return valve_nbs
 
 if __name__ == '__main__':
-    ps = PulseSettings()
-#    ps.load_from_file({'sup':'resources/pulse_setup_examples/52865/Sup.xml',
-#                       'dp':'resources/pulse_setup_examples/52865/DP.xml'})
-    ps.load_from_session_leader()
-    
+#    ps = PulseSettings()
+##    ps.load_from_file({'sup':'resources/pulse_setup_examples/52865/Sup.xml',
+##                       'dp':'resources/pulse_setup_examples/52865/DP.xml'})
+#    ps.load_from_session_leader()
+#    54535 # V9
+#    54534 # V1 + V11
+#    54533 # V2
+#    54532 # V11
+#    
+#    ctr_enable = get_waveform('rts:WEST_PCS/Actuators/Gas/REF1/ctr_enable.ref', ps.waveforms)
+#    ref_type = get_waveform('rts:WEST_PCS/Actuators/Gas/ref_type.ref', ps.waveforms)
+#    measure_choice = get_waveform('rts:WEST_PCS/Actuators/Gas/REF1/measure_choice.ref', ps.waveforms)
+
+    print(PulseSettings(54534).fuelling_valves)
 
