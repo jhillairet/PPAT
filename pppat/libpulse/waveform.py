@@ -342,7 +342,18 @@ def search_signal_trajectory(xmlroot, signal_to_search):
 def prepare_final(xmlroot, arrSegment, arrsignalTrajectory, arrSignal):
     """
     Assembly of the final waveform. Features: Takes into account step or linear executed waveforms.
-    """
+    
+    Parameters
+    ----------
+     - xmlroot: xml.etree.ElementTree
+         
+     - arrSegment: list
+         list of the all segments [('segmentName1', endabstime1, duration1), ...]
+     - arrsignalTrajectory: list
+     
+     - arrSignal: Signal
+         
+    """                           
     #PCS time cycle in seconds. Used for jumps at the beginning of a segment
     PCS_CYCLE_TIME = 0.002
 
@@ -361,14 +372,12 @@ def prepare_final(xmlroot, arrSegment, arrsignalTrajectory, arrSignal):
     segments_output = []
     segmentTime = 0.0
 
-    signal_trajectory_names = []
-    for signal in arrsignalTrajectory:
-        signal_trajectory_names.append(signal.name)
+    signal_trajectory_names = [signal.name for signal in arrsignalTrajectory]
 
     # Iterate segments and build the waveform segment by segment.
     for j, segment in enumerate(arrSegment):
         segment_name = segment[0]
-
+        
         # Guard test to make sure there is at least one explicit data point.
         # Otherwise there is no point determining the waveform type (relative/absolute)
         # or try to build the waveform (default value only)
@@ -434,7 +443,7 @@ def prepare_final(xmlroot, arrSegment, arrsignalTrajectory, arrSignal):
             lastTime = segmentTime
             lastPointIn = True
             #print('First point of any segment except first')
-
+        
         # Other points in the segment (i.e. not the first point)
         # Loop over the explicit points defined in the signal trajectory to search if
         # one of them belongs to the current segment.
@@ -529,29 +538,43 @@ def prepare_final(xmlroot, arrSegment, arrsignalTrajectory, arrSignal):
                     # another one at the top of the step.
                     elif (exec_rule == 'step') and \
                           ((waveformTime_rel + segmentTime) < (float(arrSegment[j][1]) - PCS_CYCLE_TIME)):
-                        waveformValue = lastValue
-                        waveformTime = segmentTime + waveformTime_rel
-                        segments_output.append(segmentName)
-                        times_output.append(waveformTime)
-                        relative_times_output.append(waveformTime_rel)
-                        values_output.append(waveformValue)
-
+#                        waveformValue = lastValue
+#                        waveformTime = segmentTime + waveformTime_rel
+#                        segments_output.append(segmentName)
+#                        times_output.append(waveformTime)
+#                        relative_times_output.append(waveformTime_rel)
+#                        values_output.append(waveformValue)
+#
+#                        if waveformType == 'absolute':
+#                            waveformValue2 = arrsignalTrajectory[i].value
+#                        elif waveformType == 'relative':
+#                            waveformValue2 = arrsignalTrajectory[i].value * startValueSegment
+#                        else:
+#                            raise(NotImplementedError('waveformType proportional not implemented!'))
+#
+#                        waveformTime2 = waveformTime + PCS_CYCLE_TIME
+#                        segments_output.append(segmentName)
+#                        times_output.append(waveformTime2)
+#                        relative_times_output.append(waveformTime_rel + PCS_CYCLE_TIME)
+#                        values_output.append(waveformValue2)
+#                        lastValue = waveformValue2
+#                        lastTime = waveformTime2
+#                        lastPointIn = True
+#                        if arrSignal.name == 'rts:WEST_PCS/TimingSystem/Code2Send.ref' and segment_name == 'segment8':
+#                            import pdb; pdb.set_trace()
+                        # JH 04/08/2019
+                        # previous implementation added inconsistent points 
                         if waveformType == 'absolute':
-                            waveformValue2 = arrsignalTrajectory[i].value
+                            values_output.append(arrsignalTrajectory[i].value)
                         elif waveformType == 'relative':
-                            waveformValue2 = arrsignalTrajectory[i].value * startValueSegment
+                            values_output.append(arrsignalTrajectory[i].value * startValueSegment)
                         else:
                             raise(NotImplementedError('waveformType proportional not implemented!'))
-
-                        waveformTime2 = waveformTime + PCS_CYCLE_TIME
+                        times_output.append(segmentTime + waveformTime_rel)
+                        relative_times_output.append(waveformTime_rel)
                         segments_output.append(segmentName)
-                        times_output.append(waveformTime2)
-                        relative_times_output.append(waveformTime_rel + PCS_CYCLE_TIME)
-                        values_output.append(waveformValue2)
-                        lastValue = waveformValue2
-                        lastTime = waveformTime2
-                        lastPointIn = True
-
+                              
+                              
                 # Case 3: a linear-executed point is defined after the end of the segment. The linear ramp
                 # between the last two points is started but interrupted before the end of the segment.
                 # A point is created at the very end of the segment.
