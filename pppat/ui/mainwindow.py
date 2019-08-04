@@ -378,8 +378,12 @@ class MainWindow(QMainWindow):
                 nominal_trajectory_str = ' -> '.join(nominal_trajectory)
                 nominal_trajectory_str = nominal_trajectory_str.replace('segment', '')
                 logger.info(nominal_trajectory_str)
-
                 self.panel_pre_pulse.widget.pulse_properties.setText(nominal_trajectory_str)
+
+                # get and display the gas valves used in the pulse
+                gas_valves = str(self.pulse_settings.fuelling_valves)
+                logger.info(f'Gas valve(s) used in the pulse : {gas_valves}')
+                self.panel_pre_pulse.widget.pulse_gas_valves.setText(gas_valves)
             except AttributeError as e:
                 logger.error(e)
         else:
