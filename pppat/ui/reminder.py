@@ -35,7 +35,7 @@ class EiCReminderWidget(QFrame):
     def save_text(self):
         " Save the content of the text edit zone into a file. "
         text = self.text_edit.toPlainText()
-        with open(LOGFILENAME, 'w') as f:
+        with open(LOGFILENAME, 'w', encoding='utf8') as f:
             f.write(text)      
         # update the date indicator
         self.update_last_modification_date()
@@ -43,7 +43,7 @@ class EiCReminderWidget(QFrame):
     def load_text(self):
         " Load the content of the text file into the text edit zone. "
         try:
-            with open(LOGFILENAME, 'r') as f:
+            with open(LOGFILENAME, 'r', encoding='utf8') as f:
                 self.text_edit.setPlainText(f.read()) 
         except FileNotFoundError as e:
             # if the file does not exist (yet), fill it with nothing
