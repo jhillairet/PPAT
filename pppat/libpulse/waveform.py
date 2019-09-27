@@ -47,7 +47,18 @@ class Waveform():
         return Waveform(name=name, 
                         times=times, reltimes=reltimes,
                         values=values, segments=segments)
-        
+   
+    @property
+    def dataframe(self):
+        """
+        Return the waveform as a pandas Dataframe
+        """
+        df = pd.DataFrame(data={'values': self.values, 
+                                'time': self.times, 
+                                'segment': self.segments, 
+                                'reltime': self.reltimes})
+        return df
+
     @property
     def dataframe(self):
         """
@@ -63,7 +74,6 @@ class Waveform():
     
     # convenience alias
     df = dataframe
-
 
 def get_waveform(waveform_name, waveforms):
     """

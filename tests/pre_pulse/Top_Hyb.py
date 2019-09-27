@@ -95,12 +95,22 @@ def _FTOPHYB(waveforms=None, antenna='LH1'):
         return Result(name='FTOPHYB', code=Result.UNAVAILABLE,
                       text=f'ValueError: bad antenna name!. Check the code')
 
-    if np.any(np.isnan(t_LH)):  # no LH Power expected
+    # no LH Power expected
+    if np.allclose(P_LH, 0):
         return Result(name=CHECK_NAME, code=Result.OK,
                       text=f'No LH power set on {antenna}')
+    if np.any(np.isnan(t_LH)):
+        return Result(name=CHECK_NAME, code=Result.OK,
+                      text=f'No LH power set on {antenna}')
+
     # find the nearest time 
     # FTOPHYB corresponding to the antenna
     ts_FTOPHYB = t_codes[codes == FTOPHYB]
+    # No FTOPHYB found
+    if len(ts_FTOPHYB) == 0:
+        return Result(name='FTOPHYB', code=Result.ERROR,
+                      text=f'No FTOPHYB{antenna[-1]} found for {antenna}')
+        
     # keep only the first one
     t_FTOPHYB = np.amin(ts_FTOPHYB)
     # integrate the LH power from 0 to t_TOPHYB
@@ -133,13 +143,21 @@ def _TOPHYB(waveforms=None, antenna='LH1'):
         return Result(name='TOPHYB', code=Result.UNAVAILABLE,
                       text=f'ValueError: bad antenna name!. Check the code')
 
-    if np.any(np.isnan(t_LH)):  # no LH Power expected
+    # no LH Power expected
+    if np.allclose(P_LH, 0):
+        return Result(name=CHECK_NAME, code=Result.OK,
+                      text=f'No LH power set on {antenna}')
+    if np.any(np.isnan(t_LH)):
         return Result(name=CHECK_NAME, code=Result.OK,
                       text=f'No LH power set on {antenna}')
         
     # find the nearest time 
     # TOPHYB corresponding to the antenna
     ts_TOPHYB = t_codes[codes == TOPHYB]
+    # No TOPHYB found
+    if len(ts_TOPHYB) == 0:
+        return Result(name='TOPHYB', code=Result.ERROR,
+                      text=f'No TOPHYB{antenna[-1]} found for {antenna}')
 
     # keep only the last one
     t_TOPHYB = np.amax(ts_TOPHYB)
