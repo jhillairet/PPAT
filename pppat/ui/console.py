@@ -13,21 +13,27 @@ class ConsoleWidget(RichJupyterWidget):
     """Jupyter kernel client in Qt"""
 
     def __init__(self, *args, **kwargs):
-        super(ConsoleWidget, self).__init__(*args, **kwargs)
+        super().__init__()
 
-        self.kernel_manager = QtKernelManager(kernel_name=USE_KERNEL)
-        self.kernel_manager.start_kernel()
+        kernel_manager = QtKernelManager(kernel_name=USE_KERNEL)
+        kernel_manager.start_kernel()
+    
+        kernel_client = kernel_manager.client()
+        kernel_client.start_channels()
 
-        self.kernel_client = self.kernel_manager.client()
-        self.kernel_client.start_channels()
+        self.kernel_manager = kernel_manager
+        self.kernel_client = kernel_client
 
         self.exit_requested.connect(self.stop)
 
         self.font_size = 8
+        # setup scientific mode and import WEST database access module
         self.execute_command('%pylab')
         self.execute_command('import pywed as pd')
-        
+        self.execute_command('from pywed import *')
+
     def stop(self):
+        print('Shutting down kernel...')
         self.kernel_client.stop_channels()
         self.kernel_manager.shutdown_kernel()
 
@@ -43,8 +49,6 @@ class ConsoleWidget(RichJupyterWidget):
         Clears the terminal
         """
         self._control.clear()
-
-        # self.kernel_manager
 
     def print_text(self, text):
         """
