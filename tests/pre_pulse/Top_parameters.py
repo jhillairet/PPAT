@@ -16,6 +16,7 @@ HEATING_PERMISSIONS = 'DPCS;HEATING_PARA;HEATING_PERM'
 
 # Default values given by Remy NOUAILLETAS 25/06/2019
 # Update JH 28/07/2019: the LH Fe impurity 1 --> 0 as Fe not used for LH
+# Update JH 04/11/2019: added IR modulation filtering flag
 HEATING_SECURITY_PARAMETERS_DEFAULT_VALUES = np.r_[
         1,  # 'LH Cu impurity protection enable',
         0,  # 'LH Fe impurity protection enable',
@@ -30,7 +31,8 @@ HEATING_SECURITY_PARAMETERS_DEFAULT_VALUES = np.r_[
         10,  # 'maximal dhyb heartbeat errors',
         10,  # 'maximal dfci heartbeat errors',
         13,  # 'maximal dsurvie heartbeat errors',
-        50  # 'maximal dwms heartbeat errors'
+        50,  # 'maximal dwms heartbeat errors'
+        10,  # 'IR modulation filtering bandwidth [Hz]'] (since #55546)
         ]    
 HEATING_PERMISSIONS_DEFAULT_VALUES = np.r_[
         1e5,  # 'Minimal Ip for heating permission [A]',
@@ -82,8 +84,11 @@ def test_against_default_values(Top_productor, default_values, pulse_nb=0):
         return [f'failed to get the tsmat data: {e}']
 
     # for each security parameter check if equal to its associated default value
-    passed_tests = np.isclose(values, default_values)
-
+    # JH 04/11/2019: in order to be retro-compatible with pulse number in which
+    # the size of the array was different (supposed lower length), test only
+    # against the length of the tsmat array length
+    passed_tests = np.isclose(values, default_values[:len(values)])
+    
     # for all tests, extract the one not passed.
     not_passed_test = []
     for (desc, val, val_def, is_test_passed) in \
@@ -94,11 +99,11 @@ def test_against_default_values(Top_productor, default_values, pulse_nb=0):
     return not_passed_test
 
 @pre_pulse_test
-def check_Top_safety_heating_parameters(is_online=True, waveforms=None):
+def check_Top_safety_heating_parameters(is_online=True, waveforms=None, pulse_nb=0):
     """
     Check the heating permission values defined in Top producer 
         'DPCS;HEATING_PARA;HEATING_PERM'
-    against default values.
+    against default values for a given pulse (default is next pulse).
     """
     CHECK_NAME = 'Top Heating Permissions'
 
@@ -108,7 +113,8 @@ def check_Top_safety_heating_parameters(is_online=True, waveforms=None):
     else:
         not_passed_test = test_against_default_values(
                 HEATING_PERMISSIONS,
-                HEATING_PERMISSIONS_DEFAULT_VALUES
+                HEATING_PERMISSIONS_DEFAULT_VALUES,
+                pulse_nb
                 )
 
         if len(not_passed_test) == 0:  # no error
@@ -120,11 +126,11 @@ def check_Top_safety_heating_parameters(is_online=True, waveforms=None):
                           text=str(not_passed_test))
 
 @pre_pulse_test
-def check_Top_heating_permissions(is_online=True, waveforms=None):
+def check_Top_heating_permissions(is_online=True, waveforms=None, pulse_nb=0):
     """
     Check the heating security parameter values defined in Top producer 
         'DPCS;HEATING_PARA;HEATING_SECU'
-    against default values.
+    against default values for a given pulse number (default is next pulse).
     """
     CHECK_NAME = 'Top Heating Securities'
     
@@ -134,7 +140,8 @@ def check_Top_heating_permissions(is_online=True, waveforms=None):
     else:
         not_passed_test = test_against_default_values(
                 HEATING_SECURITY_PARAMETERS,
-                HEATING_SECURITY_PARAMETERS_DEFAULT_VALUES
+                HEATING_SECURITY_PARAMETERS_DEFAULT_VALUES, 
+                pulse_nb
                 )
 
         if len(not_passed_test) == 0:  # no error
@@ -155,7 +162,17 @@ def check_Top_heating_permissions(is_online=True, waveforms=None):
                           text=str(not_passed_test))
 
 if __name__ == '__main__':
-
+    from pppat.libpulse.pulse_settings import PulseSettings
+    
     res=check_Top_safety_heating_parameters()
     print(res)
+
+    # before introducing the IR filtering flag
+    ps = PulseSettings(55545)
+    print(check_Top_heating_permissions(ps.waveforms, pulse_nb=55545))
+
+    # After introducing the IR filtering flag
+    ps = PulseSettings(55546)
+    print(check_Top_heating_permissions(ps.waveforms, pulse_nb=55546))
+
     

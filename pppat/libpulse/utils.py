@@ -11,6 +11,8 @@ from pppat.libpulse.check_result import CheckResult as Result
 from pppat.libpulse.utils_west import is_online
 from pywed import PyWEDException, tsmat
 
+from sys import exc_info  # for debug
+import linecache  # for debug 
 import logging  # pour ajouter des informations au log de PPPPAT
 logger = logging.getLogger(__name__)
 
@@ -98,6 +100,16 @@ def pre_pulse_test(test_func):
                 # problem with manipulating the data (our fault!)
                 test = Result(text = str(e), code = Result.BROKEN)
                 logger.error(str(e))
+                # Adding additional information concerning the problem
+                exc_type, exc_obj, tb = exc_info()
+                f = tb.tb_frame
+                lineno = tb.tb_lineno
+                filename = f.f_code.co_filename
+                linecache.checkcache(filename)
+                line = linecache.getline(filename, lineno, f.f_globals)
+                debug_msg = f'EXCEPTION IN ({filename}, LINE {lineno} "{line.strip()}"): {exc_obj}'
+                logger.error(debug_msg)
+                
             except PyWEDException as e:
                 # problem to get the data from database (not our fault!)
                 test = Result(text = str(e), code = Result.UNAVAILABLE)
