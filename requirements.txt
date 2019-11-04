@@ -4,7 +4,8 @@ numpy
 pyqtgraph
 pywed
 IRFMtb
-tornado>=4.5.3
-jupyter_client>=5.2.2
+tornado
+jupyter_client
 pandas
+linecache
 
