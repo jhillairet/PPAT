@@ -105,7 +105,7 @@ class PrePulseAnalysisWidget(QWidget):
         bottom_group = QGroupBox('Check results')
         layout = QVBoxLayout()
 
-        self.check_table = QTableWidget(12, 3)
+        self.check_table = QTableWidget(50, 3)
         self.check_table.setHorizontalHeaderLabels(['Test Name',
                                                     'Result',
                                                     'Result description'])
