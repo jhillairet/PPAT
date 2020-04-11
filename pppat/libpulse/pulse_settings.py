@@ -235,6 +235,23 @@ class PulseSettings():
                 valve_nbs.append(idx + 1)        
         return valve_nbs
 
+    @property
+    def waveform_names(self):
+        """
+        Return a list of the waveform names
+
+        Returns
+        -------
+        wf_names: list of str
+            List of waveform names 
+
+        """
+        wf_names = [wf.name for wf in self.waveforms]
+        return wf_names
+    
+    
+        
+
 if __name__ == '__main__':
 #    ps = PulseSettings()
 ##    ps.load_from_file({'sup':'resources/pulse_setup_examples/52865/Sup.xml',
@@ -248,6 +265,9 @@ if __name__ == '__main__':
 #    ctr_enable = get_waveform('rts:WEST_PCS/Actuators/Gas/REF1/ctr_enable.ref', ps.waveforms)
 #    ref_type = get_waveform('rts:WEST_PCS/Actuators/Gas/ref_type.ref', ps.waveforms)
 #    measure_choice = get_waveform('rts:WEST_PCS/Actuators/Gas/REF1/measure_choice.ref', ps.waveforms)
+    ps = PulseSettings(55856)
+    print(ps)
+    
+    #%%
 
-    print(PulseSettings(54534).fuelling_valves)
-
+            

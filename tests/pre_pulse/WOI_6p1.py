@@ -34,26 +34,30 @@ def check_WOI_6p1_initial_temperature(is_online=True, waveforms=None):
                         'GETC_OSP_1A',  # TC outer strike point Q1A
                         'GETC_RIPL_6A']  # TC toroidaux Q6A
     max_temp = []
-    for sig in sig_TCs_divertor:
-        T, t = continuous_signal_from_time(sig, date,
-                                     t_start=time_ten_min_before,
-                                     t_stop=time_now)
-        # keep only realist temperatures (>10°C)
-        T2 = np.where(T > 10, T, -1)
-        max_temp.append(np.amax(T2))  # max of the signal
-
-    max_max_temp = np.amax(max_temp)  # max of the max
-
-    if max_max_temp > T_ERROR:
-        return Result(name=CHECK_NAME, code=Result.ERROR,
-                      text=f'Max Temp Lower Divertor during last {dT}min: {max_max_temp:.0f}°C > {T_ERROR}')
-    elif max_max_temp > T_WARNING:
-        return Result(name=CHECK_NAME, code=Result.WARNING,
-                      text=f'Max Temp Lower Divertor during last {dT}min: {max_max_temp:.0f}°C > {T_WARNING}')
-    else:  # I guess it is OK then
-        return Result(name=CHECK_NAME, code=Result.OK,
-                      text=f'Max Temp Lower Divertor during last {dT}min: {max_max_temp:.0f}°C')
-
+    try:
+        for sig in sig_TCs_divertor:
+            T, t = continuous_signal_from_time(sig, date,
+                                         t_start=time_ten_min_before,
+                                         t_stop=time_now)
+            # keep only realist temperatures (>10°C)
+            T2 = np.where(T > 10, T, -1)
+            max_temp.append(np.amax(T2))  # max of the signal
+    
+        max_max_temp = np.amax(max_temp)  # max of the max
+    
+        if max_max_temp > T_ERROR:
+            return Result(name=CHECK_NAME, code=Result.ERROR,
+                          text=f'Max Temp Lower Divertor during last {dT}min: {max_max_temp:.0f}°C > {T_ERROR}')
+        elif max_max_temp > T_WARNING:
+            return Result(name=CHECK_NAME, code=Result.WARNING,
+                          text=f'Max Temp Lower Divertor during last {dT}min: {max_max_temp:.0f}°C > {T_WARNING}')
+        else:  # I guess it is OK then
+            return Result(name=CHECK_NAME, code=Result.OK,
+                          text=f'Max Temp Lower Divertor during last {dT}min: {max_max_temp:.0f}°C')
+    except Exception as e:
+        # Something bad happened... what?
+        return Result(name=CHECK_NAME, code=Result.UNAVAILABLE,
+                      text=f'data is not available: {e}')        
 
 #def check_WOI_6p1_Xpoint_duration(is_online=False, waveforms=None):
 #    """ Check the duration of the X-point phase """

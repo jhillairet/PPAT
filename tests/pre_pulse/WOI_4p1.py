@@ -38,3 +38,11 @@ def check_WOI_4p1_plasma_density(is_online=False, waveforms=None):
         else:
             return Result(name=CHECK_NAME, code=Result.OK,
                           text='Plasma density OK')
+
+
+if __name__ == '__main__':
+    from pppat.libpulse.pulse_settings import PulseSettings
+    # get pulse settings
+    ps = PulseSettings(55714)
+    print(check_WOI_4p1_plasma_density(waveforms=ps.waveforms))
+    
