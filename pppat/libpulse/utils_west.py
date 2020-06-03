@@ -8,7 +8,7 @@ import pandas as pd
 import pywed as pw
 from datetime import datetime
 from IRFMtb import tsdernier_choc
-
+from scipy.signal import savgol_filter  # for smooth
 
 def is_online():
     """
@@ -160,6 +160,23 @@ def continuous_signal_from_time(signame, date=None, t_start='00:01:00', t_stop='
     T, t = pw.tsbase(signame, date, t_start, t_stop)
 
     return T, t
+
+
+def smooth(y, window_length=51, polyorder=3):
+    """
+    Smooth a signal using a time filter.
+
+    Parameters
+    ----------
+    y: array
+        signal to smooth
+    window_length: float
+        Time Window Length in points. Default is 51
+    polyorder: integer
+        Polinom order. Default is 3 
+    """
+    return savgol_filter(np.squeeze(y), window_length, polyorder)
+
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
