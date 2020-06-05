@@ -31,10 +31,8 @@ class DCSSettings():
             raise(FileNotFoundError)
 
     @property
-    def nominal_scenario(self):
+    def nominal_scenario(self) -> list:
         """
-        scenario = get_nominal_scenario()
-
         Returns the nominal scenario of a pulse from a DCS-format settings.
 
         Returns
@@ -78,27 +76,49 @@ class DCSSettings():
         return nominal_segment
 
     @staticmethod
-    def _clean_array(array):
-        """ Convenient function to remove '->' and 'TheEnd' from a list """
+    def _clean_array(array) -> list:
+        """
+        Remove the arrows '->' and 'TheEnd' elements from a given list of string.
+        
+        Parameter
+        ---------
+        array: list of string
+        
+        Return
+        ------
+        cleaned_array: list of list
+        
+        """
         cleaned_array = [value for value in array if
                   not value.startswith('->') and
                   not value.startswith('TheEnd')]
         return cleaned_array
 
     @property
-    def all_scenarios(self):
+    def all_scenarios(self) -> list:
         """
         List of all the possible segment transition scenarios,
         starting from 'Init' and ending at 'TheEnd'
+        
+        Return
+        -------
+        all_scenarios:  list of list
+            [['Init', '->', 'seg1', '->', 'seg2', '->', 'TheEnd'], 
+             ...]
         """
         all_scenarios = self.search_all('Init', 'TheEnd')
 
         return all_scenarios
 
     @property
-    def nominal_trajectory(self):
+    def nominal_trajectory(self) -> list:
         """
-        List of the
+        Return the nominal trajectory
+        
+        Return
+        ------
+        nominal_trajectory : list of tuples
+            [('segment_name', t_start, duration), ...]
         """
         # Search the nominal scenario among all possible scenarios
         # The nominal scenario is defined as the one containing the most segments
@@ -125,7 +145,7 @@ class DCSSettings():
         return nominal_trajectory
 
     @property
-    def target_segments(self):
+    def target_segments(self) -> list:
         """
         List of all the segments and all the ways to transit from
         them to other segments. Contains the segment name, the target segment,
@@ -180,7 +200,7 @@ class DCSSettings():
 
         return target_segments
 
-    def prepare_arrSegment(self, trajectory, segments):
+    def prepare_arrSegment(self, trajectory: dict, segments: list) -> list:
         """
         Returns all segments and transition ways from a given trajectory.
 

@@ -99,26 +99,49 @@ def get_waveform(waveform_name, waveforms):
             waveform = wf
     return waveform
             
-def get_all_waveforms(scenario, DP_file):
+def get_all_waveforms(scenario: list, DP_file: str) -> list:
     """
-    extract all the waveforms for the given scenario
+    Extract all the waveforms for a given scenario trajectory
     
     Parameters
     ----------
-        scenario: List of tuples
+    scenario: list of tuples
             scenario trajectory
-        DP_file: string
+    DP_file: str
             path to the DP.xml file
     
     Return
     ------
-        scenario_waveforms: List
-            List of all waveforms for the given scenario
+    waveforms: list
+            list of all waveforms for the given scenario.
     """
     sig_names = get_DCS_signal_names(DP_file)
-    scenario_waveforms = waveformBuilder(scenario, sig_names, DP_file)
-    return scenario_waveforms
+    waveforms = waveformBuilder(scenario, sig_names, DP_file)
+    return waveforms
+
+
+def get_all_waveforms_dict(scenario: list, DP_file: str) -> dict:
+    """
+    Extract all the waveforms for a given scenario trajectory
     
+    Parameters
+    ----------
+    scenario: list of tuples
+            scenario trajectory
+    DP_file: str
+            path to the DP.xml file
+    
+    Return
+    ------
+    waveforms_dict: dict
+            Dictionnary of all waveforms for the given scenario. Keys are waveform names
+    """    
+    sig_names = get_DCS_signal_names(DP_file)
+    waveforms = waveformBuilder(scenario, sig_names, DP_file)
+    waveforms_dict = dict()
+    for waveform in waveforms:
+        waveforms_dict[waveform.name] = waveform
+    return waveforms_dict
 
 def get_DCS_signal_names(DP_file):
     """

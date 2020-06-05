@@ -14,6 +14,7 @@ from pywed import PyWEDException, tsmat
 from sys import exc_info  # for debug
 import linecache  # for debug 
 import logging  # pour ajouter des informations au log de PPPPAT
+import sys, os   
 logger = logging.getLogger(__name__)
 
 # Top parameters
@@ -32,6 +33,31 @@ def wait_cursor():
         yield
     finally:
         QApplication.restoreOverrideCursor()
+
+
+class HiddenPrints:
+    """
+    Hide temporarly the standard output ('print()' commands but not logs)
+    
+    From example given in 
+    https://stackoverflow.com/questions/8391411/suppress-calls-to-print-python
+
+    To be use with a with statement:
+    
+    Example
+    -------
+    with HiddenPrints():
+        print('this print is not visible')
+    print('this print is visible')
+    
+    """
+    def __enter__(self):
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stdout.close()
+        sys.stdout = self._original_stdout
 
 
 def post_pulse_test(test_func):
