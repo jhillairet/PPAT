@@ -5,7 +5,8 @@ import os
 import platform
 from pppat.libpulse.DCS_settings import DCSSettings
 from pppat.libpulse.check_result import CheckResult
-from pppat.libpulse.waveform import get_all_waveforms, get_waveform
+from pppat.libpulse.waveform import get_all_waveforms, get_all_waveforms_dict, get_waveform
+from pppat.libpulse.utils import HiddenPrints
 from importlib import import_module
 import numpy as np
 
@@ -19,25 +20,35 @@ class PulseSettings():
     XEDIT2DCS_SERVER = 'nunki.intra.cea.fr'
     
     """
-    Pulse setting
+    WEST Pulse Settings
 
-    PulseSetting is a model of the pulse settings which is created by the
-    session leader. The pulse settings come from two XML files, namely
-    DP.xml and SUP.xml. Each WEST pulse is defined following the information
-    contained in these two files.
+    PulseSettings is a model of the WEST pulse settings which is created by the
+    Session Leader using the XEdit2DCS tool. XEdit2DCS creates two XML files, 
+    namely DP.xml and SUP.xml. Each WEST pulse is defined following the 
+    information contained in these two files.
     """
     def __init__(self, pulse_nb=None):
-        logger.info('init Pulse Setting')
+        """
+        WEST Pulse Settings 
+
+        Parameters
+        ----------
+        pulse_nb : int, optional
+            WEST pulse number. The default is None.
+
+        """
+        logger.info('Init Pulse Setting')
         
         self.pulse_nb = None  # pulse number
         self.files = None  # dictionnary containing 'dp' and 'sup' xml file paths
-        self.waveforms = None  # list of Waveform objects
+        self.waveforms = None  # list of nominal Waveform objects
+        self.waveforms_dict = None  # dict of nominal waveforms indexed by waveform names
         
         # directly load the pulse settings if the pulse number is provided
         if pulse_nb:
             self.load_from_pulse(pulse_nb)
 
-    def load_from_file(self, pulse_settings_files):
+    def load_from_file(self, pulse_settings_files: dict) -> bool:
         """
         Load the pulse settings from the Sup.xml and DP.xml files.
 
@@ -53,14 +64,15 @@ class PulseSettings():
         result: Boolean
             True if the pulse settings have been correctly loaded, else False
 
-        """
+        """       
         self.files = pulse_settings_files
         
         # Load DCS settings (Sup.xml)
         self.DCS_settings = DCSSettings(self.files['sup'])
 
-        # Load DCS waveforms (DP.xml)
+        # Load nominal DCS waveforms (DP.xml)
         self.waveforms = get_all_waveforms(self.nominal_scenario, self.files['dp'])
+        self.waveforms_dict = get_all_waveforms_dict(self.nominal_scenario, self.files['dp'])
 
         # TODO : recuperer le numero de choc à partir des fichiers de settings?
         self.pulse_nb = None
@@ -68,16 +80,36 @@ class PulseSettings():
         return self.DCS_settings.isLoaded
 
     @property
-    def nominal_scenario(self):
+    def nominal_scenario(self) -> list:
+        """
+        Nominal trajectory with segments' associated start times and durations 
+
+        Returns
+        -------
+        nominal_scenario: list of tuples
+            Nominal scenario, ie segment names and time properties
+            [(segment_name, t_start, duration), ...]
+
+        """
         return self.DCS_settings.nominal_scenario
 
     @property
-    def nominal_trajectory(self):
+    def nominal_trajectory(self) -> list:
+        """
+        Nominal Trajectory of the waveforms of the DCS pulse Setting
+
+        Returns
+        -------
+        nominal_trajectory: list of str
+            Nominal Trajectory of the waveforms of the DCS pulse Setting. 
+            List of string containing the name of each segments.
+
+        """
         return self.DCS_settings.nominal_trajectory
 
-    def load_from_pulse(self, pulse):
+    def load_from_pulse(self, pulse: int) -> bool:
         """
-        Load the pulse settings from a WEST shot number
+        Load the DCS pulse settings from a given WEST pulse number
 
         Parameters
         ----------
@@ -86,7 +118,7 @@ class PulseSettings():
 
         Return
         ------
-        result: Boolean
+        result: bool
             True if the pulse settings have been correctly loaded, else False
 
         """
@@ -125,11 +157,15 @@ class PulseSettings():
             logger.error('Problem with the database to get pulse setting files')
             return False
 
-    def load_from_session_leader(self):
+    def load_from_session_leader(self) -> bool:
         """
+        Load the DCS Settings for the next pulse which has been prepared by the SL.
+        
+        The settings are file-read on the IRFM server used by the tools XEdit2DCS
+        
         Return
         ------
-        result: Boolean
+        result: bool
             True if the pulse settings have been correctly loaded, else False
 
         """
@@ -157,8 +193,16 @@ class PulseSettings():
     
                 return False
 
-    def next_pulse(self):
-        ' determine the next pulse number '
+    def next_pulse(self) -> int:
+        """
+        Return the next pulse number (pulse under preparation)
+
+        Returns
+        -------
+        next_pulse: int
+            Next pulse number (the future pulse, which is under preparation)
+
+        """
         return IRFMtb.tsdernier_choc() + 1
         
 
@@ -236,7 +280,7 @@ class PulseSettings():
         return valve_nbs
 
     @property
-    def waveform_names(self):
+    def waveform_names(self) -> list:
         """
         Return a list of the waveform names
 
@@ -246,11 +290,58 @@ class PulseSettings():
             List of waveform names 
 
         """
-        wf_names = [wf.name for wf in self.waveforms]
-        return wf_names
+        # wf_names = [wf.name for wf in self.waveforms]
+        # return wf_names
+        return self.waveforms.keys()
     
-    
+    @property
+    def waveforms_values(self, wf_names=None) -> dict:
+        """
+        Times and values for all the waveforms for the nominal trajectory. 
         
+        Parameter
+        ---------
+        wf_names: list of str [optionnal]
+            list of the waveform name to select. Default is None, which means
+            all the waveforms data will be returned
+
+        Returns
+        -------
+        wf_values: dict of dict
+            times and values for all the waveforms for the nominal trajectory
+            
+
+        """
+        if not wf_names:
+            wf_names = self.waveform_names
+        wf_values = dict()
+        for wf_name in wf_names:
+            wf_values[wf_name] = {'times': self.waveforms[wf_name].times, 
+                                  'values': self.waveforms[wf_name].values}
+        return wf_values
+
+      
+
+def export_for_tools_dc(pulse: int):
+    """
+    Print all waveforms times and values for the nominal trajectory. 
+
+    Parameters
+    ----------
+    pulse : int
+        WEST pulse number
+
+    """   
+    with HiddenPrints():    
+        ps = PulseSettings(pulse)
+    
+    for wf in ps.waveforms:
+        # the nickname is the concatenation of the waveform name (except 1st element)
+        # with '/' replaced by a '.' for matlab structure compatibility
+        wf_nickname = wf.name.replace('/', '.').replace('rts:', '').replace('.ref','')
+        print(f'wf.{wf_nickname}.time = {wf.times}')
+        print(f'wf.{wf_nickname}.value = {wf.values}')
+           
 
 if __name__ == '__main__':
 #    ps = PulseSettings()
@@ -267,7 +358,3 @@ if __name__ == '__main__':
 #    measure_choice = get_waveform('rts:WEST_PCS/Actuators/Gas/REF1/measure_choice.ref', ps.waveforms)
     ps = PulseSettings(55856)
     print(ps)
-    
-    #%%
-
-            
