@@ -15,7 +15,8 @@ import qtpy.QtWidgets as QtWidgets
 from qtpy.QtWidgets import (QMainWindow, QApplication, QWidget, QPushButton,
                             QHBoxLayout, QVBoxLayout, QAction, qApp, QLabel,
                             QScrollArea, QTextBrowser, QFrame, QTextEdit, QLineEdit,
-                            QFileDialog, QPlainTextEdit, QTableWidgetItem, QToolButton,
+                            QFileDialog, QInputDialog,
+                            QPlainTextEdit, QTableWidgetItem, QToolButton,
                             QMessageBox, QComboBox, QCompleter, QListWidget, 
                             QSplitter, QStyleFactory, QTabWidget, QTabBar)
 from qtpy.QtGui import QIcon, QCursor, QDesktopServices
@@ -30,85 +31,136 @@ MINIMUM_WIDTH = 800
 
 
 
-# class TabBarPlus(QTabBar):
-#     """Tab bar that has a plus button floating to the right of the tabs."""
+def list_signals(pulse=None) -> list:
+    """
+    List all WEST signals names for a given pulse. If no pulse, default list names. 
 
-#     plusClicked = Signal()
+    Parameters
+    ----------
+    pulse : int, optional
+        WEST pulse number. The default is None.
 
-#     def __init__(self):
-#         super().__init__()
+    Returns
+    -------
+    wf_names: list
+        list of all signal names
 
-#         # Plus Button
-#         self.plusButton = QPushButton("+")
-#         self.plusButton.setParent(self)
-#         self.plusButton.setFixedSize(20, 20)  # Small Fixed size
-#         self.plusButton.clicked.connect(self.plusClicked.emit)
-#         self.movePlusButton() # Move to the correct location
-
-#     def sizeHint(self):
-#         """Return the size of the TabBar with increased width for the plus button."""
-#         sizeHint = QTabBar.sizeHint(self) 
-#         width = sizeHint.width()
-#         height = sizeHint.height()
-#         return QSize(width+25, height)
-
-#     def resizeEvent(self, event):
-#         """Resize the widget and make sure the plus button is in the correct location."""
-#         super().resizeEvent(event)
-
-#         self.movePlusButton()
-
-
-#     def tabLayoutChange(self):
-#         """This virtual handler is called whenever the tab layout changes.
-#         If anything changes make sure the plus button is in the correct location.
-#         """
-#         super().tabLayoutChange()
-
-#         self.movePlusButton()
-
-#     def movePlusButton(self):
-#         """Move the plus button to the correct location."""
-#         # Find the width of all of the tabs
-#         size = sum([self.tabRect(i).width() for i in range(self.count())])
-#         # size = 0
-#         # for i in range(self.count()):
-#         #     size += self.tabRect(i).width()
-
-#         # Set the plus button location in a visible area
-#         h = self.geometry().top()
-#         w = self.width()
-#         if size > w: # Show just to the left of the scroll buttons
-#             self.plusButton.move(w-54, h)
-#         else:
-#             self.plusButton.move(size, h)
-
-def list_signals(pulse=None):
+    """
     sig_list = []
     for sig in signals:
         sig_list.append(sig+': '+signals[sig]['label'])    
     return sig_list
 
-def list_waveforms(pulse=None):
-    # TODO return waveform names
-    return ['toto', 'tata']
+def list_waveforms(pulse=None) -> list:
+    """
+    List all waveform names for a given pulse. If no pulse, default list names. 
+
+    Parameters
+    ----------
+    pulse : int, optional
+        WEST pulse number. The default is None.
+
+    Returns
+    -------
+    wf_names: list
+        list of all waveform names
+
+    """
+    if pulse:
+        ps = PulseSettings(pulse)
+        return ps.waveform_names
+    else:
+        with open('pppat/ui/control_room/waveform_names.txt') as file:
+            data = file.read()
+            
+        return data.splitlines()
+
+class ControlRoomConfiguration():
+    def __init__(self, fname=None):
+        """
+        Control Room Configuration. Describe the configuration of a Control Room session.
+        
+        This configuration saves:
+            - Tabs properties (number and names)
+            - Panels properties for each Tabs (number)
+            - selected curves for each panels
+
+        Parameters
+        ----------
+        fname : TYPE, optional
+            DESCRIPTION. The default is None.
+
+        Returns
+        -------
+        None.
+
+        """
+        self._pulses = [0]
+        self._panels = []
+        self._tabs = defaultdict()
+        self.default_signal_type = 'PCS waveforms' # 'signals' or 'PCS waveforms'
+        
+    @property
+    def pulses(self) -> list:
+        # get last pulse
+        return self._pulses
+    
+    @pulses.setter
+    def pulses(self, pulses: list):
+        self._pulses = pulses
+    
+    @property
+    def panels(self):
+        return self._panels
+
+    @panels.setter
+    def panels(self, panels):
+        self._panels = panels
+
+class PanelConfiguration:
+    def __init__(self):
+        """
+        Panel Configuration.
+        
+        Contains:
+            - the default type of signal
+            - the selected signals
+            - the type plotting backend 
+
+        Parameters
+        ----------
+        control_room_config : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.default_signal_type = 'PCS'
+        self.selected_signals = []
+        self.backend = 'matplotlib'
 
 class Panel(QSplitter):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, panel_config: PanelConfiguration=None):
+        """
+        Panel
+
+        A Panel is a QSplitter GUI which contains a search bar at left and a plot at right   
+
+        """
         QSplitter.__init__(self, Qt.Horizontal, parent=parent)
+
+        # Panel configuration
+        if not panel_config:
+            self.config = PanelConfiguration()
+        else:
+            self.config = panel_config
         
-        # Create the list of all the signals to display
+        # list of all the signals to display
         self.sig_list = list_signals()
         self.wf_list  = list_waveforms()
             
-        # List of signals to plot
-        self._signals = []
-        # List of pulses to plot
-        self._pulses = []
-        
-        # Dictionnary of signals data. Contain (y,t,pulse)
-        self.data = defaultdict(dict)
-        
         # GUI Creation
         self._create_left_side()
         self._create_right_side()
@@ -120,6 +172,9 @@ class Panel(QSplitter):
         
         # Allows the vertical splitter to collapse
         self.setCollapsible(0, True)
+        
+        # set configuration
+        self.update_selected_signals()
     
     # Getter and setter of Panel properties
     @property
@@ -130,36 +185,25 @@ class Panel(QSplitter):
     def signals(self, siglist):
         self._signals = siglist
 
-    @property
-    def pulses(self):
-        return self._pulses
-    
-    @pulses.setter 
-    def pulses(self, pulselist):
-        self._pulses = pulselist
-        
-    def get_pulse_list(self):
-        'Convert the pulse list in meaningfull list of pulses'
-        # TODO: convert 0, -1, etc to meaning values
-        return self.pulses               
+    def update(self, pulses: list=None):
+        if pulses:
+            self.update_data(pulses)
+            self.update_plot(pulses)
 
-    def update(self):
-        self.update_data()
-        self.update_plot()
-
-    def update_data(self):
+    def update_data(self, pulses: list=None):
         # TODO : retrieve only missing data 
         # TODO : paralilize data retrieval
-        with wait_cursor():
-            for pulse in self.get_pulse_list():
-                for sig in self.signals:
-                    signame = sig.split(':')[0]
-                    print(f'Retrieve {signame} for #{pulse}...')
-                    _y, _t = get_sig(pulse, signals[signame]) 
+        if pulses:
+            with wait_cursor():
+                for pulse in pulses:
+                    for sig in self.config.selected_signals:
+                        signame = sig.split(':')[0]
+                        print(f'Retrieve {signame} for #{pulse}...')
+                        _y, _t = get_sig(pulse, signals[signame]) 
 
 
-    def update_plot(self):
-        for sig in self.signals:
+    def update_plot(self, pulses: list=None):
+        for sig in self.config.selected_signals:
             print('UPDATE:', sig)
 
     def _create_right_side(self):
@@ -172,9 +216,9 @@ class Panel(QSplitter):
         self.qt_search_bar = QLineEdit()
         # Select box for choice between standard signals or DCS settings
         self.qt_sig_type = QComboBox()
-        self.qt_sig_type.addItem('signals')
         self.qt_sig_type.addItem('PCS waveforms')
-        self.qt_sig_type.activated.connect(self._setup_signal_list)
+        self.qt_sig_type.addItem('signals')
+        self.qt_sig_type.activated[str].connect(self._setup_signal_list)
         self.widget_search = QWidget()
         self.widget_search_layout = QHBoxLayout()
         self.widget_search_layout.addWidget(self.qt_search_bar)
@@ -183,25 +227,26 @@ class Panel(QSplitter):
         
 
         ## Create the list of signals
-        self.signals_list = QListWidget()
-        self._setup_signal_list()
+        self.qt_signals_list = QListWidget()
+        # default signal list
+        self._setup_signal_list('PCS waveforms')
         # allows selecting multiple number of signals
-        self.signals_list.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.qt_signals_list.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         # define right click context menu
-        self.signals_list.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.signals_list.customContextMenuRequested[QtCore.QPoint].connect(self._item_context_menu_event)
+        self.qt_signals_list.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.qt_signals_list.customContextMenuRequested[QtCore.QPoint].connect(self._item_context_menu_event)
         
         ## Creating the panel
         self.panel_left = QWidget()
         self.panel_left_layout = QVBoxLayout()
         
         self.panel_left_layout.addWidget(self.widget_search)
-        self.panel_left_layout.addWidget(self.signals_list)
+        self.panel_left_layout.addWidget(self.qt_signals_list)
         self.panel_left.setLayout(self.panel_left_layout)
 
-    # @Slot(str)
+    @Slot(str)
     def _setup_signal_list(self, text):
-               
+        print(text)
         if text == 'signals':
             qt_sig_list = self.sig_list
         elif text == 'PCS waveforms':
@@ -219,65 +264,85 @@ class Panel(QSplitter):
         completer.setFilterMode(Qt.MatchContains)
             
         self.qt_search_bar.setCompleter(completer)
-        self.signals_list.clear()
-        self.signals_list.addItems(qt_sig_list)        
+        self.qt_signals_list.clear()
+        self.qt_signals_list.addItems(qt_sig_list)        
         
     def _item_context_menu_event(self, event):
         'GUI: signal list context menu'
-        right_menu = QtWidgets.QMenu(self.signals_list)
-        action_add = QtWidgets.QAction("Add", self, triggered=self.add_signals)
-        action_rem = QtWidgets.QAction("Remove", self, triggered=self.remove_signals)
+        right_menu = QtWidgets.QMenu(self.qt_signals_list)
+        action_add = QtWidgets.QAction("Add", self, triggered=self.add_selected_signals)
+        action_rem = QtWidgets.QAction("Remove", self, triggered=self.remove_selected_signals)
         right_menu.addAction(action_add)
         right_menu.addAction(action_rem)
         right_menu.exec_(QtGui.QCursor.pos())
+
+    def update_selected_signals(self):
+        '''
+        Update the color of the signals in signal list to identify selected items
+        '''
+        # put all in black (default color)
+        for qt_item in self.qt_signals_list.findItems('*', Qt.MatchWildcard):
+            qt_item.setForeground(Qt.black)
+        # put selected signals corresponding items in red
+        for sig in self.config.selected_signals:
+            qt_items = self.qt_signals_list.findItems(sig, Qt.MatchExactly)
+            for qt_item in qt_items:
+                qt_item.setForeground(Qt.red)
         
-    def add_signals(self, event):
+    def add_selected_signals(self, event):
         '''
         Add a list signals to the list of signals to be plotted
         '''
-        selections  = [item.text() for item in self.signals_list.selectedItems()]
+        selections  = [item.text() for item in self.qt_signals_list.selectedItems()]
         for sig in selections:
             if sig:
                 # add the signals to the list of signals to be plotted
-                self.signals.append(sig)
-                # put the signal name in red in the list of signals
-                qt_items = self.signals_list.findItems(sig, Qt.MatchExactly)
-                for qt_item in qt_items:
-                    qt_item.setForeground(Qt.red)
-        # update plots 
+                self.config.selected_signals.append(sig)
+        
+        print('selected signals are now:', self.config.selected_signals)
+        # update selected signals list
+        self.update_selected_signals()
+        # update plots panel
         self.update()
         
-    def remove_signals(self, event):
+    def remove_selected_signals(self, event):
         '''
         Remove a list of signal of the list of signals to be plotted
         '''
-        selections  = [item.text() for item in self.signals_list.selectedItems()]
+        selections  = [item.text() for item in self.qt_signals_list.selectedItems()]
         for sig in selections:
-            if sig in self.signals:
+            if sig in self.config.selected_signals:
                 # remove the signame from the list of signals to be plotted
-                self.signals.remove(sig)
-                # put back the signal name in black
-                qt_items = self.signals_list.findItems(sig, Qt.MatchExactly)
-                for qt_item in qt_items:
-                    print(qt_item)
-                    qt_item.setForeground(Qt.black)
-        # update plot
+                self.config.selected_signals.remove(sig)
+
+        print('selected signals are now:', self.config.selected_signals)
+        # update selected signals list
+        self.update_selected_signals()
+        # update plot panel
         self.update()
 
-        
-    # def handleSplitterButton(self, left=True):
-    #     if not all(self.splitter_vert.sizes()):
-    #         self.splitter_vert.setSizes([1, 1])
-    #     elif left:
-    #         self.splitter_vert.setSizes([0, 1])
-    #     else:
-    #         self.splitter_vert.setSizes([1, 0])           
+   
         
 class ControlRoom(QMainWindow):
     """
     Central GUI class which also serves as main Controller
     """
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, config=None):
+        """
+        Control Room Application
+
+        Parameters
+        ----------
+        parent : TYPE, optional
+            DESCRIPTION. The default is None.
+        config : ControlRoolConfiguration, optional
+            ControlRoom configuration. The default is None (default config).
+
+        Returns
+        -------
+        None.
+
+        """
         super(ControlRoom, self).__init__(parent)  # initialize the window
         ## Control Room Properties
         # Window properties
@@ -285,6 +350,12 @@ class ControlRoom(QMainWindow):
         self.title = 'Control Room [WEST]'
         # self.iconName = 'icon.png'
 
+        # Configuration
+        if config:
+            self.config = config
+        else:
+            self.config = ControlRoomConfiguration()
+        
         # self.left =
         # self.top =
         # self.width =
@@ -299,10 +370,8 @@ class ControlRoom(QMainWindow):
         # Menu Bar
         self.menu_bar()
 
-
-        
         # create pulse number edit bar
-        self.qt_pulses = QLineEdit()
+        self.qt_pulses = self.ui_pulses()
         self.qt_pulses.editingFinished.connect(self.update_pulses)
         # TODO : validator
         # .setValidator(QIntValidator())
@@ -318,8 +387,8 @@ class ControlRoom(QMainWindow):
         
         
         # create panels
-        self.panels = [Panel(), 
-                       Panel()]
+        # self.add_panel()
+        # self.add_panel()
         
         # tab_panels = QWidget()
         # # TODO : make handlers
@@ -327,16 +396,16 @@ class ControlRoom(QMainWindow):
         # for panel in panels:
         #     tab_panels_layout.addWidget(panel)
         # tab_panels.setLayout(tab_panels_layout)
-         
-        tab_panels = QSplitter(Qt.Vertical)
-        for panel in self.panels:
-            tab_panels.addWidget(panel)
         
+        panels = [Panel(), Panel()]
 
-        tab_index1 = self.qt_tabs.addTab(tab_panels, 'Traces #1')
+        self.add_tab(panels)     
+        # self.qt_tabs.setCurrentWidget(page)
+        # tab_index1 = self.qt_tabs.addTab(page, 'Traces #1')
+
         self.qt_tabs.setTabsClosable(True)  
         self.qt_tabs.setMovable(True)
-        self.qt_tabs.tabCloseRequested.connect(self.close_handler)     
+        self.qt_tabs.tabCloseRequested.connect(self.close_tab)     
         
         # Central Widget
         self.qt_central = QWidget()
@@ -346,7 +415,28 @@ class ControlRoom(QMainWindow):
         self.qt_central.setLayout(self.qt_central_layout)
         self.setCentralWidget(self.qt_central)
 
-    def update_pulses(self):
+    def pulses_str(self) -> str:
+        '''
+        Pulse numbers string, separated by commas
+
+        Returns
+        -------
+        pulses_str: str
+            pulses number separated by commas
+
+        '''
+        return ', '.join([str(pulse) for pulse in self.config.pulses])
+
+    def ui_pulses(self):
+        '''
+        Pulse(s) edit bar
+        '''
+        return QLineEdit(self.pulses_str())
+
+    def update_pulses(self) -> None:
+        '''
+        Update the list of pulses from the GUI edit bar
+        '''
         # Get the text from the QLineEdit
         text = self.qt_pulses.text()
         # split ',' -> pulses number
@@ -354,20 +444,52 @@ class ControlRoom(QMainWindow):
         pulses = [int(p) for p in text.split(',')]
         print('NEW PULSE LIST:', pulses)
         # update pulse list and plots for each panels
-        for panel in self.panels:
+        for panel in self.config.panels:
             panel.pulses = pulses
             panel.update()
 
-    def add_tab(self):
+    def add_tab(self, panels: list=None, label: str=None) -> None:
+        '''
+        Add a new Tab 
+        '''
         index = self.qt_tabs.count() + 1
-        self.qt_tabs.addTab(QWidget(), "Traces #%d" % index)
-        self.qt_tabs.setCurrentIndex(index)
+        # default Tab label
+        if not label:
+            label = "Traces #%d" % index
+        # default list of Panels
+        if not panels:
+            panels = [Panel()]
+        # Add the panels vertically in a Splitter and create Tab
+        page = QSplitter(Qt.Vertical)
+        for panel in panels:
+            page.addWidget(panel)       
+        self.qt_tabs.addTab(page, label)
+        # focus on the new created tab
+        self.qt_tabs.setCurrentWidget(page)
+
+    def rename_current_tab(self):
+        ''' 
+        display a dialog to rename the current tab
+        '''
+        current_tab_index = self.qt_tabs.currentIndex()
+        new_label, ok = QInputDialog.getText(self, "New Tab Label", "Tab Label:",
+                                 QLineEdit.Normal, 
+                                 self.qt_tabs.tabText(current_tab_index))
+        if ok:
+            self.qt_tabs.setTabText(current_tab_index, new_label)
         
-        
+    def close_current_tab(self):
+        '''
+        Close the current Tab
+        '''
+        tab_index = self.qt_tabs.currentIndex()
+        print(f'user want to close {tab_index}')
+        self.close_tab(tab_index)
+
     @Slot(int)
-    def close_handler(self, index):
+    def close_tab(self, index):
         """
-            Removes a tab with the specified index, but first deletes the widget it contains. 
+        Removes a Tab with the specified index, but first deletes the widget it contains. 
         """
         reply = QMessageBox.question(
             self, "Message",
@@ -422,13 +544,38 @@ class ControlRoom(QMainWindow):
         action_file_exit.triggered.connect(self.closeEvent)
         menu_file.addAction(action_file_exit)
         
+        # Tabs
         menu_tabs = self.menuBar.addMenu('&Tabs')
-        action_tab_add_tab = QAction('&Add Tab', self)
-        action_tab_add_tab.triggered.connect(self.add_tab)
-        menu_tabs.addAction(action_tab_add_tab)        
-
+        action_add_tab = QAction('&Add Tab', self)
+        action_add_tab.triggered.connect(self.add_tab)
+        menu_tabs.addAction(action_add_tab)
         
+        action_rename_tab = QAction('&Rename Current Tab', self)
+        action_rename_tab.triggered.connect(self.rename_current_tab)
+        menu_tabs.addAction(action_rename_tab)
+        
+        action_remove_tab = QAction('&Close Current Tab', self)
+        action_remove_tab.triggered.connect(self.close_current_tab)
+        menu_tabs.addAction(action_remove_tab)
+        
+        # Panels
+        menu_panels = self.menuBar.addMenu('&Panels')
+        action_add_panel = QAction('&Add Panel', self)
+        action_add_panel.triggered.connect(self.add_panel)
+        menu_panels.addAction(action_add_panel)
+        
+        action_remove_panel = QAction('&Remove Panel', self)
+        action_remove_panel.triggered.connect(self.remove_panel)
+        menu_panels.addAction(action_remove_panel)        
+        
+    def add_panel(self, tab_index=None):
+        print('Before adding a panel:', self.config.panels)
+        self.config.panels.append(Panel())
+        print('After adding a panel:', self.config.panels)
 
+    def remove_panel(self, panel_index: int, tab_index=None):
+        pass
+    
     # def generate_central_widget(self):
     #     """
     #     Define the central widget, which contain the main GUI of the app,
