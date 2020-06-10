@@ -6,8 +6,6 @@ Created on Fri May 22 09:11:36 2020
 """
 
 import sys
-from collections import defaultdict  # to store data conviently in
-
 import qtpy.QtGui as QtGui
 import qtpy.QtCore as QtCore
 import qtpy.QtWidgets as QtWidgets
@@ -22,14 +20,45 @@ from qtpy.QtWidgets import (QMainWindow, QApplication, QWidget, QPushButton,
 from qtpy.QtGui import QIcon, QCursor, QDesktopServices
 from qtpy.QtCore import QDir, Slot, Signal, Qt, QUrl, QStringListModel, QSize
 
+from pyqtgraph import PlotWidget, plot
+import pyqtgraph as pg
+
 from pppat.ui.collapsible_toolbox import QCollapsibleToolbox
 from pppat.ui.control_room.signals import signals, get_sig
-from pppat.libpulse.utils import wait_cursor
+from pppat.libpulse.utils import wait_cursor, nested_dict
 from pppat.libpulse.pulse_settings import PulseSettings
+from pppat.libpulse.utils_west import last_pulse_nb
+from pppat.libpulse.waveform import get_waveform
+
+import numpy as np
 
 MINIMUM_WIDTH = 800
 
+def translate_pulse_numbers(pulses: list) -> list:
+    '''
+    Convert the pulse list edited by the user in the GUI to meaningfull WEST pulse numbers.
+    
+    For example translate 0 is the next pulse, -1 the last achieved pulse, etc
 
+    Parameters
+    ----------
+    pulses : list of integers (shot numbers and shortcuts)
+        DESCRIPTION.
+
+    Returns
+    -------
+    west_pulses: list of integers (all positives and shot numbers)
+        DESCRIPTION.
+
+    '''
+    west_pulses = np.array(pulses, dtype=int)
+    # if there are any negative number, get the lastest pulse number
+    # and translate negative numbers into meaningfull pulse numbers
+    if np.any(west_pulses <= 0):
+        last_achieved_plasma = last_pulse_nb()
+        west_pulses[west_pulses <= 0] += last_achieved_plasma 
+    # convert back to a list (of integer)
+    return [int(pulse) for pulse in west_pulses]
 
 def list_signals(pulse=None) -> list:
     """
@@ -97,7 +126,7 @@ class ControlRoomConfiguration():
         """
         self._pulses = [0]
         self._panels = []
-        self._tabs = defaultdict()
+        self._tabs = []
         self.default_signal_type = 'PCS waveforms' # 'signals' or 'PCS waveforms'
         
     @property
@@ -140,6 +169,7 @@ class PanelConfiguration:
         self.default_signal_type = 'PCS'
         self.selected_signals = []
         self.backend = 'matplotlib'
+        self.data = nested_dict()
 
 class Panel(QSplitter):
     def __init__(self, parent=None, panel_config: PanelConfiguration=None):
@@ -186,7 +216,8 @@ class Panel(QSplitter):
         self._signals = siglist
 
     def update(self, pulses: list=None):
-        if pulses:
+        if pulses:           
+            pulses = translate_pulse_numbers(pulses)
             self.update_data(pulses)
             self.update_plot(pulses)
 
@@ -194,36 +225,68 @@ class Panel(QSplitter):
         # TODO : retrieve only missing data 
         # TODO : paralilize data retrieval
         if pulses:
+            print(f'Updating data for pulses {pulses}')
             with wait_cursor():
                 for pulse in pulses:
+                    print(f'Updating data for pulse {pulse}')
                     for sig in self.config.selected_signals:
-                        signame = sig.split(':')[0]
-                        print(f'Retrieve {signame} for #{pulse}...')
-                        _y, _t = get_sig(pulse, signals[signame]) 
+                        print(f'Retrieve {sig} for #{pulse}...')
 
+                        # TODO: get pulse setting if not existing
+                        if sig.startswith('rts:'):                        
+                            ps = PulseSettings(pulse)
+                            wf = get_waveform(sig, ps.waveforms)
+                            self.config.data[pulse]['PulseSetting'] = ps
+                            # remove 40 seconds to match pulses
+                            self.config.data[pulse][sig]['times'] = wf.times - 40
+                            self.config.data[pulse][sig]['values'] = wf.values
+                        else:                       
+                            signame = sig.split(':')[0]
+                            _y, _t = get_sig(pulse, signals[signame]) 
+                            self.config.data[pulse][sig]['times'] = _t
+                            self.config.data[pulse][sig]['values'] = _y
+                            
 
     def update_plot(self, pulses: list=None):
-        for sig in self.config.selected_signals:
-            print('UPDATE:', sig)
+        # For all pulses and selected signals, plot associated y(t)
+        if pulses:
+            # clear graph
+            self.graphWidget.clear()
+            
+            for pulse in pulses:
+                for sig in self.config.selected_signals:
+                    data = self.config.data[pulse][sig]
+                    times = data['times']
+                    values = data['values']
+                    self.graphWidget.plot(times, values)
+                
+                
 
     def _create_right_side(self):
         'GUI: Create right side (plot window)'
-        self.panel_right = QTextEdit()
+        self.graphWidget = pg.PlotWidget()
+        
+        self.panel_right = QWidget()
+        self.panel_right_layout = QVBoxLayout()
+        self.panel_right_layout.addWidget(self.graphWidget)
+        self.panel_right.setLayout(self.panel_right_layout)
+        
         
     def _create_left_side(self):
         'GUI; Create left side (search bar and list of signals)'
         # Search bar to search and filter signals or waveform name
         self.qt_search_bar = QLineEdit()
+        self.qt_search_bar.textChanged.connect(self.on_textChanged)
         # Select box for choice between standard signals or DCS settings
         self.qt_sig_type = QComboBox()
         self.qt_sig_type.addItem('PCS waveforms')
         self.qt_sig_type.addItem('signals')
         self.qt_sig_type.activated[str].connect(self._setup_signal_list)
-        self.widget_search = QWidget()
-        self.widget_search_layout = QHBoxLayout()
-        self.widget_search_layout.addWidget(self.qt_search_bar)
-        self.widget_search_layout.addWidget(self.qt_sig_type)
-        self.widget_search.setLayout(self.widget_search_layout)
+        self.qt_widget_search = QWidget()
+        self.qt_widget_search_layout = QHBoxLayout()
+        self.qt_widget_search_layout.addWidget(self.qt_search_bar)
+        self.qt_widget_search_layout.addWidget(self.qt_sig_type)
+        self.qt_widget_search.setLayout(self.qt_widget_search_layout)
         
 
         ## Create the list of signals
@@ -240,32 +303,45 @@ class Panel(QSplitter):
         self.panel_left = QWidget()
         self.panel_left_layout = QVBoxLayout()
         
-        self.panel_left_layout.addWidget(self.widget_search)
+        self.panel_left_layout.addWidget(self.qt_widget_search)
         self.panel_left_layout.addWidget(self.qt_signals_list)
         self.panel_left.setLayout(self.panel_left_layout)
 
     @Slot(str)
+    def on_textChanged(self, text):
+        '''
+        Hide the elements of the signals list which does not fit the search bar text
+        '''
+        for row in range(self.qt_signals_list.count()):
+            item = self.qt_signals_list.item(row)
+           
+            if text.lower() in item.text().lower():
+                item.setHidden(False)
+            else:
+                item.setHidden(True)
+                
+    @Slot(str)
     def _setup_signal_list(self, text):
         print(text)
         if text == 'signals':
-            qt_sig_list = self.sig_list
+            self.qt_sig_list = self.sig_list
         elif text == 'PCS waveforms':
-            qt_sig_list = self.wf_list
+            self.qt_sig_list = self.wf_list
         
-        # Setup the search bar and completion style  
-        model = QStringListModel()
-        model.setStringList(self.sig_list)
+        # # Setup the search bar and completion style  
+        # model = QStringListModel()
+        # model.setStringList(self.qt_sig_list)
         
-        completer = QCompleter()
-        completer.setModel(model)
-        completer.setCaseSensitivity(Qt.CaseInsensitive)
-        completer.setCompletionMode(QCompleter.PopupCompletion)
-        completer.setModelSorting(QCompleter.UnsortedModel)
-        completer.setFilterMode(Qt.MatchContains)
-            
-        self.qt_search_bar.setCompleter(completer)
+        # completer = QCompleter()
+        # completer.setModel(model)
+        # completer.setCaseSensitivity(Qt.CaseInsensitive)
+        # completer.setCompletionMode(QCompleter.PopupCompletion)
+        # completer.setModelSorting(QCompleter.UnsortedModel)
+        # completer.setFilterMode(Qt.MatchContains)
+        # self.qt_search_bar.setCompleter(completer)
+
         self.qt_signals_list.clear()
-        self.qt_signals_list.addItems(qt_sig_list)        
+        self.qt_signals_list.addItems(self.qt_sig_list)        
         
     def _item_context_menu_event(self, event):
         'GUI: signal list context menu'
@@ -302,8 +378,7 @@ class Panel(QSplitter):
         print('selected signals are now:', self.config.selected_signals)
         # update selected signals list
         self.update_selected_signals()
-        # update plots panel
-        self.update()
+
         
     def remove_selected_signals(self, event):
         '''
@@ -318,9 +393,6 @@ class Panel(QSplitter):
         print('selected signals are now:', self.config.selected_signals)
         # update selected signals list
         self.update_selected_signals()
-        # update plot panel
-        self.update()
-
    
         
 class ControlRoom(QMainWindow):
@@ -371,8 +443,8 @@ class ControlRoom(QMainWindow):
         self.menu_bar()
 
         # create pulse number edit bar
-        self.qt_pulses = self.ui_pulses()
-        self.qt_pulses.editingFinished.connect(self.update_pulses)
+        self.ui_pulses()
+
         # TODO : validator
         # .setValidator(QIntValidator())
         
@@ -397,9 +469,9 @@ class ControlRoom(QMainWindow):
         #     tab_panels_layout.addWidget(panel)
         # tab_panels.setLayout(tab_panels_layout)
         
-        panels = [Panel(), Panel()]
+        self.config.panels = [Panel(), Panel()]
 
-        self.add_tab(panels)     
+        self.add_tab(self.config.panels)     
         # self.qt_tabs.setCurrentWidget(page)
         # tab_index1 = self.qt_tabs.addTab(page, 'Traces #1')
 
@@ -429,24 +501,43 @@ class ControlRoom(QMainWindow):
 
     def ui_pulses(self):
         '''
-        Pulse(s) edit bar
+        Pulse(s) edit bar and plot button
         '''
-        return QLineEdit(self.pulses_str())
+        self.qt_pulse_line_edit = QLineEdit(self.pulses_str())
+        self.qt_pulse_line_edit.editingFinished.connect(self.update_pulses)
+        self.qt_plot_button = QPushButton(text='Plot')
+        self.qt_plot_button.clicked.connect(self.update)
+        
+        self.qt_pulses = QWidget()
+        self.qt_pulses_layout = QHBoxLayout()
+        self.qt_pulses_layout.addWidget(self.qt_pulse_line_edit)
+        self.qt_pulses_layout.addWidget(self.qt_plot_button)
+
+        self.qt_pulses.setLayout(self.qt_pulses_layout)
+        
 
     def update_pulses(self) -> None:
         '''
         Update the list of pulses from the GUI edit bar
         '''
         # Get the text from the QLineEdit
-        text = self.qt_pulses.text()
+        text = self.qt_pulse_line_edit.text()
         # split ',' -> pulses number
-        # TODO check integer
-        pulses = [int(p) for p in text.split(',')]
-        print('NEW PULSE LIST:', pulses)
-        # update pulse list and plots for each panels
-        for panel in self.config.panels:
-            panel.pulses = pulses
-            panel.update()
+        self.config.pulses = [int(p) for p in text.split(',')]
+
+        print('Qt Line Edit Pulse list:', self.config.pulses)
+
+    def update(self) -> None:
+        '''
+        Update pulse list and plots for each panels
+        '''
+        print('Updating data and plots... ')
+        # for all tabs
+        west_pulses = translate_pulse_numbers(self.config.pulses)
+        
+        for panel in self.config.panels:    
+            panel.update(pulses=west_pulses)
+
 
     def add_tab(self, panels: list=None, label: str=None) -> None:
         '''

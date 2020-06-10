@@ -290,9 +290,9 @@ class PulseSettings():
             List of waveform names 
 
         """
-        # wf_names = [wf.name for wf in self.waveforms]
-        # return wf_names
-        return self.waveforms.keys()
+        wf_names = [wf.name for wf in self.waveforms]
+        return wf_names
+
     
     @property
     def waveforms_values(self, wf_names=None) -> dict:
