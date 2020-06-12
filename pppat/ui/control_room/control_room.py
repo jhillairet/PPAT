@@ -20,8 +20,10 @@ from qtpy.QtWidgets import (QMainWindow, QApplication, QWidget, QPushButton,
 from qtpy.QtGui import QIcon, QCursor, QDesktopServices
 from qtpy.QtCore import QDir, Slot, Signal, Qt, QUrl, QStringListModel, QSize
 
-from pyqtgraph import PlotWidget, plot
 import pyqtgraph as pg
+## Switch to using white background and black foreground
+pg.setConfigOption('background', 'w')
+pg.setConfigOption('foreground', 'k')
 
 from pppat.ui.collapsible_toolbox import QCollapsibleToolbox
 from pppat.ui.control_room.signals import signals, get_sig
@@ -104,47 +106,78 @@ def list_waveforms(pulse=None) -> list:
             
         return data.splitlines()
 
-class ControlRoomConfiguration():
-    def __init__(self, fname=None):
-        """
-        Control Room Configuration. Describe the configuration of a Control Room session.
+       
+
+# class ControlRoomConfiguration():
+#     def __init__(self, fname=None):
+#         """
+#         Control Room Configuration. Describe the configuration of a Control Room session.
         
-        This configuration saves:
-            - Tabs properties (number and names)
-            - Panels properties for each Tabs (number)
-            - selected curves for each panels
+#         This configuration saves:
+#             - Tabs properties (number and names)
+#             - Panels properties for each Tabs (number)
+#             - selected curves for each panels
 
-        Parameters
-        ----------
-        fname : TYPE, optional
-            DESCRIPTION. The default is None.
+#         Parameters
+#         ----------
+#         fname : TYPE, optional
+#             DESCRIPTION. The default is None.
 
-        Returns
-        -------
-        None.
+#         Returns
+#         -------
+#         None.
 
-        """
-        self._pulses = [0]
-        self._panels = []
-        self._tabs = []
-        self.default_signal_type = 'PCS waveforms' # 'signals' or 'PCS waveforms'
+#         """
+#         self._pulses = [0]
+#         self._panels = []
+#         self._tabs = []
+#         self.default_signal_type = 'PCS waveforms' # 'signals' or 'PCS waveforms'
+#         self.setup = nested_dict()
         
-    @property
-    def pulses(self) -> list:
-        # get last pulse
-        return self._pulses
+#     @property
+#     def pulses(self) -> list:
+#         # get last pulse
+#         return self._pulses
     
-    @pulses.setter
-    def pulses(self, pulses: list):
-        self._pulses = pulses
+#     @pulses.setter
+#     def pulses(self, pulses: list):
+#         self._pulses = pulses
     
-    @property
-    def panels(self):
-        return self._panels
+#     @property
+#     def panels(self):
+#         return self._panels
 
-    @panels.setter
-    def panels(self, panels):
-        self._panels = panels
+#     @panels.setter
+#     def panels(self, panels):
+#         self._panels = panels
+        
+#     def __repr__(self):
+#         description = f'Control Room Configuration: {len(self._tabs)} Tabs containing {self._panels}'
+#         return description
+        
+#     def export(self, filename: str):
+#         """
+#         Export the configuration of a ControlRoom session.
+
+#         Parameters
+#         ----------
+#         filename : str
+#             configuration file.
+
+#         Returns
+#         -------
+#         None.
+
+#         """
+#         pass
+#         # >>> import json
+#         # >>> config = {'handler' : 'adminhandler.py', 'timeoutsec' : 5 }
+#         # >>> json.dump(config, open('/tmp/config.json', 'w'))
+#         # >>> json.load(open('/tmp/config.json'))   
+#         # {u'handler': u'adminhandler.py', u'timeoutsec': 5}
+
+
+    
 
 class PanelConfiguration:
     def __init__(self):
@@ -287,12 +320,12 @@ class Panel(QSplitter):
         self.qt_widget_search_layout.addWidget(self.qt_search_bar)
         self.qt_widget_search_layout.addWidget(self.qt_sig_type)
         self.qt_widget_search.setLayout(self.qt_widget_search_layout)
-        
 
         ## Create the list of signals
         self.qt_signals_list = QListWidget()
-        # default signal list
-        self._setup_signal_list('PCS waveforms')
+        # select the default signal type as defined in the PanelConfiguration
+        self.qt_sig_type.setCurrentText(self.config.default_signal_type)
+        self._setup_signal_list(self.config.default_signal_type)
         # allows selecting multiple number of signals
         self.qt_signals_list.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         # define right click context menu
@@ -322,7 +355,6 @@ class Panel(QSplitter):
                 
     @Slot(str)
     def _setup_signal_list(self, text):
-        print(text)
         if text == 'signals':
             self.qt_sig_list = self.sig_list
         elif text == 'PCS waveforms':
@@ -399,6 +431,8 @@ class ControlRoom(QMainWindow):
     """
     Central GUI class which also serves as main Controller
     """
+
+
     def __init__(self, parent=None, config=None):
         """
         Control Room Application
@@ -407,6 +441,7 @@ class ControlRoom(QMainWindow):
         ----------
         parent : TYPE, optional
             DESCRIPTION. The default is None.
+
         config : ControlRoolConfiguration, optional
             ControlRoom configuration. The default is None (default config).
 
@@ -422,11 +457,6 @@ class ControlRoom(QMainWindow):
         self.title = 'Control Room [WEST]'
         # self.iconName = 'icon.png'
 
-        # Configuration
-        if config:
-            self.config = config
-        else:
-            self.config = ControlRoomConfiguration()
         
         # self.left =
         # self.top =
@@ -444,41 +474,16 @@ class ControlRoom(QMainWindow):
 
         # create pulse number edit bar
         self.ui_pulses()
-
         # TODO : validator
         # .setValidator(QIntValidator())
-        
-        
+                
         # create tabs. Panels are defined inside each tab
         # self.tab = TabBarPlus()
         self.qt_tabs = QTabWidget()
-        # self.qtabwidget.setTabBar(self.tab)
-                # Signals
-        # self.tab.plusClicked.connect(self.create_tab)
-        # self.tab.tabMoved.connect(self.moveTab)
         
-        
-        # create panels
-        # self.add_panel()
-        # self.add_panel()
-        
-        # tab_panels = QWidget()
-        # # TODO : make handlers
-        # tab_panels_layout = QVBoxLayout()
-        # for panel in panels:
-        #     tab_panels_layout.addWidget(panel)
-        # tab_panels.setLayout(tab_panels_layout)
-        
-        self.config.panels = [Panel(), Panel()]
-
-        self.add_tab(self.config.panels)     
-        # self.qt_tabs.setCurrentWidget(page)
-        # tab_index1 = self.qt_tabs.addTab(page, 'Traces #1')
-
         self.qt_tabs.setTabsClosable(True)  
         self.qt_tabs.setMovable(True)
-        self.qt_tabs.tabCloseRequested.connect(self.close_tab)     
-        
+        self.qt_tabs.tabCloseRequested.connect(self.ui_close_tab)     
         # Central Widget
         self.qt_central = QWidget()
         self.qt_central_layout = QVBoxLayout()
@@ -486,6 +491,20 @@ class ControlRoom(QMainWindow):
         self.qt_central_layout.addWidget(self.qt_tabs)
         self.qt_central.setLayout(self.qt_central_layout)
         self.setCentralWidget(self.qt_central)
+               
+        # setup UI from Configuration
+        if config:
+            self.config = config
+        else:
+            self.config = self.default_configuration()
+            
+        for tab in self.config['tabs']:
+            self.ui_add_tab(panels=tab['panels'], label=tab['label'])
+            
+        self.qt_pulse_line_edit.setText(self.pulses_str())
+        
+        
+
 
     def pulses_str(self) -> str:
         '''
@@ -497,13 +516,13 @@ class ControlRoom(QMainWindow):
             pulses number separated by commas
 
         '''
-        return ', '.join([str(pulse) for pulse in self.config.pulses])
+        return ', '.join([str(pulse) for pulse in self.config['pulses'] ])
 
     def ui_pulses(self):
         '''
         Pulse(s) edit bar and plot button
         '''
-        self.qt_pulse_line_edit = QLineEdit(self.pulses_str())
+        self.qt_pulse_line_edit = QLineEdit()
         self.qt_pulse_line_edit.editingFinished.connect(self.update_pulses)
         self.qt_plot_button = QPushButton(text='Plot')
         self.qt_plot_button.clicked.connect(self.update)
@@ -523,9 +542,9 @@ class ControlRoom(QMainWindow):
         # Get the text from the QLineEdit
         text = self.qt_pulse_line_edit.text()
         # split ',' -> pulses number
-        self.config.pulses = [int(p) for p in text.split(',')]
+        self.config['pulses'] = [int(p) for p in text.split(',')]
 
-        print('Qt Line Edit Pulse list:', self.config.pulses)
+        print('Qt Line Edit Pulse list:', self.config['pulses'])
 
     def update(self) -> None:
         '''
@@ -533,32 +552,43 @@ class ControlRoom(QMainWindow):
         '''
         print('Updating data and plots... ')
         # for all tabs
-        west_pulses = translate_pulse_numbers(self.config.pulses)
+        west_pulses = translate_pulse_numbers(self.config['pulses'])
         
-        for panel in self.config.panels:    
-            panel.update(pulses=west_pulses)
+        for tab_index in range(self.qt_tabs.count()):
+            tab = self.qt_tabs.widget(tab_index)
+            print(f"Updating tab {self.qt_tabs.tabText(tab_index)}")
+            for panel in tab.panels:
+                panel.update(pulses=west_pulses)
 
 
-    def add_tab(self, panels: list=None, label: str=None) -> None:
+    def ui_add_tab(self, panels: list=None, label: str=None) -> None:
         '''
-        Add a new Tab 
+        Add a new Tab
+        
+        Parameters
+        ----------
+        panels: list. optional
+            list of Panels objects. Default: a single Panel()
+
+        label: str. optional
+            label of the tab. Default: 'Traces #' where # is the number of tabs.
         '''
-        index = self.qt_tabs.count() + 1
-        # default Tab label
-        if not label:
-            label = "Traces #%d" % index
-        # default list of Panels
-        if not panels:
-            panels = [Panel()]
+        # tab configuration. Setup default values if arguments are None
+        tab_config = self.tab_config(label=label, panels=panels)
         # Add the panels vertically in a Splitter and create Tab
         page = QSplitter(Qt.Vertical)
-        for panel in panels:
-            page.addWidget(panel)       
-        self.qt_tabs.addTab(page, label)
+        for panel in tab_config['panels']:
+            page.addWidget(panel)
+        tab_index = self.qt_tabs.addTab(page, tab_config['label'])
+        # store the panels config in the qt widget
+        self.qt_tabs.widget(tab_index).panels = tab_config['panels']
         # focus on the new created tab
         self.qt_tabs.setCurrentWidget(page)
+     
 
-    def rename_current_tab(self):
+      
+
+    def ui_rename_current_tab(self):
         ''' 
         display a dialog to rename the current tab
         '''
@@ -569,16 +599,19 @@ class ControlRoom(QMainWindow):
         if ok:
             self.qt_tabs.setTabText(current_tab_index, new_label)
         
-    def close_current_tab(self):
+        # TODO: update the configuration
+
+        
+    def ui_close_current_tab(self):
         '''
         Close the current Tab
         '''
         tab_index = self.qt_tabs.currentIndex()
         print(f'user want to close {tab_index}')
-        self.close_tab(tab_index)
+        self.ui_close_tab(tab_index)
 
     @Slot(int)
-    def close_tab(self, index):
+    def ui_close_tab(self, index):
         """
         Removes a Tab with the specified index, but first deletes the widget it contains. 
         """
@@ -597,10 +630,13 @@ class ControlRoom(QMainWindow):
                 widget.deleteLater()
                 
             # removes the tab of the QTabWidget
-            self.qt_tabs.removeTab(index)    
+            self.qt_tabs.ui_removeTab(index)    
         else:
             pass    
-        
+
+        # TODO: update the configuration
+
+
     @Slot(int)
     def qtabwidget_currentchanged(self, index):
         print(f"The new index of the current page: {index}")
@@ -638,15 +674,15 @@ class ControlRoom(QMainWindow):
         # Tabs
         menu_tabs = self.menuBar.addMenu('&Tabs')
         action_add_tab = QAction('&Add Tab', self)
-        action_add_tab.triggered.connect(self.add_tab)
+        action_add_tab.triggered.connect(self.ui_add_tab)
         menu_tabs.addAction(action_add_tab)
         
         action_rename_tab = QAction('&Rename Current Tab', self)
-        action_rename_tab.triggered.connect(self.rename_current_tab)
+        action_rename_tab.triggered.connect(self.ui_rename_current_tab)
         menu_tabs.addAction(action_rename_tab)
         
         action_remove_tab = QAction('&Close Current Tab', self)
-        action_remove_tab.triggered.connect(self.close_current_tab)
+        action_remove_tab.triggered.connect(self.ui_close_current_tab)
         menu_tabs.addAction(action_remove_tab)
         
         # Panels
@@ -666,7 +702,76 @@ class ControlRoom(QMainWindow):
 
     def remove_panel(self, panel_index: int, tab_index=None):
         pass
+
+    def tab_config(self, label: str=None, panels: list=None, layout=None) -> dict:
+        """
+        Tab configuration
+
+        Parameters
+        ----------
+        label : str, optional
+            Tab label. The default is None.
+        panels : list, optional
+            list of Panel(). The default is None.
+        layout : TYPE, optional
+            panel layout. The default is None.
+
+        Returns
+        -------
+        tab_config: dict
+            Tab configuration
+
+        """
+        # default Tab label
+        if not label:
+            next_tab_index = self.qt_tabs.count() + 1
+            label = "Traces #%d" % next_tab_index
+        # default list of Panels
+        if not panels:
+            panels = self.default_panels()
+            
+        return {'label': label, 'panels': panels, 'layout': layout}
     
+    def default_panels(self) -> list:
+        """
+        Default list of Panel
+
+        Returns
+        -------
+        panels: list: 
+            list of Panel()
+
+        """
+        panel1_config = PanelConfiguration()
+        panel1_config.default_signal_type = 'PCS waveforms'
+        panel1_config.selected_signals = ['rts:WEST_PCS/Actuators/Heating/LHCD/power/1/waveform.ref']
+        panel1 = Panel(panel_config=panel1_config)
+        
+        panel2_config = PanelConfiguration()
+        panel2_config.default_signal_type = 'signals'
+        panel2_config.selected_signals = ['Ip: Plasma current']
+        panel2 = Panel(panel_config=panel2_config)     
+        
+        return [panel1, panel2]
+    
+    def default_configuration(self) -> dict:
+        """
+        Return the ControlPanel default configuration
+        
+        Returns
+        -------
+        default_config: dict
+            Default ControlPanel configuration dictionnary
+            
+        """        
+        default_config = {
+        'tabs': [self.tab_config()],
+        'pulses': [55799],
+        }
+        
+        return default_config
+     
+        
     # def generate_central_widget(self):
     #     """
     #     Define the central widget, which contain the main GUI of the app,
