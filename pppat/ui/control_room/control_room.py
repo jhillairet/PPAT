@@ -36,6 +36,9 @@ from pppat.libpulse.waveform import get_waveform
 
 MINIMUM_WIDTH = 800
 
+# # Enable antialiasing for prettier plots
+# pg.setConfigOptions(antialias=True)
+
 def translate_pulse_numbers(pulses: list) -> list:
     '''
     Convert the pulse list edited by the user in the GUI to meaningfull WEST pulse numbers.
@@ -304,14 +307,13 @@ class Panel(QSplitter):
                     data = self.config.data[pulse][sig]
                     times = data['times']
                     values = data['values']
-                    self.graphWidget.plot(times, values)
+                    self.graph.plot(times, values)
                 
                 
 
     def _create_right_side(self):
         'GUI: Create right side (plot window)'
-        self.graphWidget = pg.PlotWidget()
-        
+        self.graphWidget = pg.PlotWidget()       
         self.panel_right = QWidget()
         self.panel_right_layout = QVBoxLayout()
         self.panel_right_layout.addWidget(self.graphWidget)
@@ -534,7 +536,15 @@ class ControlRoom(QMainWindow):
         # create the tab and panels
         for tab in self.config['tabs']:
             self.ui_add_tab(panel_configs=tab['panel_configs'], label=tab['label'])
-            
+
+        # synchronize the x-axis between panels
+        for tab_index in range(self.qt_tabs.count()):
+            tab = self.qt_tabs.widget(tab_index)
+            panels = tab.panels
+            if panels:
+                for panel in panels[1:]:
+                    panel.graphWidget.setXLink(panels[0].graphWidget)
+                
     
     def pulses_str(self) -> str:
         '''
