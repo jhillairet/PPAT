@@ -6,10 +6,16 @@ Created on Fri May 22 09:11:36 2020
 """
 
 import sys
+import numpy as np
+import pickle
+import pyqtgraph as pg
+## Switch to using white background and black foreground
+pg.setConfigOption('background', 'w')
+pg.setConfigOption('foreground', 'k')
+
 import qtpy.QtGui as QtGui
 import qtpy.QtCore as QtCore
 import qtpy.QtWidgets as QtWidgets
-
 from qtpy.QtWidgets import (QMainWindow, QApplication, QWidget, QPushButton,
                             QHBoxLayout, QVBoxLayout, QAction, qApp, QLabel,
                             QScrollArea, QTextBrowser, QFrame, QTextEdit, QLineEdit,
@@ -20,11 +26,6 @@ from qtpy.QtWidgets import (QMainWindow, QApplication, QWidget, QPushButton,
 from qtpy.QtGui import QIcon, QCursor, QDesktopServices
 from qtpy.QtCore import QDir, Slot, Signal, Qt, QUrl, QStringListModel, QSize
 
-import pyqtgraph as pg
-## Switch to using white background and black foreground
-pg.setConfigOption('background', 'w')
-pg.setConfigOption('foreground', 'k')
-
 from pppat.ui.collapsible_toolbox import QCollapsibleToolbox
 from pppat.ui.control_room.signals import signals, get_sig
 from pppat.libpulse.utils import wait_cursor, nested_dict
@@ -32,7 +33,6 @@ from pppat.libpulse.pulse_settings import PulseSettings
 from pppat.libpulse.utils_west import last_pulse_nb
 from pppat.libpulse.waveform import get_waveform
 
-import numpy as np
 
 MINIMUM_WIDTH = 800
 
@@ -44,13 +44,13 @@ def translate_pulse_numbers(pulses: list) -> list:
 
     Parameters
     ----------
-    pulses : list of integers (shot numbers and shortcuts)
-        DESCRIPTION.
+    pulses : list of integers 
+        List of WEST pulse numbers (shot numbers and shortcuts like 0, -1, etc).
 
     Returns
     -------
-    west_pulses: list of integers (all positives and shot numbers)
-        DESCRIPTION.
+    west_pulses: list of integers 
+        List of WEST pulse numbers (all positives and shot numbers >50000).
 
     '''
     west_pulses = np.array(pulses, dtype=int)
@@ -58,7 +58,7 @@ def translate_pulse_numbers(pulses: list) -> list:
     # and translate negative numbers into meaningfull pulse numbers
     if np.any(west_pulses <= 0):
         last_achieved_plasma = last_pulse_nb()
-        west_pulses[west_pulses <= 0] += last_achieved_plasma 
+        west_pulses[west_pulses <= 0] += last_achieved_plasma + 1
     # convert back to a list (of integer)
     return [int(pulse) for pulse in west_pulses]
 
@@ -199,13 +199,13 @@ class PanelConfiguration:
         None.
 
         """
-        self.default_signal_type = 'PCS'
+        self.default_signal_type = 'PCS waveforms'
         self.selected_signals = []
         self.backend = 'matplotlib'
         self.data = nested_dict()
 
 class Panel(QSplitter):
-    def __init__(self, parent=None, panel_config: PanelConfiguration=None):
+    def __init__(self, parent=None, config: PanelConfiguration=None):
         """
         Panel
 
@@ -215,10 +215,10 @@ class Panel(QSplitter):
         QSplitter.__init__(self, Qt.Horizontal, parent=parent)
 
         # Panel configuration
-        if not panel_config:
+        if not config:
             self.config = PanelConfiguration()
         else:
-            self.config = panel_config
+            self.config = config
         
         # list of all the signals to display
         self.sig_list = list_signals()
@@ -254,30 +254,43 @@ class Panel(QSplitter):
             self.update_data(pulses)
             self.update_plot(pulses)
 
-    def update_data(self, pulses: list=None):
+    def update_data(self, pulses: list=None, reload: bool=False):
+        """
+        Update the signals data.
+
+        Parameters
+        ----------
+        pulses : list, optional
+            WEST pulse list. The default is None.
+        reload : bool, optional
+            Reload data already downloaded? The default is False.
+        """
         # TODO : retrieve only missing data 
         # TODO : paralilize data retrieval
         if pulses:
             print(f'Updating data for pulses {pulses}')
             with wait_cursor():
                 for pulse in pulses:
+                    if not self.config.data[pulse]['PulseSetting']:
+                        ps = PulseSettings(pulse)
+                        self.config.data[pulse]['PulseSetting'] = ps
+                    
                     print(f'Updating data for pulse {pulse}')
                     for sig in self.config.selected_signals:
-                        print(f'Retrieve {sig} for #{pulse}...')
-
-                        # TODO: get pulse setting if not existing
-                        if sig.startswith('rts:'):                        
-                            ps = PulseSettings(pulse)
-                            wf = get_waveform(sig, ps.waveforms)
-                            self.config.data[pulse]['PulseSetting'] = ps
-                            # remove 40 seconds to match pulses
-                            self.config.data[pulse][sig]['times'] = wf.times - 40
-                            self.config.data[pulse][sig]['values'] = wf.values
-                        else:                       
-                            signame = sig.split(':')[0]
-                            _y, _t = get_sig(pulse, signals[signame]) 
-                            self.config.data[pulse][sig]['times'] = _t
-                            self.config.data[pulse][sig]['values'] = _y
+                        if self.config.data[pulse][sig]:
+                            print('{sig} for #{pulse} already downloaded. Skipping...')
+                        else:
+                            print(f'Retrieve {sig} for #{pulse}...')
+                            if sig.startswith('rts:'):
+                                wf = get_waveform(sig, self.config.data[pulse]['PulseSetting'].waveforms)
+                                # remove 40 seconds to match pulses
+                                self.config.data[pulse][sig]['times'] = wf.times - 40
+                                self.config.data[pulse][sig]['values'] = wf.values
+                            else:                       
+                                signame = sig.split(':')[0]
+                                _y, _t = get_sig(pulse, signals[signame]) 
+                                self.config.data[pulse][sig]['times'] = _t
+                                self.config.data[pulse][sig]['values'] = _y
                             
 
     def update_plot(self, pulses: list=None):
@@ -442,8 +455,8 @@ class ControlRoom(QMainWindow):
         parent : TYPE, optional
             DESCRIPTION. The default is None.
 
-        config : ControlRoolConfiguration, optional
-            ControlRoom configuration. The default is None (default config).
+        config : dict, optional
+            ControlRoom configuration. The default is None (->default config).
 
         Returns
         -------
@@ -470,7 +483,7 @@ class ControlRoom(QMainWindow):
         self.resize(MINIMUM_WIDTH, .9*rec.height())
 
         # Menu Bar
-        self.menu_bar()
+        self.ui_menu_bar()
 
         # create pulse number edit bar
         self.ui_pulses()
@@ -492,20 +505,37 @@ class ControlRoom(QMainWindow):
         self.qt_central.setLayout(self.qt_central_layout)
         self.setCentralWidget(self.qt_central)
                
-        # setup UI from Configuration
+        # setup UI from configuration if passed, or default config otherwise
         if config:
             self.config = config
         else:
             self.config = self.default_configuration()
-            
-        for tab in self.config['tabs']:
-            self.ui_add_tab(panels=tab['panels'], label=tab['label'])
-            
+
+        # setup the GUI (pulse list, tabs and panels and selected signals)
+        self.ui_setup_from_config()
+        
+    def ui_setup_from_config(self, clear=True):
+        """
+        Setup the GUI according to the configuration.
+        
+        Parameters
+        ----------
+        clear: bool, optional
+            Clear all the tab of the application before creating new. Default is True.
+            if False, it will append the tabs to the existing ones.
+        """        
+        # fill the edit text line with the configuration pulses
         self.qt_pulse_line_edit.setText(self.pulses_str())
         
+        # eventually clear all the tabs
+        if clear:
+            self.qt_tabs.clear()
         
-
-
+        # create the tab and panels
+        for tab in self.config['tabs']:
+            self.ui_add_tab(panel_configs=tab['panel_configs'], label=tab['label'])
+            
+    
     def pulses_str(self) -> str:
         '''
         Pulse numbers string, separated by commas
@@ -513,17 +543,23 @@ class ControlRoom(QMainWindow):
         Returns
         -------
         pulses_str: str
-            pulses number separated by commas
+            pulses number separated by commas. Return '' if no pulse.
 
         '''
-        return ', '.join([str(pulse) for pulse in self.config['pulses'] ])
-
+        if self.config['pulses']:
+            return ', '.join([str(pulse) for pulse in self.config['pulses'] ])
+        else:
+            return ''
+        
     def ui_pulses(self):
         '''
         Pulse(s) edit bar and plot button
         '''
         self.qt_pulse_line_edit = QLineEdit()
-        self.qt_pulse_line_edit.editingFinished.connect(self.update_pulses)
+        # Signals: update the pulse list if user edit it. If enter is pressed,
+        # update all the plot
+        self.qt_pulse_line_edit.editingFinished.connect(self.update_config_pulses)
+        self.qt_pulse_line_edit.returnPressed.connect(self.update)
         self.qt_plot_button = QPushButton(text='Plot')
         self.qt_plot_button.clicked.connect(self.update)
         
@@ -534,57 +570,57 @@ class ControlRoom(QMainWindow):
 
         self.qt_pulses.setLayout(self.qt_pulses_layout)
         
+    @property
+    def pulses(self) -> list:
+        """
+        Pulse list as entered in the edit box
 
-    def update_pulses(self) -> None:
-        '''
-        Update the list of pulses from the GUI edit bar
-        '''
-        # Get the text from the QLineEdit
+        Returns
+        -------
+        pulses: list
+            list of int or None
+
+        """
         text = self.qt_pulse_line_edit.text()
         # split ',' -> pulses number
-        self.config['pulses'] = [int(p) for p in text.split(',')]
-
-        print('Qt Line Edit Pulse list:', self.config['pulses'])
-
-    def update(self) -> None:
-        '''
-        Update pulse list and plots for each panels
-        '''
-        print('Updating data and plots... ')
-        # for all tabs
-        west_pulses = translate_pulse_numbers(self.config['pulses'])
+        if text:
+            return [int(p) for p in text.split(',')]
+        else:
+            return None
         
-        for tab_index in range(self.qt_tabs.count()):
-            tab = self.qt_tabs.widget(tab_index)
-            print(f"Updating tab {self.qt_tabs.tabText(tab_index)}")
-            for panel in tab.panels:
-                panel.update(pulses=west_pulses)
-
-
-    def ui_add_tab(self, panels: list=None, label: str=None) -> None:
+    def ui_add_tab(self, panel_configs: list=None, label: str=None) -> None:
         '''
         Add a new Tab
         
         Parameters
         ----------
-        panels: list. optional
-            list of Panels objects. Default: a single Panel()
+        panel_configs: list. optional
+            list of PanelConfiguration objects. Default: default configuration
 
         label: str. optional
             label of the tab. Default: 'Traces #' where # is the number of tabs.
         '''
+        if not panel_configs:
+            panel_configs = self.default_panel_configs()
         # tab configuration. Setup default values if arguments are None
-        tab_config = self.tab_config(label=label, panels=panels)
+        tab_config = self.tab_config(label=label, panel_configs=panel_configs)
+        # list of Panel object to be stored into the Qt Tab object
+        panels = []
         # Add the panels vertically in a Splitter and create Tab
         page = QSplitter(Qt.Vertical)
-        for panel in tab_config['panels']:
+        for panel_config in tab_config['panel_configs']:
+            panel = Panel(config=panel_config)
             page.addWidget(panel)
+            panels.append(panel)
         tab_index = self.qt_tabs.addTab(page, tab_config['label'])
         # store the panels config in the qt widget
-        self.qt_tabs.widget(tab_index).panels = tab_config['panels']
+        self.qt_tabs.widget(tab_index).panel_configs = tab_config['panel_configs']
+        self.qt_tabs.widget(tab_index).panels = panels
         # focus on the new created tab
         self.qt_tabs.setCurrentWidget(page)
-     
+        
+        # update the configuration
+        self.update_config()
 
       
 
@@ -599,8 +635,8 @@ class ControlRoom(QMainWindow):
         if ok:
             self.qt_tabs.setTabText(current_tab_index, new_label)
         
-        # TODO: update the configuration
-
+        # update the configuration
+        self.update_config()
         
     def ui_close_current_tab(self):
         '''
@@ -630,19 +666,19 @@ class ControlRoom(QMainWindow):
                 widget.deleteLater()
                 
             # removes the tab of the QTabWidget
-            self.qt_tabs.ui_removeTab(index)    
+            self.qt_tabs.removeTab(index)    
         else:
             pass    
 
-        # TODO: update the configuration
-
+        # update the configuration
+        self.update_config()
 
     @Slot(int)
     def qtabwidget_currentchanged(self, index):
         print(f"The new index of the current page: {index}")
        
            
-    def closeEvent(self, event):
+    def ui_exit(self, event):
         """Generate 'question' dialog on clicking 'X' button in title bar.
 
         Reimplement the closeEvent() event handler to include a 'Question'
@@ -654,23 +690,40 @@ class ControlRoom(QMainWindow):
             QMessageBox.Yes | QMessageBox.No)
 
         if reply == QMessageBox.Yes:
-            qApp.quit()
+            QtCore.QCoreApplication.quit()
         else:
+            # do nothing
             pass    
  
         
-    def menu_bar(self):
+    def ui_menu_bar(self):
         """ Menu bar """
         self.menuBar = self.menuBar()
 
         # file menu
         menu_file = self.menuBar.addMenu('&File')
+        
+        action_open = QAction('&Open', self)
+        action_open.triggered.connect(self.ui_open_configuration)
+        menu_file.addAction(action_open)
+        
+        action_save = QAction('&Save', self)
+        action_save.triggered.connect(self.ui_save_configuration)
+        menu_file.addAction(action_save)
+        
+        action_save_as = QAction('Save &As', self)
+        action_save_as.triggered.connect(self.ui_save_configuration_as)
+        menu_file.addAction(action_save_as)
+        
+        menu_file.addSeparator()
+        
         action_file_exit = QAction('&Exit', self)
         action_file_exit.setStatusTip('Exit')
         action_file_exit.setShortcut('Ctrl+Q')
-        action_file_exit.triggered.connect(self.closeEvent)
+        action_file_exit.triggered.connect(self.ui_exit)
         menu_file.addAction(action_file_exit)
         
+                
         # Tabs
         menu_tabs = self.menuBar.addMenu('&Tabs')
         action_add_tab = QAction('&Add Tab', self)
@@ -696,14 +749,12 @@ class ControlRoom(QMainWindow):
         menu_panels.addAction(action_remove_panel)        
         
     def add_panel(self, tab_index=None):
-        print('Before adding a panel:', self.config.panels)
-        self.config.panels.append(Panel())
-        print('After adding a panel:', self.config.panels)
-
+        pass
+    
     def remove_panel(self, panel_index: int, tab_index=None):
         pass
 
-    def tab_config(self, label: str=None, panels: list=None, layout=None) -> dict:
+    def tab_config(self, label: str=None, panel_configs: list=None, layout=None) -> dict:
         """
         Tab configuration
 
@@ -711,8 +762,8 @@ class ControlRoom(QMainWindow):
         ----------
         label : str, optional
             Tab label. The default is None.
-        panels : list, optional
-            list of Panel(). The default is None.
+        panel_configs : list, optional
+            list of PanelConfiguration(). The default is None.
         layout : TYPE, optional
             panel layout. The default is None.
 
@@ -727,32 +778,30 @@ class ControlRoom(QMainWindow):
             next_tab_index = self.qt_tabs.count() + 1
             label = "Traces #%d" % next_tab_index
         # default list of Panels
-        if not panels:
-            panels = self.default_panels()
+        if not panel_configs:
+            panel_configs = self.default_panel_configs()
             
-        return {'label': label, 'panels': panels, 'layout': layout}
+        return {'label': label, 'panel_configs': panel_configs, 'layout': layout}
     
-    def default_panels(self) -> list:
+    def default_panel_configs(self) -> list:
         """
-        Default list of Panel
+        Default list of PanelConfiguration objets
 
         Returns
         -------
         panels: list: 
-            list of Panel()
+            list of PanelConfiguration()
 
         """
         panel1_config = PanelConfiguration()
         panel1_config.default_signal_type = 'PCS waveforms'
         panel1_config.selected_signals = ['rts:WEST_PCS/Actuators/Heating/LHCD/power/1/waveform.ref']
-        panel1 = Panel(panel_config=panel1_config)
         
         panel2_config = PanelConfiguration()
         panel2_config.default_signal_type = 'signals'
         panel2_config.selected_signals = ['Ip: Plasma current']
-        panel2 = Panel(panel_config=panel2_config)     
-        
-        return [panel1, panel2]
+       
+        return [panel1_config, panel2_config]
     
     def default_configuration(self) -> dict:
         """
@@ -767,41 +816,154 @@ class ControlRoom(QMainWindow):
         default_config = {
         'tabs': [self.tab_config()],
         'pulses': [55799],
+        'config_file': None,
         }
         
         return default_config
-     
+             
+    @property
+    def tab_configs(self) -> list:
+        """
+        Current tab configurations
+
+        Returns
+        -------
+        tab_configs: list
+            list of dict.
+
+        """
+        tab_configs = []
+        for tab_index in range(self.qt_tabs.count()):
+            tab = self.qt_tabs.widget(tab_index)
+            tab_config = self.tab_config(label=self.qt_tabs.tabText(tab_index), 
+                                         panel_configs=tab.panel_configs)
+            tab_configs.append(tab_config)
+        return tab_configs
+    
+    def update_config(self):
+        """
+        Update the internal configuration from all the elements of the UI
+
+        Returns
+        -------
+        None.
+
+        """
+        # update pulse list config
+        self.update_config_pulses()
+        # update 
+        self.config['tabs'] = self.tab_configs
         
-    # def generate_central_widget(self):
-    #     """
-    #     Define the central widget, which contain the main GUI of the app,
-    #     mostly the various tools.
-    #     """
-    #     # Define the various collabsible panels (leave "child=" avoid Qt bug)
-    #     self.panel_rappels = QCollapsibleToolbox(child=EiCReminderWidget(), title='Cahier de liaison des EiC / EiC\'s Notebook')
-    #     self.panel_pre_pulse = QCollapsibleToolbox(child=PrePulseAnalysisWidget(), title='Pre-pulse Analysis')
-    #     self.panel_pulse_display = QCollapsibleToolbox(child=PrePulseDisplayWidget(), title='Pre-pulse Display')
-    #     self.panel_post_pulse = QCollapsibleToolbox(child=PostPulseAnalysisWidget(), title='Post-pulse Analysis')
-    #     self.panel_log = QCollapsibleToolbox(child=QPlainTextEditLogger(), title='Logs')
-    #     self.panel_console = QCollapsibleToolbox(child=ConsoleWidget(), title='Python Console')
+        print('Update configuration:', self.config)
 
-    #     # stacking the collapsible panels vertically
-    #     vbox = QVBoxLayout()
-    #     vbox.addWidget(self.panel_rappels)
-    #     vbox.addWidget(self.panel_pre_pulse)
-    #     vbox.addWidget(self.panel_pulse_display)
-    #     vbox.addWidget(self.panel_post_pulse)
-    #     vbox.addWidget(self.panel_log)
-    #     vbox.addWidget(self.panel_console)
+    def update_config_pulses(self) -> None:
+        '''
+        Update the list of pulses from the GUI edit bar
+        '''
+        self.config['pulses'] = self.pulses
+        
+        print('Qt Line Edit Pulse list:', self.config['pulses'])
 
-    #     # making the whole panels scrollable
-    #     # The scrollbar should be set for a widget, here a dummy one
-    #     collaps = QWidget()
-    #     collaps.setLayout(vbox)
-    #     scroll = QScrollArea(self)
-    #     scroll.setWidget(collaps)
-    #     scroll.setWidgetResizable(True)
-    #     self.central_widget = scroll
+    def update(self) -> None:
+        '''
+        Update pulse list and plots for each panels
+        '''
+        print('Updating data and plots... ')
+        # be sure to get the latest pulses
+        self.update_config_pulses()
+        # for all tabs
+        west_pulses = translate_pulse_numbers(self.config['pulses'])
+        
+        for tab_index in range(self.qt_tabs.count()):
+            tab = self.qt_tabs.widget(tab_index)
+            print(f"Updating tab {self.qt_tabs.tabText(tab_index)}")
+            # for all Panel() object stored into the tab
+            for panel in tab.panels:
+                panel.update(pulses=west_pulses)
+
+
+    def export_config(self, fname: str=None):
+        """
+        Export the current configuration into a file
+
+        Parameters
+        ----------
+        fname : str, optional
+            Filename. The default is None (autosave).
+
+        Returns
+        -------
+        None.
+
+        """
+        # TODO : serialize into JSON instead of pickle? 
+        # Some objects like PanelConfiguration are not JSON-serializable... 
+        # import json        
+        # if not fname:
+        #     fname = 'autosave.json'        
+        # with open(fname, 'w') as outfile:
+        #     json.dump(self.config, outfile)
+       
+        if not fname:
+            fname = '.autosave.config'
+
+        with open(fname, 'wb') as fhandler:
+            pickle.dump(self.config, fhandler)
+
+    def load_config(self, file_name) -> dict:
+        """
+        Load a Control Room configuration file (.config)
+
+        Parameters
+        ----------
+        file_name : str
+            filename (.config)
+
+        Returns
+        -------
+        config: dict
+            Control Room configuration dictionnary
+
+        """
+        # TODO: test validity of the file??
+        with open(file_name, 'rb') as fhandler:
+            config = pickle.load(fhandler)
+        return config
+
+    def ui_open_configuration(self):
+        """
+        Open a File Dialog to open a Control Room configuration (.config)
+        """
+        file_name, selected_filter = QFileDialog.getOpenFileName(self,
+                                               "Open Configuration File", 
+                                               "", "Config file (*.config)")
+        # load the new configuration and setup the GUI accordingly
+        self.config['config_file'] = file_name
+        self.config = self.load_config(file_name)
+        self.ui_setup_from_config()
+       
+    
+    def ui_save_configuration(self):
+        """
+        Save the current Control Room configuration. 
+        
+        If not saved before, open a File Dialog to save a Control Room configuration (.config)
+        """
+        if not self.config['config_file']:
+            self.ui_save_configuration_as()
+        else:
+            self.export_config(self.config['config_file'])
+            
+    
+    def ui_save_configuration_as(self):
+        """
+        Open a File Dialog to save a Control Room configuration (.config)
+        """
+        file_name, selected_filter = QFileDialog.getSaveFileName(self,
+                  "Save Configuration File", "", filter="Config file (*.config)")
+        print(f'Saving configuration to {file_name}...')
+        self.config['config_file'] = file_name
+        self.export_config(self.config['config_file'])
 
 
 # TODO : Dark Theme
