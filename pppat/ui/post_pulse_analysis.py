@@ -8,7 +8,7 @@ from qtpy.QtWidgets import (QWidget, QGridLayout, QRadioButton, QGroupBox,
                             QErrorMessage, QTableView, QAbstractItemView,
                             QTableWidget, QTableWidgetItem, QHeaderView,
                             QButtonGroup)
-from qtpy.QtGui import QIntValidator, QFont
+from qtpy.QtGui import QIntValidator, QFont, QIcon
 from qtpy.QtCore import Slot, Qt
 import os
 import logging
@@ -84,6 +84,7 @@ class PostPulseAnalysisWidget(QWidget):
 
         self.pulse_number_label = QLabel()
         self.button_check_all = QPushButton('Post pulse analysis - all')
+        self.button_check_all.setIcon(QIcon('resources/icons/ui/checkbox-multiple-line_.png'))
 
         layout0 = QVBoxLayout()
         layout1 = QFormLayout()

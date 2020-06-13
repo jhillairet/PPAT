@@ -7,7 +7,7 @@ from qtpy.QtWidgets import (QWidget, QGridLayout, QRadioButton, QGroupBox,
                             QFormLayout, QLineEdit, QFileDialog, QComboBox,
                             QErrorMessage, QTableView, QAbstractItemView,
                             QTableWidget, QTableWidgetItem, QHeaderView)
-from qtpy.QtGui import QIntValidator, QFont
+from qtpy.QtGui import QIntValidator, QFont, QIcon
 from qtpy.QtCore import Slot, Qt
 import os
 import logging
@@ -51,6 +51,7 @@ class PrePulseAnalysisWidget(QWidget):
         self.radio_file = QRadioButton('File')
         #comboBox_file = QComboBox(None)
         self.push_browse = QPushButton('Browse')
+        self.push_browse.setIcon(QIcon('resources/icons/ui/folder-open-fill_.png'))
 
         self.edit_shot = QLineEdit()
         self.edit_shot.setPlaceholderText('Shot Number')
@@ -58,6 +59,7 @@ class PrePulseAnalysisWidget(QWidget):
         self.edit_shot.setValidator(QIntValidator())  # only integer for shot#
 
         self.push_load = QPushButton('Load Pulse Settings')
+        self.push_load.setIcon(QIcon('resources/icons/ui/file-download-line_.png'))
 
         layout = QGridLayout()
         layout.addWidget(self.radio_sl, 0, 0)
@@ -84,6 +86,7 @@ class PrePulseAnalysisWidget(QWidget):
         self.pulse_properties = QLabel()
         self.pulse_gas_valves = QLabel()
         self.push_check = QPushButton('Check Pulse Settings')
+        self.push_check.setIcon(QIcon('resources/icons/ui/checkbox-multiple-line_.png'))
         self.push_check.setEnabled(False) # disable per default
 
         layout0 = QVBoxLayout()
