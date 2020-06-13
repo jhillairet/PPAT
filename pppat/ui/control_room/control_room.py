@@ -537,13 +537,30 @@ class ControlRoom(QMainWindow):
         for tab in self.config['tabs']:
             self.ui_add_tab(panel_configs=tab['panel_configs'], label=tab['label'])
 
-        # synchronize the x-axis between panels
+        # synchronize x-axis between panels
+        self.synchronize_panels()
+
+    def synchronize_panels(self, sharex: bool=True, sharey: bool=False):
+        """
+        Synchronize the x-axis between panels
+        
+        Parameters
+        ----------
+        sharex: bool, optional
+            Link x-axis between panels. Default is True
+        
+        sharey: bool, optional
+            Link y-axis between panels. Default is False.
+        """
         for tab_index in range(self.qt_tabs.count()):
             tab = self.qt_tabs.widget(tab_index)
             panels = tab.panels
             if panels:
                 for panel in panels[1:]:
-                    panel.graphWidget.setXLink(panels[0].graphWidget)
+                    if sharex:
+                        panel.graphWidget.setXLink(panels[0].graphWidget)
+                    if sharey:
+                        panel.graphWidget.setYLink(panels[0].graphWidget)
                 
     
     def pulses_str(self) -> str:
@@ -751,19 +768,82 @@ class ControlRoom(QMainWindow):
         # Panels
         menu_panels = self.menuBar.addMenu('&Panels')
         action_add_panel = QAction('&Add Panel', self)
-        action_add_panel.triggered.connect(self.add_panel)
+        action_add_panel.triggered.connect(self.ui_add_panel)
         menu_panels.addAction(action_add_panel)
         
         action_remove_panel = QAction('&Remove Panel', self)
-        action_remove_panel.triggered.connect(self.remove_panel)
+        action_remove_panel.triggered.connect(self.ui_remove_panel)
         menu_panels.addAction(action_remove_panel)        
         
-    def add_panel(self, tab_index=None):
-        pass
-    
-    def remove_panel(self, panel_index: int, tab_index=None):
-        pass
+    def ui_add_panel(self, tab_index: int=None):
+        """
+        Add a panel to a specified tab 
 
+        Parameters
+        ----------
+        tab_index : int, optional
+            tab index. The default is None (->current tab).
+
+        Returns
+        -------
+        None.
+
+        """
+        new_panel = Panel()
+
+        if not tab_index:           
+            tab_index = self.qt_tabs.currentIndex()
+            
+        # get the tab page (which is a QSplitter)
+        # and add the new Panel() widget to it
+        page = self.qt_tabs.widget(tab_index)
+        page.addWidget(new_panel)
+        page.panels.append(new_panel)
+        
+        # resynchornize panels
+        self.synchronize_panels()
+
+    
+    def ui_remove_panel(self, panel_index: int=None, tab_index=None):
+        """
+        Remove a panel from a specified tab
+
+        Parameters
+        ----------
+        panel_index : int, optional
+            panel index to remove. Default is -1 (->remove the last one)
+
+        tab_index : int, optional
+            tab index. The default is None (->current tab).
+
+        Returns
+        -------
+        None.
+
+        """
+        if not tab_index:           
+            tab_index = self.qt_tabs.currentIndex()
+            
+        # get the tab page (which is a QSplitter)
+        # and remove the new Panel() widget to it.
+        #  Many things in Qt cannot be "traditionally" removed. Instead call hide() on it and destruct it. From QSplitter documentation:
+        # When you hide() a child its space will be distributed among the other children. It will be reinstated when you show() it again.
+        page = self.qt_tabs.widget(tab_index)
+        if not panel_index:
+            # last element
+            panel_index = page.count() - 1
+            removed_panel = page.panels.pop(-1)
+        panel_to_remove = page.widget(panel_index)
+        panel_to_remove.hide()
+        removed_panel = page.panels.pop(-panel_index)
+        # TODO bug with pop()
+        
+        
+        
+        
+        # resynchornize panels
+        self.synchronize_panels()
+        
     def tab_config(self, label: str=None, panel_configs: list=None, layout=None) -> dict:
         """
         Tab configuration
