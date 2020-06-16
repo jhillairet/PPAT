@@ -16,7 +16,7 @@ from qtpy.QtWidgets import (QMainWindow, QApplication, QWidget, QPushButton,
                             QHBoxLayout, QVBoxLayout, QAction, qApp, QLabel,
                             QScrollArea, QTextBrowser, QFrame, QTextEdit, QLineEdit,
                             QFileDialog, QInputDialog, QStatusBar, QProgressBar, 
-                            QPlainTextEdit, QTableWidgetItem, QToolButton,
+                            QPlainTextEdit, QTableWidgetItem, QToolButton, 
                             QMessageBox, QComboBox, QCompleter, QListWidget,
                             QSplitter, QStyleFactory, QTabWidget, QTabBar)
 from qtpy.QtGui import QIcon, QCursor, QDesktopServices
@@ -214,7 +214,9 @@ class PanelConfiguration:
         # color-cycle wrt pulses (True) or signal type (False)
         self.color_wrt_pulses = True
         # show the legend in panel plots?
-        self.display_legend = True
+        self.display_legend = False
+        # show the cross-hair?
+        self.display_crosshair = False
 
 class Panel(QSplitter):
     def __init__(self, parent=None, config: PanelConfiguration=None):
@@ -225,12 +227,10 @@ class Panel(QSplitter):
 
         """
         QSplitter.__init__(self, Qt.Horizontal, parent=parent)
-
+        self.parent = parent
+        
         # Panel configuration
-        if not config:
-            self.config = PanelConfiguration()
-        else:
-            self.config = config
+        self.config = config or PanelConfiguration()
 
         # list of all the signals to display
         self.sig_list = list_signals()
@@ -311,6 +311,15 @@ class Panel(QSplitter):
             # clear graph
             self.graphWidget.clear()
 
+            if getattr(self.config, 'display_crosshair', False):
+                # if crosshair
+                self.p.addItem(self.vLine, ignoreBounds=True)
+                self.p.addItem(self.hLine, ignoreBounds=True)
+                # update vertical lines on all plots
+                self.p.scene().sigMouseMoved.connect(self.parent.ui_plot_mouse_moved_panels)
+                # update horizontal line on current plot
+                self.p.scene().sigMouseMoved.connect(self.ui_plot_mouse_moved)
+                
             for idx_pulse, pulse in enumerate(pulses):
                 for idx_sig, sig in enumerate(self.config.selected_signals):
                                       
@@ -359,11 +368,29 @@ class Panel(QSplitter):
     def ui_create_right_side(self):
         'GUI: Create right side (plot window)'
         self.graphWidget = pg.PlotWidget()
+        self.p = self.graphWidget.getPlotItem()
+        self.vb = self.p.vb
+        # cross-hair display
+        self.vLine = pg.InfiniteLine(angle=90, movable=False)
+        self.hLine = pg.InfiniteLine(angle=0, movable=False)
+       
         self.panel_right = QWidget()
         self.panel_right_layout = QVBoxLayout()
         self.panel_right_layout.addWidget(self.graphWidget)
         self.panel_right.setLayout(self.panel_right_layout)
 
+    def ui_plot_mouse_moved(self, event):
+        """
+        Slot for mouve moved over a PlotWidget() of a Panel
+        """
+        # pos = (event.x(), event.y())
+        if self.p.sceneBoundingRect().contains(event):
+            mousePoint = self.vb.mapSceneToView(event)
+            # index = int(mousePoint.x())
+            # if index > 0 and index < len(data1):
+            #     label.setText("<span style='font-size: 12pt'>x=%0.1f,   <span style='color: red'>y1=%0.1f</span>,   <span style='color: green'>y2=%0.1f</span>" % (mousePoint.x(), data1[index], data2[index]))
+            # self.vLine.setPos(mousePoint.x())
+            self.hLine.setPos(mousePoint.y())
 
     def ui_create_left_side(self):
         'GUI; Create left side (search bar and list of signals)'
@@ -526,10 +553,50 @@ class Panel(QSplitter):
         self.ui_update_selected_signals()
 
 
+class DataViewer(QMainWindow):
+    def __init__(self, parent=None):
+        super(DataViewer, self).__init__(parent)
+        
+        self.qt_tree = QtWidgets.QTreeView()
+        
+        self.qt_tree.setModel(ControlRoomDataModel())
+        self.setWindowTitle('Control Room Data Viewer [WEST]')
+        
+        self.central_widget_layout = QVBoxLayout()
+        self.central_widget_layout.addWidget(self.qt_tree)
+        self.central_widget = QWidget()
+        self.central_widget.setLayout(self.central_widget_layout)
+        self.setCentralWidget(self.central_widget)
+
+    def columnCount(self):
+        pass
+    
+    def rowCount(self):
+        pass
+    def flags(self):
+        pass
+    def data(self):
+        pass
+    def headerData(self):
+        pass
+
 class ControlRoom(QMainWindow):
     """
     Central GUI class which also serves as main Controller
     """
+    def ui_plot_mouse_moved_panels(self, event):
+        """
+        Slot for mouve moved over a All PlotWidget() of each Panel for all Tabs
+        """
+        # TODO : pass the points values to the statusbar
+        
+        # update the vertical lines on all plots (time)
+        for tab in self.tabs:
+            for panel in tab.panels:
+                if panel.p.sceneBoundingRect().contains(event):
+                    mousePoint = panel.vb.mapSceneToView(event)
+                    panel.vLine.setPos(mousePoint.x())
+                    # panel.hLine.setPos(mousePoint.y())
 
 
     def __init__(self, parent=None, config=None):
@@ -590,8 +657,10 @@ class ControlRoom(QMainWindow):
         self.qt_progress_bar.setAlignment(QtCore.Qt.AlignRight)
         self.qt_progress_bar.setMaximumSize(180,19)
         self.qt_status_bar.addWidget(self.qt_progress_bar)
-
-
+        
+        # Data Viewer (separate windows)
+        self.qt_data_viewer = DataViewer()
+        
         # Central Widget
         self.qt_central = QWidget()
         self.qt_central_layout = QVBoxLayout()
@@ -601,10 +670,7 @@ class ControlRoom(QMainWindow):
         self.setCentralWidget(self.qt_central)
 
         # setup UI from configuration if passed, or default config otherwise
-        if config:
-            self.config = config
-        else:
-            self.config = self.default_configuration()
+        self.config = config or self.default_configuration()
 
         # setup the GUI (pulse list, tabs and panels and selected signals)
         self.ui_setup_from_config()
@@ -704,8 +770,8 @@ class ControlRoom(QMainWindow):
         label: str. optional
             label of the tab. Default: 'Traces #' where # is the number of tabs.
         '''
-        if not panel_configs:
-            panel_configs = self.panel_config_default()
+        # if not passed uses default panel configuration
+        panel_configs = panel_configs or self.panel_config_default()
         # tab configuration. Setup default values if arguments are None
         tab_config = self.tab_config(label=label, panel_configs=panel_configs)
         # list of Panel object to be stored into the Qt Tab object
@@ -713,7 +779,7 @@ class ControlRoom(QMainWindow):
         # Add the panels vertically in a Splitter and create Tab
         page = QSplitter(Qt.Vertical)
         for panel_config in tab_config['panel_configs']:
-            panel = Panel(config=panel_config)
+            panel = Panel(config=panel_config, parent=self)
             page.addWidget(panel)
             panels.append(panel)
         tab_index = self.qt_tabs.addTab(page, tab_config['label'])
@@ -871,13 +937,49 @@ class ControlRoom(QMainWindow):
         self.action_switch_plot_style.triggered.connect(self.ui_switch_plot_color_cycle_style)
         menu_config.addAction(self.action_switch_plot_style)
  
-        self.action_legends = QAction('Show/Hide &Legends', self)
+        self.action_legends = QAction('&Legends', self)
         self.action_legends.setCheckable(True)
         self.action_legends.setChecked(True)
         self.action_legends.triggered.connect(self.ui_legends)
         menu_config.addAction(self.action_legends)
+
+        self.action_crosshair = QAction('Crosshair', self)
+        self.action_crosshair.setCheckable(True)
+        self.action_crosshair.setChecked(False)
+        self.action_crosshair.triggered.connect(self.ui_crosshair)
+        menu_config.addAction(self.action_crosshair)
         
+        menu_config.addSeparator()
+        
+        self.action_view_data = QAction('Data Viewer', self)
+        self.action_view_data.setCheckable(True)
+        self.action_view_data.setChecked(False)
+        self.action_view_data.triggered.connect(self.ui_data_viewer)
+        menu_config.addAction(self.action_view_data)
  
+    def ui_crosshair(self):
+        """
+        Toggle crosshair in panel plots
+        """
+        state = self.action_crosshair.isChecked()
+        # copy this value to all panels
+        for tab in self.tabs:
+            for panel in tab.panels:
+                panel.config.display_crosshair = state
+        # update plots
+        self.update()        
+ 
+    def ui_data_viewer(self):
+        """
+        Open the data viewer window
+        """
+        state = self.action_view_data.isChecked()
+        if state:
+            self.qt_data_viewer.show()
+        else:
+            self.qt_data_viewer.hide()
+            
+    
     def ui_switch_plot_color_cycle_style(self):
         """
         Switch the plot color cycle style to either:
@@ -889,6 +991,8 @@ class ControlRoom(QMainWindow):
         for tab in self.tabs:
             for panel in tab.panels:
                 panel.config.color_wrt_pulses = state
+        # update plots
+        self.update()
 
     def ui_legends(self):
         """
@@ -933,10 +1037,9 @@ class ControlRoom(QMainWindow):
         None.
 
         """
-        new_panel = Panel()
+        new_panel = Panel(parent=self)
 
-        if not tab_index:
-            tab_index = self.qt_tabs.currentIndex()
+        tab_index = tab_index or self.qt_tabs.currentIndex()
 
         # get the tab page (which is a QSplitter)
         # and add the new Panel() widget to it
@@ -965,8 +1068,7 @@ class ControlRoom(QMainWindow):
         None.
 
         """
-        if not tab_index:
-            tab_index = self.qt_tabs.currentIndex()
+        tab_index = tab_index or self.qt_tabs.currentIndex()
 
         # get the tab page (which is a QSplitter)
         # and remove the new Panel() widget to it.
@@ -1334,6 +1436,12 @@ class ControlRoom(QMainWindow):
         self.qt_progress_bar.reset()
 
 
+class ControlRoomDataModel(QtCore.QAbstractItemModel):
+    """
+    Control Room Data Model
+    
+    Store the data retrieved and present them to the GUI.
+    """
 
 # TODO : Dark Theme
 # https://stackoverflow.com/questions/48256772/dark-theme-for-qt-widgets
