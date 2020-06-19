@@ -21,6 +21,21 @@ logger = logging.getLogger(__name__)
 AUTORISATION_LHCD = 'EXP=T=S;Autorisation;ChocLHCD'  # 1 or 0
 AUTORISATION_ICRH = 'EXP=T=S;Autorisation;ChocICRH'  # 1 or 0
 
+from collections import defaultdict
+
+
+def nested_dict():
+    '''
+    Nested dictionnary of arbitrary number of levels
+    
+    Example
+    -------
+    >>> x = nested_dict()
+    >>> x['a']['b']['c']['d'] = 5
+    '''
+    return defaultdict(nested_dict)
+
+
 @contextmanager
 def wait_cursor():
     """
