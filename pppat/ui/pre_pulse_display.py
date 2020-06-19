@@ -7,7 +7,7 @@ from qtpy.QtWidgets import (QWidget, QGridLayout, QRadioButton, QGroupBox,
                             QFormLayout, QLineEdit, QFileDialog, QComboBox,
                             QErrorMessage, QTableView, QAbstractItemView,
                             QTableWidget, QTableWidgetItem, QHeaderView)
-from qtpy.QtGui import QIntValidator, QFont
+from qtpy.QtGui import QIntValidator, QFont, QIcon
 from qtpy.QtCore import Slot
 
 import logging
@@ -26,7 +26,7 @@ class PrePulseDisplayWidget(QWidget):
 
         self.push_bigpicture = QPushButton("Big Picture")
         self.push_bigpicture.setEnabled(False) # disable per default
-        
+        self.push_bigpicture.setIcon(QIcon('resources/icons/ui/line-chart-fill_.png'))
         layout = QVBoxLayout()
         layout.addWidget(self.push_bigpicture)
         
