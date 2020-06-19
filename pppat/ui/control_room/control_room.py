@@ -550,7 +550,7 @@ class ControlRoom(QMainWindow):
     """
     Central GUI class which also serves as main Controller
     """
-    def __init__(self, parent=None, config=None):
+    def __init__(self, parent=None, config_file: str=None):
         """
         Control Room Application
 
@@ -559,8 +559,8 @@ class ControlRoom(QMainWindow):
         parent : TYPE, optional
             DESCRIPTION. The default is None.
 
-        config : dict, optional
-            ControlRoom configuration. The default is None (->default config).
+        config_file : str, optional
+            ControlRoom configuration file. The default is None (->default config).
 
         Returns
         -------
@@ -622,7 +622,10 @@ class ControlRoom(QMainWindow):
         self.setCentralWidget(self.qt_central)
 
         # setup UI from configuration if passed, or default config otherwise
-        self.config = config or self.default_configuration()
+        if config_file:
+            self.config = self.load_config(config_file)
+        else:
+            self.config =  self.default_configuration()
 
         # setup the GUI (pulse list, tabs and panels and selected signals)
         self.ui_setup_from_config()
@@ -1463,8 +1466,7 @@ class ControlRoomDataModel(QtGui.QStandardItemModel):
     def update_data(self, pulse, signal):
         print(f'Updating data for pulses {pulse}')
         if not self._data[pulse]['PulseSetting']:
-            ps = PulseSettings(pulse)
-            self._data[pulse]['PulseSetting'] = ps
+            self._data[pulse]['PulseSetting'] = PulseSettings(pulse)
             
         if self._data[pulse][signal]:
             print(f'{signal} for #{pulse} already downloaded. Skipping...')

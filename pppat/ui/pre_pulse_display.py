@@ -24,11 +24,11 @@ class PrePulseDisplayWidget(QWidget):
     def __init__(self, parent=None):
         super(PrePulseDisplayWidget, self).__init__(parent=parent)
 
-        self.push_bigpicture = QPushButton("Big Picture")
-        self.push_bigpicture.setEnabled(False) # disable per default
-        self.push_bigpicture.setIcon(QIcon('resources/icons/ui/line-chart-fill_.png'))
+        self.push_controlroom = QPushButton("Control Room")
+        self.push_controlroom.setEnabled(False) # disable per default
+        self.push_controlroom.setIcon(QIcon('resources/icons/ui/line-chart-fill_.png'))
         layout = QVBoxLayout()
-        layout.addWidget(self.push_bigpicture)
+        layout.addWidget(self.push_controlroom)
         
         self.setLayout(layout)
         
