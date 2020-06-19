@@ -28,31 +28,29 @@ class PulseSettings():
     namely DP.xml and SUP.xml. Each WEST pulse is defined following the 
     information contained in these two files.
     """
-    def __init__(self, pulse_nb: int):
+    def __init__(self, pulse_nb: int=None):
         """
         WEST Pulse Settings 
 
         Parameters
         ----------
-        pulse_nb : int
-            WEST pulse number.
+        pulse_nb : int, optional
+            WEST pulse number. Default is None.
 
         """
         logger.info('Init Pulse Setting')
         
-        self.pulse_nb = None  # pulse number
+        self.pulse_nb = pulse_nb  # pulse number
         self.files = None  # dictionnary containing 'dp' and 'sup' xml file paths
         self.waveforms = None  # list of nominal Waveform objects
         self.waveforms_dict = None  # dict of nominal waveforms indexed by waveform names
         
         # directly load the pulse settings if the pulse number is provided       
-        if pulse_nb == 0:
-            res = self.load_next_pulse_settings()
-        else:
-            res = self.load_from_pulse(pulse_nb)
-
-        if not res:
-            raise RuntimeError('Unable to retrieve pulse settings...')
+        if pulse_nb is not None:
+            if pulse_nb == 0:
+                res = self.load_next_pulse_settings()
+            elif pulse_nb > 50000:
+                res = self.load_from_pulse(pulse_nb)
 
     def load_from_file(self, pulse_settings_files: dict) -> bool:
         """
@@ -358,7 +356,6 @@ if __name__ == '__main__':
 #    ps = PulseSettings()
 ##    ps.load_from_file({'sup':'resources/pulse_setup_examples/52865/Sup.xml',
 ##                       'dp':'resources/pulse_setup_examples/52865/DP.xml'})
-#    ps.load_from_session_leader()
 #    54535 # V9
 #    54534 # V1 + V11
 #    54533 # V2
