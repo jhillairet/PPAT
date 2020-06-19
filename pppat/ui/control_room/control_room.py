@@ -260,52 +260,18 @@ class Panel(QSplitter):
     def signals(self, siglist):
         self._signals = siglist
 
-    def update(self, pulses: list=None):
-        if pulses:
-            pulses = translate_pulse_numbers(pulses)
-            self.update_data(pulses)
-            self.update_plot(pulses)
-
-    def update_data(self, pulses: list=None, reload: bool=False):
+    def update_plot(self, pulses: list=None):
         """
-        Update the signals data.
+        Update panel plot for the given list of pulses.
+        
+        The list of signals is stored in the panel configuration.
 
         Parameters
         ----------
         pulses : list, optional
             WEST pulse list. The default is None.
-        reload : bool, optional
-            Reload data already downloaded? The default is False.
+
         """
-        # TODO : retrieve only missing data
-        # TODO : paralilize data retrieval
-        if pulses:
-            print(f'Updating data for pulses {pulses}')
-            with wait_cursor():
-                for pulse in pulses:
-                    if not self.config.data[pulse]['PulseSetting']:
-                        ps = PulseSettings(pulse)
-                        self.config.data[pulse]['PulseSetting'] = ps
-
-                    print(f'Updating data for pulse {pulse}')
-                    for sig in self.config.selected_signals:
-                        if self.config.data[pulse][sig]:
-                            print(f'{sig} for #{pulse} already downloaded. Skipping...')
-                        else:
-                            print(f'Retrieve {sig} for #{pulse}...')
-                            if sig.startswith('rts:'):
-                                wf = get_waveform(sig, self.config.data[pulse]['PulseSetting'].waveforms)
-                                # remove 40 seconds to match pulses
-                                self.config.data[pulse][sig]['times'] = wf.times - 40
-                                self.config.data[pulse][sig]['values'] = wf.values
-                            else:
-                                signame = sig.split(':')[0]
-                                _y, _t = get_sig(pulse, signals[signame])
-                                self.config.data[pulse][sig]['times'] = _t
-                                self.config.data[pulse][sig]['values'] = _y
-
-
-    def update_plot(self, pulses: list=None):
         # For all pulses and selected signals, plot associated y(t)
         if pulses:
             # clear graph
@@ -329,21 +295,19 @@ class Panel(QSplitter):
                     # if False, vice-versa        
                     if getattr(self.config, 'color_wrt_pulses', True):
                         cur_pen = pg.mkPen(color=pg.intColor(idx_pulse), 
-                                           style=qt_line_styles[idx_sig])
+                                            style=qt_line_styles[idx_sig])
                     else:
                         cur_pen = pg.mkPen(color=pg.intColor(idx_sig), 
-                                           style=qt_line_styles[idx_pulse])
-                          
-                    data = self.config.data[pulse][sig]
-                    times = data['times']
-                    values = data['values']
+                                            style=qt_line_styles[idx_pulse])
+
+                    # retrieve data from the parent model
+                    values, times = self.parent.model.data( (pulse, sig), None)
                     if getattr(self.config, 'display_legend', True):
                         self.graphWidget.addLegend()  # addLegend() must be called BEFORE plot()
                     self.graphWidget.plot(times, values, 
                                           name=self.shorten_name(sig), 
                                           pen=cur_pen)
-
-
+        
     def shorten_name(self, sig_name: str) -> str:
         """
         Create a shorter while meaningfull signal name, for plot legends
@@ -473,6 +437,8 @@ class Panel(QSplitter):
 
         self.qt_signals_list.clear()
         self.qt_signals_list.addItems(self.qt_sig_list)
+        # color the selected signals
+        self.ui_update_selected_signals()
 
     def ui_item_context_menu_event(self, event):
         'GUI: signal list context menu'
@@ -584,21 +550,6 @@ class ControlRoom(QMainWindow):
     """
     Central GUI class which also serves as main Controller
     """
-    def ui_plot_mouse_moved_panels(self, event):
-        """
-        Slot for mouve moved over a All PlotWidget() of each Panel for all Tabs
-        """
-        # TODO : pass the points values to the statusbar
-        
-        # update the vertical lines on all plots (time)
-        for tab in self.tabs:
-            for panel in tab.panels:
-                if panel.p.sceneBoundingRect().contains(event):
-                    mousePoint = panel.vb.mapSceneToView(event)
-                    panel.vLine.setPos(mousePoint.x())
-                    # panel.hLine.setPos(mousePoint.y())
-
-
     def __init__(self, parent=None, config=None):
         """
         Control Room Application
@@ -623,7 +574,8 @@ class ControlRoom(QMainWindow):
         self.title = 'Control Room [WEST]'
         # self.iconName = 'icon.png'
 
-
+        self.model = ControlRoomDataModel()
+        
         # self.left =
         # self.top =
         # self.width =
@@ -675,7 +627,19 @@ class ControlRoom(QMainWindow):
         # setup the GUI (pulse list, tabs and panels and selected signals)
         self.ui_setup_from_config()
 
-       
+    def ui_plot_mouse_moved_panels(self, event):
+        """
+        Slot for mouve moved over a All PlotWidget() of each Panel for all Tabs
+        """
+        # TODO : pass the points values to the statusbar
+        
+        # update the vertical lines on all plots (time)
+        for tab in self.tabs:
+            for panel in tab.panels:
+                if panel.p.sceneBoundingRect().contains(event):
+                    mousePoint = panel.vb.mapSceneToView(event)
+                    panel.vLine.setPos(mousePoint.x())
+                    # panel.hLine.setPos(mousePoint.y())       
 
     def ui_synchronize_panels(self, sharex: bool=True, sharey: bool=False):
         """
@@ -939,7 +903,7 @@ class ControlRoom(QMainWindow):
  
         self.action_legends = QAction('&Legends', self)
         self.action_legends.setCheckable(True)
-        self.action_legends.setChecked(True)
+        self.action_legends.setChecked(False)
         self.action_legends.triggered.connect(self.ui_legends)
         menu_config.addAction(self.action_legends)
 
@@ -967,7 +931,7 @@ class ControlRoom(QMainWindow):
             for panel in tab.panels:
                 panel.config.display_crosshair = state
         # update plots
-        self.update()        
+        self.update_plots()        
  
     def ui_data_viewer(self):
         """
@@ -992,7 +956,7 @@ class ControlRoom(QMainWindow):
             for panel in tab.panels:
                 panel.config.color_wrt_pulses = state
         # update plots
-        self.update()
+        self.update_plots()
 
     def ui_legends(self):
         """
@@ -1419,29 +1383,105 @@ class ControlRoom(QMainWindow):
         Update pulse list and plots for each panels
         '''
         print('Updating data and plots... ')
+        
         # be sure to get the latest pulses
         self.update_config_pulses()
-        # progress status depends of total numbers of panels to update
-        panels_nb = sum([len(tab.panels) for tab in self.tabs])
-        counter = 0
-        # for all tabs and all panels        
         west_pulses = translate_pulse_numbers(self.config['pulses'])
+        
+        # determine the number of signal to update
+        plot_numbers = 0
         for tab in self.tabs:
-            # for all Panel() object stored into the tab
             for panel in tab.panels:
-                self.qt_progress_bar.setValue(counter/panels_nb*100)
-                panel.update(pulses=west_pulses)
-                counter += 1
+                for pulse in self.config['pulses']:
+                    for signal in panel.config.selected_signals:
+                        plot_numbers += 1
+        
+        # update data (if needed)
+        counter = 0
+        with wait_cursor():
+            for tab in self.tabs:
+                for panel in tab.panels:
+                    for pulse in self.config['pulses']:
+                        for signal in panel.config.selected_signals:
+                            print(f'Updating {signal} for {pulse}')
+                            self.model.update_data(pulse, signal)
+                            counter += 1
+                            self.qt_progress_bar.setValue(counter/plot_numbers*100)
+        
         # once done reset the progress bar
         self.qt_progress_bar.reset()
 
-
-class ControlRoomDataModel(QtCore.QAbstractItemModel):
+        # then update plots
+        self.update_plots()
+        
+    def update_plots(self):
+        """
+        Update all panel plots (for all pulses and selected signals)
+        """
+        for tab in self.tabs:
+            for panel in tab.panels:
+                panel.update_plot(self.config['pulses'])
+                        
+class ControlRoomDataModel(QtGui.QStandardItemModel):
     """
     Control Room Data Model
     
     Store the data retrieved and present them to the GUI.
     """
+    def __init__(self, *args, **kwargs):
+        super(ControlRoomDataModel, self).__init__(*args, **kwargs)
+        self._data = nested_dict()
+    
+    def data(self, index, role):
+        """
+        return y(t) for a signals at a given pulse. 
+    
+        Data are stored in this model and downloaded if not available. 
+
+        Parameters
+        ----------
+        index : tuple (pulse: int, signal: str)
+            WEST pulse number and signal name.
+        role:
+
+        Returns
+        -------
+        y: array
+            magnitude
+        t: array
+            time vector
+        """
+        pulse, signal = index
+        
+        # if the data do not exist yet, download it
+        if not self._data[pulse][signal]:
+            # self.update_data(pulse, signal)
+            return np.NaN, np.NaN
+        # 
+        return self._data[pulse][signal]['values'], self._data[pulse][signal]['times']
+
+    def update_data(self, pulse, signal):
+        print(f'Updating data for pulses {pulse}')
+        if not self._data[pulse]['PulseSetting']:
+            ps = PulseSettings(pulse)
+            self._data[pulse]['PulseSetting'] = ps
+            
+        if self._data[pulse][signal]:
+            print(f'{signal} for #{pulse} already downloaded. Skipping...')
+        else:
+            print(f'Retrieve {signal} for #{pulse}...')
+            if signal.startswith('rts:'):
+                wf = get_waveform(signal, self._data[pulse]['PulseSetting'].waveforms)
+                # remove 40 seconds to match pulses
+                self._data[pulse][signal]['times'] = wf.times - 40
+                self._data[pulse][signal]['values'] = wf.values
+            else:
+                signame = signal.split(':')[0]
+                _y, _t = get_sig(pulse, signals[signame])
+                self._data[pulse][signal]['times'] = _t
+                self._data[pulse][signal]['values'] = _y
+
+
 
 # TODO : Dark Theme
 # https://stackoverflow.com/questions/48256772/dark-theme-for-qt-widgets
