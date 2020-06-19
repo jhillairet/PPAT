@@ -334,7 +334,7 @@ class MainWindow(QMainWindow):
                     
                     self.panel_pre_pulse.widget.pulse_setting_origin.setText(f'from SL: #{next_pulse}')
 
-                    res_load = self.pulse_settings.load_from_session_leader()
+                    res_load = self.pulse_settings.load_next_pulse_settings()
 
             # Load pulse settings from a set of .xml files
             elif self.panel_pre_pulse.widget.radio_file.isChecked():
