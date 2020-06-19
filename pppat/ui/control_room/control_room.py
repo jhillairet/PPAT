@@ -9,6 +9,7 @@ import sys
 import numpy as np
 import pickle
 import pyqtgraph as pg
+import itertools  # to cycle the style and colors
 import qtpy.QtGui as QtGui
 import qtpy.QtCore as QtCore
 import qtpy.QtWidgets as QtWidgets
@@ -39,7 +40,7 @@ pg.setConfigOptions(antialias=True)
 pg.setConfigOption('background', 'w')
 pg.setConfigOption('foreground', 'k')
 
-qt_line_styles = [QtCore.Qt.SolidLine, QtCore.Qt.DashLine, QtCore.Qt.DotLine, QtCore.Qt.DashDotLine, QtCore.Qt.DashDotDotLine]
+qt_line_styles = itertools.cycle([QtCore.Qt.SolidLine, QtCore.Qt.DashLine, QtCore.Qt.DotLine, QtCore.Qt.DashDotLine, QtCore.Qt.DashDotDotLine])
 
 def translate_pulse_numbers(pulses: list) -> list:
     '''
@@ -287,7 +288,7 @@ class Panel(QSplitter):
                 self.p.scene().sigMouseMoved.connect(self.ui_plot_mouse_moved)
                 
             for idx_pulse, pulse in enumerate(pulses):
-                for idx_sig, sig in enumerate(self.config.selected_signals):
+                for idx_sig, (sig, qt_line_style) in enumerate(zip(self.config.selected_signals, qt_line_styles)):
                                       
                     # colored_pulse = True
                     # - each signal has a specific kind (up to 4)
@@ -295,10 +296,10 @@ class Panel(QSplitter):
                     # if False, vice-versa        
                     if getattr(self.config, 'color_wrt_pulses', True):
                         cur_pen = pg.mkPen(color=pg.intColor(idx_pulse), 
-                                            style=qt_line_styles[idx_sig])
+                                            style=qt_line_style)
                     else:
                         cur_pen = pg.mkPen(color=pg.intColor(idx_sig), 
-                                            style=qt_line_styles[idx_pulse])
+                                            style=qt_line_style)
 
                     # retrieve data from the parent model
                     values, times = self.parent.model.data( (pulse, sig), None)
