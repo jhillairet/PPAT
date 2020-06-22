@@ -59,7 +59,7 @@ def check_WOI_5p5_energy_limits(is_online=False, waveforms=None):
             text += f'{antenna}: {E_MJ:.3f} MJ>{MAX_ENERGIES[antenna]} MJ - '
             code = Result.WARNING
         else:
-            text += f'{antenna}: OK - '
+            text += f'{antenna}: OK ({E_MJ:.1f}MJ)- '
 
     if code == Result.WARNING:
         return Result(name=CHECK_NAME, code=code, text=text)
@@ -86,14 +86,14 @@ def check_WOI_5p5_duration_limits(is_online=False, waveforms=None):
             ic_duration = ic_times[-1] - ic_times[0]
         except IndexError as e:
             # case if no IC power is expected on an antenna
-            ic_duration = None
+            ic_duration = 0
             
         # if there is a duration limit for the current antenna, and if > limit
         if ic_duration and (ic_duration > MAX_DURATIONS[antenna]):
             text += f'{antenna}: {ic_duration:.3f} s>{MAX_DURATIONS[antenna]} s - '
             code = Result.WARNING
         else:
-            text += f'{antenna}: OK - '
+            text += f'{antenna}: OK ({ic_duration:.1f}s) - '
 
     if code == Result.WARNING:
         return Result(name=CHECK_NAME, code=code, text=text)

@@ -64,7 +64,7 @@ class MainWindow(QMainWindow):
         
         # Control Room
         self.control_room = ControlRoom(config_file=DEFAULT_CONTROL_ROOM_CONFIG)
-        # self.control_room.hide()
+        self.control_room.show()
 
         # Set the various PPPAT tools as the central Widget
         self.generate_central_widget()
@@ -78,7 +78,7 @@ class MainWindow(QMainWindow):
         self.panel_pre_pulse.widget.radio_shot.toggled.connect(self.clean_table_pre_test)  # clean table when toggling radio
         self.panel_pre_pulse.widget.radio_file.toggled.connect(self.clean_table_pre_test)  # clean table when toggling radio
 
-        self.panel_pulse_display.widget.push_controlroom.clicked.connect(self.push_control_room)
+        # self.panel_pulse_display.widget.push_controlroom.clicked.connect(self.push_control_room)
 
         self.panel_post_pulse.widget.edit_pulse_nb.editingFinished.connect(self.get_post_pulse_analysis_nb)
         self.panel_post_pulse.widget.button_check_all.clicked.connect(self.check_post_pulse_all)
@@ -91,7 +91,7 @@ class MainWindow(QMainWindow):
         # open some panels at startup
         self.panel_rappels.toggleButton.click()
         self.panel_pre_pulse.toggleButton.click()
-        self.panel_pulse_display.toggleButton.click()
+        # self.panel_pulse_display.toggleButton.click()
         self.panel_post_pulse.toggleButton.click()
         self.panel_log.toggleButton.click()
 
@@ -163,7 +163,7 @@ class MainWindow(QMainWindow):
         # Define the various collabsible panels (leave "child=" avoid Qt bug)
         self.panel_rappels = QCollapsibleToolbox(child=EiCReminderWidget(), title='Cahier de liaison des EiC / EiC\'s Notebook')
         self.panel_pre_pulse = QCollapsibleToolbox(child=PrePulseAnalysisWidget(), title='Pre-pulse Analysis')
-        self.panel_pulse_display = QCollapsibleToolbox(child=PrePulseDisplayWidget(), title='Pre-pulse Display')
+        # self.panel_pulse_display = QCollapsibleToolbox(child=PrePulseDisplayWidget(), title='Pre-pulse Display')
         self.panel_post_pulse = QCollapsibleToolbox(child=PostPulseAnalysisWidget(), title='Post-pulse Analysis')
         self.panel_log = QCollapsibleToolbox(child=QPlainTextEditLogger(), title='Logs')
         self.panel_console = QCollapsibleToolbox(child=ConsoleWidget(), title='Python Console')
@@ -172,7 +172,7 @@ class MainWindow(QMainWindow):
         vbox = QVBoxLayout()
         vbox.addWidget(self.panel_rappels)
         vbox.addWidget(self.panel_pre_pulse)
-        vbox.addWidget(self.panel_pulse_display)
+        # vbox.addWidget(self.panel_pulse_display)
         vbox.addWidget(self.panel_post_pulse)
         vbox.addWidget(self.panel_log)
         vbox.addWidget(self.panel_console)
