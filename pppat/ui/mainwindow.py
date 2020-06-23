@@ -3,7 +3,7 @@ import os.path
 from getpass import getuser
 from qtpy.QtWidgets import (QMainWindow, QApplication, QWidget, QPushButton,
                             QHBoxLayout, QVBoxLayout, QAction, qApp, QLabel,
-                            QScrollArea, QTextBrowser, QFrame, QTextEdit,
+                            QScrollArea, QTextBrowser, QFrame, QTextEdit, QMenu,
                             QFileDialog, QPlainTextEdit, QTableWidgetItem)
 from qtpy.QtGui import QIcon, QCursor, QDesktopServices
 from qtpy.QtCore import QDir, Slot, Qt, QUrl
@@ -64,7 +64,7 @@ class MainWindow(QMainWindow):
         
         # Control Room
         self.control_room = ControlRoom(config_file=DEFAULT_CONTROL_ROOM_CONFIG)
-        self.control_room.show()
+        # self.control_room.show()
 
         # Set the various PPPAT tools as the central Widget
         self.generate_central_widget()
@@ -121,10 +121,10 @@ class MainWindow(QMainWindow):
 
     def menu_bar(self):
         """ Menu bar """
-        self.menuBar = self.menuBar()
-
+        self.menu = self.menuBar()    
+    
         # file menu
-        menu_file = self.menuBar.addMenu('&File')
+        menu_file = self.menu.addMenu('&File')
         action_file_exit = QAction('&Exit', self)
         action_file_exit.setStatusTip('Exit')
         action_file_exit.setShortcut('Ctrl+Q')
@@ -132,7 +132,7 @@ class MainWindow(QMainWindow):
         menu_file.addAction(action_file_exit)
 
         # usefull links menu
-        menu_links = self.menuBar.addMenu('Useful &Links')
+        menu_links = self.menu.addMenu('Useful &Links')
 
         action_links_WOI = QAction('&WOI list', parent=self,
                                    statusTip='Open the intranet page with the list of WOIs',
@@ -150,6 +150,27 @@ class MainWindow(QMainWindow):
         menu_links.addAction(action_links_annuaire)
         menu_links.addAction(action_links_FAQ)
         menu_links.addAction(action_links_github)
+        
+        # Right menu bar (icons)
+        self.menuBar_right = QMenu()
+        self.menuBar_right.triggered.connect(self.toggle_control_room)      
+        self.action_control_room = QAction(icon=QIcon('resources/icons/ui/line-chart-fill_'), 
+                                          text='Control Room', parent=self)
+        self.action_control_room.setCheckable(True)
+        self.action_control_room.setChecked(False)
+        self.action_control_room.setToolTip('Show/Hide Control Room Window')     
+        self.menuBar_right.addAction(self.action_control_room)
+        self.menu.setCornerWidget(self.menuBar_right)
+
+    def toggle_control_room(self):
+        """
+        Show or Hide the Control Room window
+        """
+        status = self.action_control_room.isChecked()
+        if status:
+            self.control_room.show()
+        else:
+            self.control_room.hide()
 
     def open_url_woi(self, url):
         " Open an URL in an external browser "
@@ -431,21 +452,21 @@ class MainWindow(QMainWindow):
         else:
             logger.error("One or both of the pulse setting files do not exist!" )
 
-    @Slot()
-    def push_control_room(self):
-        """
-        Display the big picture of the pulse setting.
-        """
-        # # TODO : check data first?
-        # nominal_scenario = self.pulse_settings.DCS_settings.nominal_scenario
-        # dp_file = self.pulse_settings.files['dp']
-        # wfs = self.pulse_settings.waveforms
-        # pulse_nb = self.pulse_settings.pulse_nb
+    # @Slot()
+    # def push_control_room(self):
+    #     """
+    #     Display the big picture of the pulse setting.
+    #     """
+    #     # # TODO : check data first?
+    #     # nominal_scenario = self.pulse_settings.DCS_settings.nominal_scenario
+    #     # dp_file = self.pulse_settings.files['dp']
+    #     # wfs = self.pulse_settings.waveforms
+    #     # pulse_nb = self.pulse_settings.pulse_nb
 
-        # BigPicture_disp(nominal_scenario, dp_file, wfs, pulse_nb)
+    #     # BigPicture_disp(nominal_scenario, dp_file, wfs, pulse_nb)
         
-        # TODO: update Control Room shot number?
-        self.control_room.show()
+    #     # TODO: update Control Room shot number?
+    #     self.control_room.show()
 
     @Slot()
     def get_post_pulse_analysis_nb(self):
