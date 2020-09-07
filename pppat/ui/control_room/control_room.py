@@ -17,7 +17,7 @@ from qtpy.QtWidgets import (QMainWindow, QApplication, QWidget, QPushButton,
                             QHBoxLayout, QVBoxLayout, QAction, qApp, QLabel,
                             QScrollArea, QTextBrowser, QFrame, QTextEdit, QLineEdit,
                             QFileDialog, QInputDialog, QStatusBar, QProgressBar, 
-                            QPlainTextEdit, QTableWidgetItem, QToolButton, 
+                            QPlainTextEdit, QTableWidgetItem, QToolButton, QStyle,
                             QMessageBox, QComboBox, QCompleter, QListWidget,
                             QSplitter, QStyleFactory, QTabWidget, QTabBar)
 from qtpy.QtGui import QIcon, QCursor, QDesktopServices
@@ -309,6 +309,12 @@ class Panel(QSplitter):
         self.qt_widget_search_layout.addWidget(self.qt_sig_type)
         self.qt_widget_search.setLayout(self.qt_widget_search_layout)
 
+        # move up/down the panel
+        self.qt_move_down = QPushButton(icon=self.style().standardIcon(getattr(QStyle, 'SP_ArrowDown')), parent=self)
+        self.qt_move_up = QPushButton(icon=self.style().standardIcon(getattr(QStyle, 'SP_ArrowUp')), parent=self)
+        self.qt_widget_search_layout.addWidget(self.qt_move_down)
+        self.qt_widget_search_layout.addWidget(self.qt_move_up)    
+
         ## Create the list of signals
         self.qt_signals_list = QListWidget()
         # select the default signal type as defined in the PanelConfiguration
@@ -322,12 +328,14 @@ class Panel(QSplitter):
         # double clik switches the selection (add/remove)
         self.qt_signals_list.itemDoubleClicked.connect(self.ui_item_switch_state)
         
+    
         ## Creating the panel
         self.panel_left = QWidget()
         self.panel_left_layout = QVBoxLayout()
 
         self.panel_left_layout.addWidget(self.qt_widget_search)
         self.panel_left_layout.addWidget(self.qt_signals_list)
+
         self.panel_left.setLayout(self.panel_left_layout)
 
     @Slot(str)
@@ -1270,12 +1278,13 @@ class ControlRoom(QMainWindow):
         """
         panel1_config = PanelConfiguration()
         panel1_config.signal_type = 'PCS waveforms'
-        panel1_config.selected_signals = ['rts:WEST_PCS/Plasma/Ip/waveform.ref']
-        panel2_config = PanelConfiguration()
-        panel2_config.signal_type = 'signals'
-        panel2_config.selected_signals = ['Ip: Plasma current']
+        panel1_config.selected_signals = []
+        return [panel1_config]
+        # panel2_config = PanelConfiguration()
+        # panel2_config.signal_type = 'signals'
+        # panel2_config.selected_signals = ['']
 
-        return [panel1_config, panel2_config]
+        # return [panel1_config, panel2_config]
 
     def panels(self, tab_index: int=None) -> list:
         """
@@ -1447,6 +1456,7 @@ class ControlRoomDataModel(QtGui.QStandardItemModel):
                 self._data[pulse][signal]['times'] = wf.times - 40
                 self._data[pulse][signal]['values'] = wf.values
             else:
+                print(signal)
                 signame = signal.split(':')[0]
                 _y, _t = get_sig(pulse, signals[signame])
                 self._data[pulse][signal]['times'] = _t

@@ -63,7 +63,7 @@ class MainWindow(QMainWindow):
         self.menu_bar()
         
         # Control Room
-        self.control_room = ControlRoom(config_file=DEFAULT_CONTROL_ROOM_CONFIG)
+        self.control_room = ControlRoom()
         # self.control_room.show()
 
         # Set the various PPPAT tools as the central Widget
