@@ -511,6 +511,26 @@ def IC_Gen_fwd6(pulse):
 """
 phases ICRH
 """
+def delta_phi_toro_Qi_Top_LmR(pulse, i=1):
+    PhasesQi, tPhasesQi = pw.tsbase(pulse, f'GICHPHASESQ{i}', nargout=2)
+    dPhiToroTOP_LmR = PhasesQi[:,3] + PhasesQi[:,0] - PhasesQi[:,5]
+    return  dPhiToroTOP_LmR % 360, tPhasesQi[:,0]
+
+def delta_phi_toro_Qi_Bot_LmR(pulse, i=1):
+    PhasesQi, tPhasesQi = pw.tsbase(pulse, f'GICHPHASESQ{i}', nargout=2)
+    dPhiToroBOT_LmR = PhasesQi[:,4] + PhasesQi[:,0] - PhasesQi[:,6]
+    return  dPhiToroBOT_LmR % 360, tPhasesQi[:,0]
+
+def delta_phi_polo_Qi_left_BmT(pulse, i=1):
+    PhasesQi, tPhasesQi = pw.tsbase(pulse, f'GICHPHASESQ{i}', nargout=2)
+    dPhiPololeft_BmT  = PhasesQi[:,4] - PhasesQi[:,3]
+    return dPhiPololeft_BmT, tPhasesQi[:,0]
+
+def delta_phi_polo_Qi_right_BmT(pulse, i=1):
+    PhasesQi, tPhasesQi = pw.tsbase(pulse, f'GICHPHASESQ{i}', nargout=2)
+    dPhiPoloright_BmT = PhasesQi[:,6] - PhasesQi[:,5]
+    return dPhiPoloright_BmT, tPhasesQi[:,0]
+
 # TODO : passing argument to get_sig
 def delta_phi_toro_Q1_Top_LmR(pulse):
     return delta_phi_toro_Qi_Top_LmR(pulse, i=1)
@@ -539,27 +559,6 @@ def delta_phi_polo_Q2_right_BmT(pulse):
     return delta_phi_polo_Qi_right_BmT(pulse, i=2)
 def delta_phi_polo_Q4_right_BmT(pulse):
     return delta_phi_polo_Qi_right_BmT(pulse, i=4)
-
-# Q1
-def delta_phi_toro_Qi_Top_LmR(pulse, i=1):
-    PhasesQi, tPhasesQi = pw.tsbase(pulse, f'GICHPHASESQ{i}', nargout=2)
-    dPhiToroTOP_LmR = PhasesQi[:,3] + PhasesQi[:,0] - PhasesQi[:,5]
-    return  dPhiToroTOP_LmR % 360, tPhasesQi[:,0]
-
-def delta_phi_toro_Qi_Bot_LmR(pulse, i=1):
-    PhasesQi, tPhasesQi = pw.tsbase(pulse, f'GICHPHASESQ{i}', nargout=2)
-    dPhiToroBOT_LmR = PhasesQi[:,4] + PhasesQi[:,0] - PhasesQi[:,6]
-    return  dPhiToroBOT_LmR % 360, tPhasesQi[:,0]
-
-def delta_phi_polo_Qi_left_BmT(pulse, i=1):
-    PhasesQi, tPhasesQi = pw.tsbase(pulse, f'GICHPHASESQ{i}', nargout=2)
-    dPhiPololeft_BmT  = PhasesQi[:,4] - PhasesQi[:,3]
-    return dPhiPololeft_BmT, tPhasesQi[:,0]
-
-def delta_phi_polo_Qi_right_BmT(pulse, i=1):
-    PhasesQi, tPhasesQi = pw.tsbase(pulse, f'GICHPHASESQ{i}', nargout=2)
-    dPhiPoloright_BmT = PhasesQi[:,6] - PhasesQi[:,5]
-    return dPhiPoloright_BmT, tPhasesQi[:,0]
 
 '''
 IC Antenna Toroidal Phase filtered (gives NaN when no IC power)
