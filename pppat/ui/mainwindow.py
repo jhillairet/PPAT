@@ -398,7 +398,7 @@ class MainWindow(QMainWindow):
         if res_load:
             logger.info('Pulse settings successfully loaded :)')
             self.panel_pre_pulse.widget.push_check.setEnabled(True)
-            self.panel_pulse_display.widget.push_controlroom.setEnabled(True)
+            #self.panel_pulse_display.widget.push_controlroom.setEnabled(True)
 
             try:
                 nominal_trajectory = self.pulse_settings.DCS_settings.nominal_trajectory
