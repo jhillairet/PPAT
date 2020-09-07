@@ -45,7 +45,7 @@ class PrePulseAnalysisWidget(QWidget):
         """
         top_left_group = QGroupBox("Load pulse setup from:")
 
-        self.radio_sl = QRadioButton('Session Leader')
+        self.radio_sl = QRadioButton('Next Pulse (from SL)')
         self.radio_sl.setChecked(True)
         self.radio_shot = QRadioButton('Shot number')
         self.radio_file = QRadioButton('File')

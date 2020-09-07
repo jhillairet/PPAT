@@ -17,7 +17,7 @@ from qtpy.QtWidgets import (QMainWindow, QApplication, QWidget, QPushButton,
                             QHBoxLayout, QVBoxLayout, QAction, qApp, QLabel,
                             QScrollArea, QTextBrowser, QFrame, QTextEdit, QLineEdit,
                             QFileDialog, QInputDialog, QStatusBar, QProgressBar, 
-                            QPlainTextEdit, QTableWidgetItem, QToolButton, 
+                            QPlainTextEdit, QTableWidgetItem, QToolButton, QStyle,
                             QMessageBox, QComboBox, QCompleter, QListWidget,
                             QSplitter, QStyleFactory, QTabWidget, QTabBar)
 from qtpy.QtGui import QIcon, QCursor, QDesktopServices
@@ -40,7 +40,6 @@ pg.setConfigOptions(antialias=True)
 pg.setConfigOption('background', 'w')
 pg.setConfigOption('foreground', 'k')
 
-qt_line_styles = itertools.cycle([QtCore.Qt.SolidLine, QtCore.Qt.DashLine, QtCore.Qt.DotLine, QtCore.Qt.DashDotLine, QtCore.Qt.DashDotDotLine])
 
 def translate_pulse_numbers(pulses: list) -> list:
     '''
@@ -114,75 +113,6 @@ def list_waveforms(pulse=None) -> list:
 
 
 
-# class ControlRoomConfiguration():
-#     def __init__(self, fname=None):
-#         """
-#         Control Room Configuration. Describe the configuration of a Control Room session.
-
-#         This configuration saves:
-#             - Tabs properties (number and names)
-#             - Panels properties for each Tabs (number)
-#             - selected curves for each panels
-
-#         Parameters
-#         ----------
-#         fname : TYPE, optional
-#             DESCRIPTION. The default is None.
-
-#         Returns
-#         -------
-#         None.
-
-#         """
-#         self._pulses = [0]
-#         self._panels = []
-#         self._tabs = []
-#         self.default_signal_type = 'PCS waveforms' # 'signals' or 'PCS waveforms'
-#         self.setup = nested_dict()
-
-#     @property
-#     def pulses(self) -> list:
-#         # get last pulse
-#         return self._pulses
-
-#     @pulses.setter
-#     def pulses(self, pulses: list):
-#         self._pulses = pulses
-
-#     @property
-#     def panels(self):
-#         return self._panels
-
-#     @panels.setter
-#     def panels(self, panels):
-#         self._panels = panels
-
-#     def __repr__(self):
-#         description = f'Control Room Configuration: {len(self._tabs)} Tabs containing {self._panels}'
-#         return description
-
-#     def export(self, filename: str):
-#         """
-#         Export the configuration of a ControlRoom session.
-
-#         Parameters
-#         ----------
-#         filename : str
-#             configuration file.
-
-#         Returns
-#         -------
-#         None.
-
-#         """
-#         pass
-#         # >>> import json
-#         # >>> config = {'handler' : 'adminhandler.py', 'timeoutsec' : 5 }
-#         # >>> json.dump(config, open('/tmp/config.json', 'w'))
-#         # >>> json.load(open('/tmp/config.json'))
-#         # {u'handler': u'adminhandler.py', u'timeoutsec': 5}
-
-
 
 
 class PanelConfiguration:
@@ -205,9 +135,9 @@ class PanelConfiguration:
         None.
 
         """
-        self.default_signal_type = 'PCS waveforms'
+        self.signal_type = 'PCS waveforms'
         self.selected_signals = []
-        self.backend = 'matplotlib'
+        self.backend = 'pyqtgraph'  # currently not used
         # numerical data stored
         self.data = nested_dict()
         # widths of the left and right regions wrt central separator
@@ -277,6 +207,12 @@ class Panel(QSplitter):
         if pulses:
             # clear graph
             self.graphWidget.clear()
+            # cycling automatically on linestyles
+            qt_line_styles = itertools.cycle([QtCore.Qt.SolidLine, 
+                                              QtCore.Qt.DashLine, 
+                                              QtCore.Qt.DotLine, 
+                                              QtCore.Qt.DashDotLine, 
+                                              QtCore.Qt.DashDotDotLine])
 
             if getattr(self.config, 'display_crosshair', False):
                 # if crosshair
@@ -373,11 +309,17 @@ class Panel(QSplitter):
         self.qt_widget_search_layout.addWidget(self.qt_sig_type)
         self.qt_widget_search.setLayout(self.qt_widget_search_layout)
 
+        # move up/down the panel
+        self.qt_move_down = QPushButton(icon=self.style().standardIcon(getattr(QStyle, 'SP_ArrowDown')), parent=self)
+        self.qt_move_up = QPushButton(icon=self.style().standardIcon(getattr(QStyle, 'SP_ArrowUp')), parent=self)
+        self.qt_widget_search_layout.addWidget(self.qt_move_down)
+        self.qt_widget_search_layout.addWidget(self.qt_move_up)    
+
         ## Create the list of signals
         self.qt_signals_list = QListWidget()
         # select the default signal type as defined in the PanelConfiguration
-        self.qt_sig_type.setCurrentText(self.config.default_signal_type)
-        self.ui_setup_signal_list(self.config.default_signal_type)
+        self.qt_sig_type.setCurrentText(self.config.signal_type)
+        self.ui_setup_signal_list(self.config.signal_type)
         # allows selecting multiple number of signals
         self.qt_signals_list.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         # define right click context menu
@@ -386,12 +328,14 @@ class Panel(QSplitter):
         # double clik switches the selection (add/remove)
         self.qt_signals_list.itemDoubleClicked.connect(self.ui_item_switch_state)
         
+    
         ## Creating the panel
         self.panel_left = QWidget()
         self.panel_left_layout = QVBoxLayout()
 
         self.panel_left_layout.addWidget(self.qt_widget_search)
         self.panel_left_layout.addWidget(self.qt_signals_list)
+
         self.panel_left.setLayout(self.panel_left_layout)
 
     @Slot(str)
@@ -739,7 +683,7 @@ class ControlRoom(QMainWindow):
             label of the tab. Default: 'Traces #' where # is the number of tabs.
         '''
         # if not passed uses default panel configuration
-        panel_configs = panel_configs or self.panel_config_default()
+        panel_configs = panel_configs or self.panel_configs_default()
         # tab configuration. Setup default values if arguments are None
         tab_config = self.tab_config(label=label, panel_configs=panel_configs)
         # list of Panel object to be stored into the Qt Tab object
@@ -854,6 +798,12 @@ class ControlRoom(QMainWindow):
         menu_file.addAction(action_save_as)
 
         menu_file.addSeparator()
+        
+        action_clean_data = QAction('Clean All Data', self)
+        action_clean_data.triggered.connect(self.ui_clean_data)
+        menu_file.addAction(action_clean_data)
+
+        menu_file.addSeparator()
 
         action_file_exit = QAction('&Exit', self)
         action_file_exit.setStatusTip('Exit')
@@ -917,6 +867,12 @@ class ControlRoom(QMainWindow):
         self.action_crosshair.triggered.connect(self.ui_crosshair)
         menu_config.addAction(self.action_crosshair)
         
+        self.action_handle = QAction('&Handles', self)
+        self.action_handle.setCheckable(True)
+        self.action_handle.setChecked(True)
+        self.action_handle.triggered.connect(self.ui_handles)
+        menu_config.addAction(self.action_handle)
+        
         menu_config.addSeparator()
         
         self.action_view_data = QAction('Data Viewer', self)
@@ -924,6 +880,27 @@ class ControlRoom(QMainWindow):
         self.action_view_data.setChecked(False)
         self.action_view_data.triggered.connect(self.ui_data_viewer)
         menu_config.addAction(self.action_view_data)
+ 
+    def ui_handles(self):
+        """
+        Toggle Splitter Handles
+        
+        TODO: dosesn't work well yet. Should I subclass the QSplitterHandle?
+        """
+        state = self.action_handle.isChecked()
+        if state:
+            for tab in self.tabs:
+                tab.setHandleWidth(QSplitter().handleWidth())
+        else:
+             for tab in self.tabs:
+                tab.setHandleWidth(0)
+
+
+    def ui_clean_data(self):
+        """
+        Clear all downloaded data
+        """
+        self.model.clean()
  
     def ui_crosshair(self):
         """
@@ -991,7 +968,7 @@ class ControlRoom(QMainWindow):
                 panel.setSizes([70,400])
 
 
-    def ui_add_panel(self, tab_index: int=None):
+    def ui_add_panel(self, tab_index: int=None, panel=None):
         """
         Add a panel to a specified tab
 
@@ -1005,7 +982,8 @@ class ControlRoom(QMainWindow):
         None.
 
         """
-        new_panel = Panel(parent=self)
+        # use the passed one or the default panel
+        new_panel = panel or Panel(parent=self)
 
         tab_index = tab_index or self.qt_tabs.currentIndex()
 
@@ -1014,9 +992,12 @@ class ControlRoom(QMainWindow):
         page = self.qt_tabs.widget(tab_index)
         page.addWidget(new_panel)
         page.panels.append(new_panel)
-
+        # update the tab's panels configuration
+        page.panel_configs.append(new_panel.config)
+        
         # resynchornize panels
         self.ui_synchronize_panels()
+        print(page.panel_configs)
 
 
     def ui_remove_panel(self, panel_index: int=None, tab_index=None):
@@ -1046,15 +1027,18 @@ class ControlRoom(QMainWindow):
         if not panel_index:
             # last element
             panel_index = page.count() - 1
-            removed_panel = page.panels.pop(-1)
+            # removed_panel = page.panels.pop()
         panel_to_remove = page.widget(panel_index)
         panel_to_remove.hide()
-        removed_panel = page.panels.pop(-panel_index)
+        removed_panel = page.panels.pop(panel_index)
         # TODO bug with pop()
-
+        
+        # update the tab's panels configuration
+        page.panel_configs.pop(panel_index)
         # resynchornize panels
+        
         self.ui_synchronize_panels()
-
+        print(page.panel_configs)
 
 
     def ui_open_configuration(self):
@@ -1114,7 +1098,7 @@ class ControlRoom(QMainWindow):
             self.ui_add_tab(panel_configs=tab['panel_configs'], label=tab['label'])
 
         # resize panel (width wrt central separator)
-        for idx_tab in range(self.qt_tabs.count()):
+        for idx_tab, tab in enumerate(self.tabs):
             for panel_config, panel in zip(self.panel_configs(idx_tab), self.panels(idx_tab)):
                 panel.setSizes(panel_config.sizes)
 
@@ -1126,13 +1110,6 @@ class ControlRoom(QMainWindow):
 #               Configuration Stuffs
 #
 ##################################################
-
-    def clear_data_cache(self):
-        """
-        Clear the internal cache of data
-        """
-        self.config['']
-
 
     def export_config(self, fname: str=None):
         """
@@ -1180,6 +1157,7 @@ class ControlRoom(QMainWindow):
         # TODO: test validity of the file??
         with open(file_name, 'rb') as fhandler:
             config = pickle.load(fhandler)
+            print(f'Configuration loaded: {config}')
         return config
 
 
@@ -1215,17 +1193,16 @@ class ControlRoom(QMainWindow):
     @property
     def tab_configs(self) -> list:
         """
-        Current tab configurations
+        Tab configurations
 
         Returns
         -------
         tab_configs: list
-            list of dict.
+            list of dict. Each dict contains the configuration of a Tab.
 
         """
         tab_configs = []
-        for tab_index in range(self.qt_tabs.count()):
-            tab = self.qt_tabs.widget(tab_index)
+        for tab_index, tab in enumerate(self.tabs):
             tab_config = self.tab_config(label=self.qt_tabs.tabText(tab_index),
                                          panel_configs=tab.panel_configs)
             tab_configs.append(tab_config)
@@ -1254,9 +1231,8 @@ class ControlRoom(QMainWindow):
         if not label:
             next_tab_index = self.qt_tabs.count() + 1
             label = "Traces #%d" % next_tab_index
-        # default list of Panels
-        if not panel_configs:
-            panel_configs = self.panel_config_default()
+        # default list of Panels if not provided
+        panel_configs = panel_configs or self.panel_configs_default()
 
         return {'label': label,
                 'panel_configs': panel_configs,
@@ -1290,7 +1266,7 @@ class ControlRoom(QMainWindow):
 #
 ##################################################
 
-    def panel_config_default(self) -> list:
+    def panel_configs_default(self) -> list:
         """
         Default list of PanelConfiguration objets
 
@@ -1301,13 +1277,14 @@ class ControlRoom(QMainWindow):
 
         """
         panel1_config = PanelConfiguration()
-        panel1_config.default_signal_type = 'PCS waveforms'
-        panel1_config.selected_signals = ['rts:WEST_PCS/Plasma/Ip/waveform.ref']
-        panel2_config = PanelConfiguration()
-        panel2_config.default_signal_type = 'signals'
-        panel2_config.selected_signals = ['Ip: Plasma current']
+        panel1_config.signal_type = 'PCS waveforms'
+        panel1_config.selected_signals = []
+        return [panel1_config]
+        # panel2_config = PanelConfiguration()
+        # panel2_config.signal_type = 'signals'
+        # panel2_config.selected_signals = ['']
 
-        return [panel1_config, panel2_config]
+        # return [panel1_config, panel2_config]
 
     def panels(self, tab_index: int=None) -> list:
         """
@@ -1396,7 +1373,7 @@ class ControlRoom(QMainWindow):
         plot_numbers = 0
         for tab in self.tabs:
             for panel in tab.panels:
-                for pulse in self.config['pulses']:
+                for pulse in west_pulses:
                     for signal in panel.config.selected_signals:
                         plot_numbers += 1
         
@@ -1405,7 +1382,7 @@ class ControlRoom(QMainWindow):
         with wait_cursor():
             for tab in self.tabs:
                 for panel in tab.panels:
-                    for pulse in self.config['pulses']:
+                    for pulse in west_pulses:
                         for signal in panel.config.selected_signals:
                             print(f'Updating {signal} for {pulse}')
                             self.model.update_data(pulse, signal)
@@ -1479,12 +1456,17 @@ class ControlRoomDataModel(QtGui.QStandardItemModel):
                 self._data[pulse][signal]['times'] = wf.times - 40
                 self._data[pulse][signal]['values'] = wf.values
             else:
+                print(signal)
                 signame = signal.split(':')[0]
                 _y, _t = get_sig(pulse, signals[signame])
                 self._data[pulse][signal]['times'] = _t
                 self._data[pulse][signal]['values'] = _y
 
-
+    def clean(self):
+        """
+        Clean all data stored.
+        """
+        self._data = nested_dict()
 
 # TODO : Dark Theme
 # https://stackoverflow.com/questions/48256772/dark-theme-for-qt-widgets
