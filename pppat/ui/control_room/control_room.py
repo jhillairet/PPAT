@@ -6,6 +6,7 @@ Created on Fri May 22 09:11:36 2020
 """
 
 import sys
+import os
 import numpy as np
 import pickle
 import pyqtgraph as pg
@@ -32,6 +33,10 @@ from pppat.libpulse.waveform import get_waveform
 
 
 MINIMUM_WIDTH = 800
+
+real_path = os.path.realpath(__file__)
+dir_path = os.path.dirname(real_path)
+WAVEFORMS_LIST = dir_path + '/waveform_names.txt'
 
 # setup Graphical stuffs
 # Enable antialiasing for prettier plots
@@ -106,7 +111,7 @@ def list_waveforms(pulse=None) -> list:
         ps = PulseSettings(pulse)
         return ps.waveform_names
     else:
-        with open('pppat/ui/control_room/waveform_names.txt') as file:
+        with open(WAVEFORMS_LIST) as file:
             data = file.read()
 
         return data.splitlines()
