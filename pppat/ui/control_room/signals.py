@@ -17,7 +17,7 @@ signals = {
     'month': {'name':None, 'fun': 'pulse_month', 'unit':'', 'label': 'pulse month'},
     'day': {'name':None, 'fun': 'pulse_day', 'unit':'', 'label': 'pulse day'},
     ## Magnetics
-    'Ip': {'name': 'SMAG_IP', 'unit': 'kA', 'label': 'Plasma current'},
+    'Ip': {'name': 'SMAG_IP', 'unit': 'MA', 'label': 'Plasma current', 'options':{'scaling':1e-3}},
     'Vloop': {'name': None, 'fun':'Vloop', 'unit': 'V', 'label': 'Loop voltage'},
     'Ohmic_P': {'name': None, 'fun':'Ohmic_power', 'unit':'MW', 'label':'Ohmic Power'},
     'Separatrix_P': {'name':None, 'fun':'Separatrix_power', 'unit':'MW', 'label':'Power at separatrix', 'options':{'ylim':(0, 5)}},
@@ -54,11 +54,11 @@ signals = {
     'RF_P_tot': {'name':None, 'fun':'RF_P_tot', 'unit':'MW', 'label':'Total RF Power'},
     ## ICRH
     # IC coupled powers
-    'IC_P_tot': {'name': 'SICHPTOT', 'unit': 'kW', 'label': 'IC total coupled power'},
-    'IC_P_tot2': {'name': None, 'fun':'sum_power', 'unit': 'kW', 'label': 'IC total coupled power'},
-    'IC_P_Q1': {'name': 'SICHPQ1', 'unit': 'kW', 'label': 'IC Q1 coupled power'},
-    'IC_P_Q2': {'name': 'SICHPQ2', 'unit': 'kW', 'label': 'IC Q2 coupled power'},
-    'IC_P_Q4': {'name': 'SICHPQ4', 'unit': 'kW', 'label': 'IC Q4 coupled power'},
+    'IC_P_tot': {'name': 'SICHPTOT', 'unit': 'MW', 'label': 'IC total coupled power', 'options':{'scaling':1e-3}},
+    'IC_P_tot2': {'name': None, 'fun':'sum_power', 'unit': 'MW', 'label': 'IC total coupled power', 'options':{'scaling':1e-3}},
+    'IC_P_Q1': {'name': 'SICHPQ1', 'unit': 'MW', 'label': 'IC Q1 coupled power', 'options':{'scaling':1e-3}},
+    'IC_P_Q2': {'name': 'SICHPQ2', 'unit': 'MW', 'label': 'IC Q2 coupled power', 'options':{'scaling':1e-3}},
+    'IC_P_Q4': {'name': 'SICHPQ4', 'unit': 'MW', 'label': 'IC Q4 coupled power', 'options':{'scaling':1e-3}},
     'IC_P_Gen1': {'name': 'GICHPTRAGEN%1', 'unit': 'kW', 'label': 'Generator 1 transmitted power'},
     'IC_P_Gen2': {'name': 'GICHPTRAGEN%2', 'unit': 'kW', 'label': 'Generator 2 transmitted power'},
     'IC_P_Gen3': {'name': 'GICHPTRAGEN%3', 'unit': 'kW', 'label': 'Generator 3 transmitted power'},
@@ -265,8 +265,8 @@ signals = {
     'LH_Rc_LH1': {'name': 'SHYBREF1', 'unit': '%', 'label': 'Avg. Refl. Coeff LH1'},
     'LH_Rc_LH2': {'name': 'SHYBREF2', 'unit': '%', 'label': 'Avg. Refl. Coeff LH2'},
     # Impurities (SURVIE)
-    'Cu': {'name': 'scu19', 'unit': None, 'label': 'Copper'},
-    'Fe': {'name': 'SFE15', 'unit': None, 'label': 'Iron'},
+    'Cu': {'name': 'scu19', 'unit': 'a.u.', 'label': 'Copper'},
+    'Fe': {'name': 'SFE15', 'unit': 'a.u.', 'label': 'Iron'},
     'Ag18': {'name': 'SAG18', 'unit':'a.u.', 'label':'Silver-18'},
     'Ag19': {'name': 'SAG19', 'unit':'a.u.', 'label':'Silver-19'},
     ## Temperature
@@ -649,6 +649,11 @@ def get_sig(pulse, sig, do_smooth=False):
 
         t = np.squeeze(t)
         y = np.squeeze(y)
+        
+        # y scaling if required
+        if 'options' in sig:
+            if 'scaling' in sig['options']:
+                y = sig['options']['scaling'] * y
 
         if do_smooth:
             y_smooth = smooth(y)
@@ -1088,7 +1093,7 @@ def Ohmic_power(pulse):
     Ip, t_Ip = get_sig(pulse, signals['Ip'])  # kA
     # interpolate signals
     _Ip = np.squeeze(np.interp(t_V, t_Ip, np.squeeze(Ip)))
-    P = V * _Ip / 1e3  # MW
+    P = V * _Ip  # in MW as Ip is in MA
     return P, t_V
 
 def Separatrix_power(pulse):

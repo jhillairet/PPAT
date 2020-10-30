@@ -228,6 +228,7 @@ class Panel(QSplitter):
                 # update horizontal line on current plot
                 self.p.scene().sigMouseMoved.connect(self.ui_plot_mouse_moved)
                 
+            units, titles = [], []
             for idx_pulse, pulse in enumerate(pulses):
                 for idx_sig, (sig, qt_line_style) in enumerate(zip(self.config.selected_signals, qt_line_styles)):
                                       
@@ -247,12 +248,25 @@ class Panel(QSplitter):
                     if getattr(self.config, 'display_legend', True):
                         self.graphWidget.addLegend()  # addLegend() must be called BEFORE plot()
                     
+                    # plot values only if they are both arrays
                     if (np.array(times).size > 1) and (np.array(values).size > 1):   
                         self.graphWidget.plot(times, values, 
                                           name=self.shorten_name(sig), 
                                           pen=cur_pen)
+                        # append signal labels and units 
+                        units.append(self.parent.model.signal_unit(sig))
+                        titles.append(self.parent.model.signal_label(sig))
                     else:
                         print('Bad data!!!!')
+
+                # update the unit and titles if necessary
+                self.graphWidget.setLabels(left=', '.join(filter(None, units)))
+                
+                if self.parent.action_title.isChecked():
+                    self.graphWidget.setTitle(', '.join(filter(None, titles)))
+                else:
+                    self.graphWidget.setTitle(None)
+                
         
     def shorten_name(self, sig_name: str) -> str:
         """
@@ -881,6 +895,12 @@ class ControlRoom(QMainWindow):
         self.action_handle.setChecked(True)
         self.action_handle.triggered.connect(self.ui_handles)
         menu_config.addAction(self.action_handle)
+
+        self.action_title = QAction('&Titles', self)
+        self.action_title.setCheckable(True)
+        self.action_title.setChecked(True)
+        self.action_title.triggered.connect(self.ui_titles)
+        menu_config.addAction(self.action_title)
         
         menu_config.addSeparator()
         
@@ -904,6 +924,14 @@ class ControlRoom(QMainWindow):
              for tab in self.tabs:
                 tab.setHandleWidth(0)
 
+
+    def ui_titles(self):
+        """
+        Toggle Titles in plotWidgets
+        """
+        # update drawings
+        self.update()
+                
 
     def ui_clean_data(self):
         """
@@ -1450,6 +1478,46 @@ class ControlRoomDataModel(QtGui.QStandardItemModel):
         # 
         return self._data[pulse][signal]['values'], self._data[pulse][signal]['times']
 
+    def signal_label(self, signal) -> str:
+        """
+        Return the signal label of a given signal
+
+        Parameters
+        ----------
+        signal : str
+            signal name.
+
+        Returns
+        -------
+        label : str
+            signal label
+
+        """
+        if not self._data[signal]:
+            return 'Not found'
+        else:
+            return self._data[signal]['label']
+
+    def signal_unit(self, signal) -> str:
+        """
+        Return the signal unit of a given signal
+
+        Parameters
+        ----------
+        signal : str
+            signal name.
+
+        Returns
+        -------
+        label : str
+            signal unit
+
+        """
+        if not self._data[signal]:
+            return 'Not found'
+        else:
+            return self._data[signal]['unit']
+        
     def update_data(self, pulse, signal):
         print(f'Updating data for pulses {pulse}')
         if not self._data[pulse]['PulseSetting']:
@@ -1464,12 +1532,17 @@ class ControlRoomDataModel(QtGui.QStandardItemModel):
                 # remove 40 seconds to match pulses
                 self._data[pulse][signal]['times'] = wf.times - 40
                 self._data[pulse][signal]['values'] = wf.values
+                self._data[signal]['label'] = wf.name
+                self._data[signal]['unit'] = '' # units are not passed in XML file...
             else:
                 print(signal)
                 signame = signal.split(':')[0]
                 _y, _t = get_sig(pulse, signals[signame])
                 self._data[pulse][signal]['times'] = _t
                 self._data[pulse][signal]['values'] = _y
+                self._data[signal]['label'] = signals[signame]['label']
+                self._data[signal]['unit'] = signals[signame]['unit']                
+
 
     def clean(self):
         """
