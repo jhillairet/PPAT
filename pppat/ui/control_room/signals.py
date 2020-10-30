@@ -632,10 +632,10 @@ def get_sig(pulse, sig, do_smooth=False):
 
     Returns
     -------
-    TYPE
-        DESCRIPTION.
-    TYPE
-        DESCRIPTION.
+    y : Numpy Array
+        data
+    t : Numpy Array
+        time
 
     '''
     try:
@@ -656,6 +656,10 @@ def get_sig(pulse, sig, do_smooth=False):
     except (pw.PyWEDException, pw.tsExQueryError) as e:
         print(f"{sig['name']} #{pulse}: {e}")
         return np.nan, np.nan
+    except ModuleNotFoundError as e:
+        print('A necessary module was not found')
+        return np.nan, np.nan
+
     return y, t
 
 
@@ -1065,7 +1069,7 @@ def Vloop(pulse):
     return V_smooth, t
 
 def RF_P_tot(pulse):
-    ''' Total RF Power '''
+    ''' Total RF Power in MW '''
     P_LH_tot, t_LH_tot = get_sig(pulse, signals['LH_P_tot'])   
     P_IC_tot, t_tot = get_sig(pulse, signals['IC_P_tot'])   
     
@@ -1079,6 +1083,7 @@ def RF_P_tot(pulse):
     return P_LH_tot + P_IC_tot*1e-3, t_tot
 
 def Ohmic_power(pulse):
+    ''' Ohmic Power in MW '''
     V, t_V = Vloop(pulse) # V
     Ip, t_Ip = get_sig(pulse, signals['Ip'])  # kA
     # interpolate signals
@@ -1087,6 +1092,7 @@ def Ohmic_power(pulse):
     return P, t_V
 
 def Separatrix_power(pulse):
+    ''' Speratrix Power in MW '''
     P_rad_b, t_Prad_b = get_sig(pulse, signals['Prad_bulk'])
     if np.any(np.isnan(P_rad_b)):
         # no bolometry data -> no Prad

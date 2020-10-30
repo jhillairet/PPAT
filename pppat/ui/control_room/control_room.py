@@ -246,9 +246,13 @@ class Panel(QSplitter):
                     values, times = self.parent.model.data( (pulse, sig), None)
                     if getattr(self.config, 'display_legend', True):
                         self.graphWidget.addLegend()  # addLegend() must be called BEFORE plot()
-                    self.graphWidget.plot(times, values, 
+                    
+                    if (np.array(times).size > 1) and (np.array(values).size > 1):   
+                        self.graphWidget.plot(times, values, 
                                           name=self.shorten_name(sig), 
                                           pen=cur_pen)
+                    else:
+                        print('Bad data!!!!')
         
     def shorten_name(self, sig_name: str) -> str:
         """
@@ -790,21 +794,21 @@ class ControlRoom(QMainWindow):
         # file menu
         menu_file = self.menuBar.addMenu('&File')
 
-        action_open = QAction('&Open', self)
+        action_open = QAction('&Open Configuration', self)
         action_open.triggered.connect(self.ui_open_configuration)
         menu_file.addAction(action_open)
 
-        action_save = QAction('&Save', self)
+        action_save = QAction('&Save Configuration', self)
         action_save.triggered.connect(self.ui_save_configuration)
         menu_file.addAction(action_save)
 
-        action_save_as = QAction('Save &As', self)
+        action_save_as = QAction('Save Configuration &As', self)
         action_save_as.triggered.connect(self.ui_save_configuration_as)
         menu_file.addAction(action_save_as)
 
         menu_file.addSeparator()
         
-        action_clean_data = QAction('Clean All Data', self)
+        action_clean_data = QAction('Clean All Downloaded Data', self)
         action_clean_data.triggered.connect(self.ui_clean_data)
         menu_file.addAction(action_clean_data)
 
