@@ -287,10 +287,10 @@ signals = {
     'baro_Q2': {'name':'GBARDB8%4', 'unit': '--', 'label':'barometry Q2 raw'},
     'baro_Q4': {'name':'GBARDB8%9', 'unit': '--', 'label':'barometry Q4 raw'},
     ## Bolometry
-    'Prad': {'name': None, 'fun':'Prad_pradwest', 'unit':'MW', 'label':'Prad total'},
-    'Prad_bulk': {'name': None, 'fun':'Prad_bulk_pradwest', 'unit':'MW', 'label':'Prad bulk'},    
-    'Prad_imas': {'name': None, 'fun':'Prad_imas', 'unit':'MW', 'label':'Prad total (imas)'},
-    'Prad_bulk_imas': {'name': None, 'fun':'Prad_bulk_imas', 'unit':'MW', 'label':'Prad bulk (imas)'},    
+    'Prad': {'name': None, 'fun':'Prad_pradwest', 'unit':'MW', 'label':'Total Radiated Power'},
+    'Prad_bulk': {'name': None, 'fun':'Prad_bulk_pradwest', 'unit':'MW', 'label':'Bulk Radiated Power'},    
+    'Prad_imas': {'name': None, 'fun':'Prad_imas', 'unit':'MW', 'label':'Total Radiated Power (imas)'},
+    'Prad_bulk_imas': {'name': None, 'fun':'Prad_bulk_imas', 'unit':'MW', 'label':'Bulk Radiated Power (imas)'},    
     # Divertor current
     'Divertor_lower_current_cons': {'name':'GPOLO_IDC2%1', 'unit':'kA', 'label':'Lower divertor current consigne'},
     'Divertor_lower_current': {'name':'GPOLO_IDC2%2', 'unit':'kA', 'label':'Lower divertor current'},    
@@ -913,17 +913,17 @@ def imas(func):
 
 def Prad_pradwest(pulse):
     " total radiated power in MW"
-    import pradwestc
+    from pppat.ui.control_room.pradwestc import pradwest1
     try:
-        Prad,Pbulk,Pdivb,Pdivh,Pchan,bolofmas,tbolo,trad = pradwestc.pradwest1(pulse, fi=0)
+        Prad,Pbulk,Pdivb,Pdivh,Pchan,bolofmas,tbolo,trad = pradwest1(pulse, fi=0)
         return Prad, trad - tignitron(pulse)[0]
     except TypeError as e:
         return np.nan, np.nan
 
 def Prad_bulk_pradwest(pulse):
-    import pradwestc
+    from pppat.ui.control_room.pradwestc import pradwest1
     try:
-        Prad,Pbulk,Pdivb,Pdivh,Pchan,bolofmas,tbolo,trad = pradwestc.pradwest1(pulse, fi=0)
+        Prad,Pbulk,Pdivb,Pdivh,Pchan,bolofmas,tbolo,trad = pradwest1(pulse, fi=0)
         return Pbulk, trad - tignitron(pulse)[0]
     except TypeError as e:
         return np.nan, np.nan
