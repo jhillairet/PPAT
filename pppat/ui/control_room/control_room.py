@@ -10,6 +10,7 @@ import os
 import numpy as np
 import pickle
 import pyqtgraph as pg
+import matplotlib.pyplot as plt
 import itertools  # to cycle the style and colors
 import qtpy.QtGui as QtGui
 import qtpy.QtCore as QtCore
@@ -32,8 +33,15 @@ from pppat.libpulse.utils_west import last_pulse_nb
 from pppat.libpulse.waveform import get_waveform
 
 
+
+# default color cycle : create a list of RGBA tuples from matplotlib colormap
+cmap = plt.get_cmap("tab10")  # colormap from matplotlib
+DEFAULT_COLORS = np.array(cmap(range(10)))*255  # normalized to 255 for pyqtgraph
+            
+# windows min width
 MINIMUM_WIDTH = 800
 
+# Default Paths
 real_path = os.path.realpath(__file__)
 dir_path = os.path.dirname(real_path)
 WAVEFORMS_LIST = dir_path + '/waveform_names.txt'
@@ -207,17 +215,19 @@ class Panel(QSplitter):
         pulses : list, optional
             WEST pulse list. The default is None.
 
-        """
+        """           
         # For all pulses and selected signals, plot associated y(t)
         if pulses:
             # clear graph
             self.graphWidget.clear()
             # cycling automatically on linestyles
-            qt_line_styles = itertools.cycle([QtCore.Qt.SolidLine, 
+            qt_line_styles = [QtCore.Qt.SolidLine, 
                                               QtCore.Qt.DashLine, 
                                               QtCore.Qt.DotLine, 
                                               QtCore.Qt.DashDotLine, 
-                                              QtCore.Qt.DashDotDotLine])
+                                              QtCore.Qt.DashDotDotLine]
+            line_styles = itertools.cycle(qt_line_styles)
+
 
             if getattr(self.config, 'display_crosshair', False):
                 # if crosshair
@@ -227,31 +237,36 @@ class Panel(QSplitter):
                 self.p.scene().sigMouseMoved.connect(self.parent.ui_plot_mouse_moved_panels)
                 # update horizontal line on current plot
                 self.p.scene().sigMouseMoved.connect(self.ui_plot_mouse_moved)
+
+            if getattr(self.config, 'display_legend', True):
+                self.graphWidget.addLegend()  # addLegend() must be called BEFORE plot()
                 
             units, titles = [], []
             for idx_pulse, pulse in enumerate(pulses):
-                for idx_sig, (sig, qt_line_style) in enumerate(zip(self.config.selected_signals, qt_line_styles)):
-                                      
+                for idx_sig, (sig, line_style) in enumerate(zip(self.config.selected_signals, line_styles)):
+                    
                     # colored_pulse = True
-                    # - each signal has a specific kind (up to 4)
                     # - each pulse has a specific color
+                    # - all signal have same linestyle
                     # if False, vice-versa        
                     if getattr(self.config, 'color_wrt_pulses', True):
-                        cur_pen = pg.mkPen(color=pg.intColor(idx_pulse), 
-                                            style=qt_line_style)
+                        cur_pen = pg.mkPen(color=pg.mkColor(DEFAULT_COLORS[idx_pulse]), # was pg.intColor(idx_pulse)
+                                            style=qt_line_styles[0], width=2)
                     else:
-                        cur_pen = pg.mkPen(color=pg.intColor(idx_sig), 
-                                            style=qt_line_style)
+                        cur_pen = pg.mkPen(color=pg.mkColor(DEFAULT_COLORS[idx_sig]), 
+                                            style=line_style, width=2)
 
                     # retrieve data from the parent model
                     values, times = self.parent.model.data( (pulse, sig), None)
-                    if getattr(self.config, 'display_legend', True):
-                        self.graphWidget.addLegend()  # addLegend() must be called BEFORE plot()
+
                     
+                    # TODO : probably better to use setData on defined PlotCurveItem ?
+                        
                     # plot values only if they are both arrays
-                    if (np.array(times).size > 1) and (np.array(values).size > 1):   
+                    if (np.array(times).size > 1) and (np.array(values).size > 1):
+                        name=f'{pulse}:{self.shorten_name(sig)}' 
                         self.graphWidget.plot(times, values, 
-                                          name=self.shorten_name(sig), 
+                                          name=name, 
                                           pen=cur_pen)
                         # append signal labels and units 
                         units.append(self.parent.model.signal_unit(sig))
@@ -267,6 +282,7 @@ class Panel(QSplitter):
                 else:
                     self.graphWidget.setTitle(None)
                 
+
         
     def shorten_name(self, sig_name: str) -> str:
         """
