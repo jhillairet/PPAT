@@ -11,17 +11,15 @@ from scipy.io import loadmat
 from scipy.constants import m_p, pi, e, epsilon_0, c 
     
 signals = {
-    ## Shot properties
-    'Datetime': {'name': None, 'fun': 'pulse_datetime', 'unit':'', 'label':'pulse datetime'},
-    'year': {'name':None, 'fun': 'pulse_year', 'unit':'', 'label': 'pulse year'},
-    'month': {'name':None, 'fun': 'pulse_month', 'unit':'', 'label': 'pulse month'},
-    'day': {'name':None, 'fun': 'pulse_day', 'unit':'', 'label': 'pulse day'},
+    ## Shot date and time
+    'Datetime': {'name': None, 'fun': 'pulse_datetime', 'unit':'', 'label':'pulse datetime', 'options':{'display':False}},
+    'year': {'name':None, 'fun': 'pulse_year', 'unit':'', 'label': 'pulse year', 'options':{'display':False}},
+    'month': {'name':None, 'fun': 'pulse_month', 'unit':'', 'label': 'pulse month', 'options':{'display':False}},
+    'day': {'name':None, 'fun': 'pulse_day', 'unit':'', 'label': 'pulse day', 'options':{'display':False}},
+    
     ## Magnetics
     'Ip': {'name': 'SMAG_IP', 'unit': 'MA', 'label': 'Plasma current', 'options':{'scaling':1e-3}},
     'Vloop': {'name': None, 'fun':'Vloop', 'unit': 'V', 'label': 'Loop voltage'},
-    'Ohmic_P': {'name': None, 'fun':'Ohmic_power', 'unit':'MW', 'label':'Ohmic Power'},
-    'Separatrix_P': {'name':None, 'fun':'Separatrix_power', 'unit':'MW', 'label':'Power at separatrix', 'options':{'ylim':(0, 5)}},
-    'Te': {'name':None, 'fun':'get_Te', 'unit':'eV', 'label':'Te Central',  },
     'Rext_upper': {'name': 'GMAG_TEST%1', 'unit': 'mm', 'label': 'Rext at Z=+250 mm'},  # Rext upper
     'Rext_median': {'name': 'GMAG_TEST%2', 'unit': 'mm', 'label': 'Rext median', 'options':{'ylim':(2900, 2950)}},  # Rext median
     'Rext_lower': {'name': 'GMAG_TEST%3', 'unit': 'mm', 'label': 'Rext at Z=-250 mm'},  # Rext lower
@@ -35,11 +33,14 @@ signals = {
     'Dext_LH2': {'name': None, 'fun':'Dext_LH2', 'unit': 'mm', 'label': 'Radial Gap with LH2', 'options':{'ylim':(0, 60)}},
     'Zgeo': {'name': 'GMAG_BARY%2', 'unit': 'm', 'label': 'Zgeo'},  # Zgeo barycentre
     'R0': {'name': 'GMAG_BARY%1', 'unit': 'm', 'label': 'Large radius'},  # grand rayon
+    # Ignitron
     'Ignitron': {'name' : None, 'fun': 'tignitron', 'unit': 's', 'label': 'Ignitron Time'},
+    # Neutron flux
     'Neutron1': {'name': 'GFLUNTN%1', 'unit': 'N/s', 'label':'Neutron#1', 'options':{'ymin':10}},
     'Neutron2': {'name': 'GFLUNTN%2', 'unit': 'N/s', 'label':'Neutron#2', 'options':{'ymin':10}},
     # Movable limiter position (LPA)
-    'LPA': {'name': 'GMAG_POSLPA%1', 'unit': 'm', 'label': 'LPA'},
+    'LPA_Position': {'name': 'GMAG_POSLPA%1', 'unit': 'm', 'label': 'LPA position'},  
+    
     ## Fueling
     'nl': {'name': 'GINTLIDRT%3', 'unit': '$m^{-2}$', 'label': 'Line integrated density'},
     'Valve1': {'name': 'GDEBIT%1', 'unit': '$Pa.m^3/s$', 'label': 'Valve#1 (LH1)'},
@@ -50,8 +51,12 @@ signals = {
     'Valve10': {'name': 'GDEBIT%10', 'unit': '$Pa.m^3/s$', 'label': 'Valve#10 (Q2)'},
     'Valve11': {'name': 'GDEBIT%11', 'unit': '$Pa.m^3/s$', 'label': 'Valve#11 (up.divertor)'},
     'Valve21': {'name': 'GDEBIT%21', 'unit': '$Pa.m^3/s$', 'label': 'Valve#21'},
-    ## RF
+    
+    ## Generic Powers
+    'Ohmic_P': {'name': None, 'fun':'Ohmic_power', 'unit':'MW', 'label':'Ohmic Power'},
+    'Separatrix_P': {'name':None, 'fun':'Separatrix_power', 'unit':'MW', 'label':'Power Crossing Separatrix', 'options':{'ylim':(0, 5)}},
     'RF_P_tot': {'name':None, 'fun':'RF_P_tot', 'unit':'MW', 'label':'Total RF Power'},
+    
     ## ICRH
     # IC coupled powers
     'IC_P_tot': {'name': 'SICHPTOT', 'unit': 'MW', 'label': 'IC total coupled power', 'options':{'scaling':1e-3}},
@@ -77,10 +82,11 @@ signals = {
     'IC_P_Gen4_fwd' : {'name': None, 'fun':'IC_Gen_fwd4', 'unit': 'kW', 'label': 'Generator 4 forward power'},
     'IC_P_Gen5_fwd' : {'name': None, 'fun':'IC_Gen_fwd5', 'unit': 'kW', 'label': 'Generator 5 forward power'},
     'IC_P_Gen6_fwd' : {'name': None, 'fun':'IC_Gen_fwd6', 'unit': 'kW', 'label': 'Generator 6 forward power'},
-    # IC antenna positions (use tsmat)
-    'IC_Positions': {'name': None, 'fun': 'IC_Positions', 'unit': 'm', 'label': 'IC Antenna positions'},
-    'LH_Positions': {'name': None, 'fun': 'LH_Positions', 'unit': 'm', 'label': 'LH Antenna positions'},
-    'LPA_Position': {'name': 'GMAG_POSLPA%1', 'unit': 'm', 'label': 'LPA position'},
+    # IC antennas positions vs time 
+    'IC_Q1_position': {'name': 'GICHANTPOS%1', 'unit': 'm', 'label': 'Q1 Antenna radial position', 'options':{'scaling':1e-3}},
+    'IC_Q2_position': {'name': 'GICHANTPOS%2', 'unit': 'm', 'label': 'Q2 Antenna radial position', 'options':{'scaling':1e-3}},
+    'IC_Q4_position': {'name': 'GICHANTPOS%3', 'unit': 'm', 'label': 'Q4 Antenna radial position', 'options':{'scaling':1e-3}},        
+    'IC_Positions': {'name': None, 'fun': 'IC_Positions', 'unit': 'm', 'label': 'IC Antenna positions', 'options':{'display': False}},  # returns scalar values
     # IC antenna frequencies (use tsmat)
     'IC_Frequencies': {'name': None, 'fun': 'IC_Frequencies', 'unit': 'MHz', 'label': 'IC Antenna Frequencies'},
     # FPGA temperatures
@@ -256,24 +262,31 @@ signals = {
     'IC_Current_left_lower_Q4': {'name': 'GICHICAPA%10', 'unit': 'A', 'label': 'left lower capacitor current Q4', 'options': {'ylimit':915}},
     'IC_Current_right_upper_Q4': {'name': 'GICHICAPA%11', 'unit': 'A', 'label': 'right upper capacitor current Q4', 'options': {'ylimit':915}},
     'IC_Current_right_lower_Q4': {'name': 'GICHICAPA%12', 'unit': 'A', 'label': 'right lower capacitor current Q4', 'options': {'ylimit':915}}, 
-    # IC Errors
-    
+   
     ## LHCD
     'LH_P_tot': {'name': 'SHYBPTOT', 'unit': 'MW', 'label': 'LH total coupled power'},
     'LH_P_LH1': {'name': 'SHYBPFORW1', 'unit': 'kW', 'label': 'LH1 coupled power'},
     'LH_P_LH2': {'name': 'SHYBPFORW2', 'unit': 'kW', 'label': 'LH2 coupled power'},
     'LH_Rc_LH1': {'name': 'SHYBREF1', 'unit': '%', 'label': 'Avg. Refl. Coeff LH1'},
     'LH_Rc_LH2': {'name': 'SHYBREF2', 'unit': '%', 'label': 'Avg. Refl. Coeff LH2'},
+    # LH antenna positions (vs time)
+    'LH_LH1_position': {'name': 'GPOSHYB%1', 'unit': 'm', 'label': 'LH1 Antenna radial position'},
+    'LH_LH2_position': {'name': 'GPOSHYB%2', 'unit': 'm', 'label': 'LH2 Antenna radial position'},
+    'LH_Positions': {'name': None, 'fun': 'LH_Positions', 'unit': 'm', 'label': 'LH Antenna positions', 'options':{'display': False}},  # returns scalar values
+    
     # Impurities (SURVIE)
     'Cu': {'name': 'scu19', 'unit': 'a.u.', 'label': 'Copper'},
     'Fe': {'name': 'SFE15', 'unit': 'a.u.', 'label': 'Iron'},
     'Ag18': {'name': 'SAG18', 'unit':'a.u.', 'label':'Silver-18'},
     'Ag19': {'name': 'SAG19', 'unit':'a.u.', 'label':'Silver-19'},
-    ## Temperature
-    'Te1': {'name': None, 'fun': 'ECE_1', 'unit': 'eV', 'label': 'Temperature (ECE)'},
-    'Te2': {'name': None, 'fun': 'ECE_2', 'unit': 'eV', 'label': 'Temperature (ECE)'},
-    'Te3': {'name': None, 'fun': 'ECE_3', 'unit': 'eV', 'label': 'Temperature (ECE)'},
-    'Te4': {'name': None, 'fun': 'ECE_4', 'unit': 'eV', 'label': 'Temperature (ECE)'},
+    
+    ## Plasma Temperature
+    'Te': {'name':None, 'fun':'get_Te', 'unit':'eV', 'label':'Te Central',  },
+    'Te1': {'name': None, 'fun': 'ECE_1', 'unit': 'eV', 'label': 'Temperature (ECE_1)'},
+    'Te2': {'name': None, 'fun': 'ECE_2', 'unit': 'eV', 'label': 'Temperature (ECE_2)'},
+    'Te3': {'name': None, 'fun': 'ECE_3', 'unit': 'eV', 'label': 'Temperature (ECE_3)'},
+    'Te4': {'name': None, 'fun': 'ECE_4', 'unit': 'eV', 'label': 'Temperature (ECE_4)'},
+    
     ## Langmuir probes
     'Langmuir_LHCD1': {'name': 'GISLH%1', 'unit': 'mA', 'label':'Ion saturation current on the LHCD launcher probes #1'},
     'Langmuir_LHCD2': {'name': 'GISLH%2', 'unit': 'mA', 'label':'Ion saturation current on the LHCD launcher probes #2'},
@@ -283,19 +296,23 @@ signals = {
     'Langmuir_LHCD6': {'name': 'GISLH%6', 'unit': 'mA', 'label':'Ion saturation current on the LHCD launcher probes #6'},
     'Langmuir_LHCD7': {'name': 'GISLH%7', 'unit': 'mA', 'label':'Ion saturation current on the LHCD launcher probes #7'},
     'Langmuir_LHCD8': {'name': 'GISLH%8', 'unit': 'mA', 'label':'Ion saturation current on the LHCD launcher probes #8'},
+    
     ## Barometry
     'baro_Q2': {'name':'GBARDB8%4', 'unit': '--', 'label':'barometry Q2 raw'},
     'baro_Q4': {'name':'GBARDB8%9', 'unit': '--', 'label':'barometry Q4 raw'},
+    
     ## Bolometry
     'Prad': {'name': None, 'fun':'Prad_pradwest', 'unit':'MW', 'label':'Total Radiated Power'},
     'Prad_bulk': {'name': None, 'fun':'Prad_bulk_pradwest', 'unit':'MW', 'label':'Bulk Radiated Power'},    
     'Prad_imas': {'name': None, 'fun':'Prad_imas', 'unit':'MW', 'label':'Total Radiated Power (imas)'},
     'Prad_bulk_imas': {'name': None, 'fun':'Prad_bulk_imas', 'unit':'MW', 'label':'Bulk Radiated Power (imas)'},    
+    
     # Divertor current
     'Divertor_lower_current_cons': {'name':'GPOLO_IDC2%1', 'unit':'kA', 'label':'Lower divertor current consigne'},
     'Divertor_lower_current': {'name':'GPOLO_IDC2%2', 'unit':'kA', 'label':'Lower divertor current'},    
     'Divertor_lower_voltage_cons': {'name':'GPOLO_UDC2%2', 'unit':'V', 'label':'Lower divertor current consigne'},
     'Divertor_lower_voltage': {'name':'GPOLO_UDC2%3', 'unit':'V', 'label':'Lower divertor current'},   
+    
     # MHD
     'MHD' : {'name':'GMHD_D1%2', 'unit':'a.u.', 'label':'MHD mode envelop'},
     }

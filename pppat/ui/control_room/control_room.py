@@ -97,7 +97,10 @@ def list_signals(pulse=None) -> list:
     """
     sig_list = []
     for sig in signals:
-        sig_list.append(sig+': '+signals[sig]['label'])
+        # do not keep signals marked as display=False
+        if signals[sig].get('options', {}).get('display', True):
+            sig_list.append(sig+': '+signals[sig]['label'])
+
     return sig_list
 
 def list_waveforms(pulse=None) -> list:
@@ -148,7 +151,7 @@ class PanelConfiguration:
         None.
 
         """
-        self.signal_type = 'PCS waveforms'
+        self.signal_type = 'signals' # or  'PCS waveforms'
         self.selected_signals = []
         self.backend = 'pyqtgraph'  # currently not used
         # numerical data stored
@@ -1330,7 +1333,7 @@ class ControlRoom(QMainWindow):
 
         """
         panel1_config = PanelConfiguration()
-        panel1_config.signal_type = 'PCS waveforms'
+        panel1_config.signal_type = 'signals' # or 'PCS waveforms'
         panel1_config.selected_signals = []
         return [panel1_config]
         # panel2_config = PanelConfiguration()
