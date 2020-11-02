@@ -1104,10 +1104,13 @@ class ControlRoom(QMainWindow):
         file_name, selected_filter = QFileDialog.getOpenFileName(self,
                                                "Open Configuration File",
                                                "", "Config file (*.config)")
-        # load the new configuration and setup the GUI accordingly
-        self.config['config_file'] = file_name
-        self.config = self.load_config(file_name)
-        self.ui_setup_from_config()
+        try:
+            # load the new configuration and setup the GUI accordingly
+            self.config['config_file'] = file_name
+            self.config = self.load_config(file_name)
+            self.ui_setup_from_config()
+        except IOError as e:
+            print(e)
 
 
     def ui_save_configuration(self):
