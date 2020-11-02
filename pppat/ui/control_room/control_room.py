@@ -161,7 +161,7 @@ class PanelConfiguration:
         # color-cycle wrt pulses (True) or signal type (False)
         self.color_wrt_pulses = True
         # show the legend in panel plots?
-        self.display_legend = False
+        self.display_legend = True
         # show the cross-hair?
         self.display_crosshair = False
 
@@ -874,7 +874,7 @@ class ControlRoom(QMainWindow):
         action_add_panel.triggered.connect(self.ui_add_panel)
         menu_panels.addAction(action_add_panel)
 
-        action_remove_panel = QAction('&Remove Panel', self)
+        action_remove_panel = QAction('&Remove Last Panel', self)
         action_remove_panel.triggered.connect(self.ui_remove_panel)
         menu_panels.addAction(action_remove_panel)
 
@@ -899,7 +899,7 @@ class ControlRoom(QMainWindow):
  
         self.action_legends = QAction('&Legends', self)
         self.action_legends.setCheckable(True)
-        self.action_legends.setChecked(False)
+        self.action_legends.setChecked(True)
         self.action_legends.triggered.connect(self.ui_legends)
         menu_config.addAction(self.action_legends)
 
@@ -1086,8 +1086,8 @@ class ControlRoom(QMainWindow):
             # removed_panel = page.panels.pop()
         panel_to_remove = page.widget(panel_index)
         panel_to_remove.hide()
+        panel_to_remove.deleteLater()
         removed_panel = page.panels.pop(panel_index)
-        # TODO bug with pop()
         
         # update the tab's panels configuration
         page.panel_configs.pop(panel_index)
