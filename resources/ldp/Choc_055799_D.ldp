@@ -1,0 +1,1362 @@
+				Sunday 08 November 2020
+			--------------------------------------
+Producteur : Diagnostics
+Selection  : tous
+			--------------------------------------
+
+Choc no : 55799
+
+				----------------------
+
+DBARO       		: present
+   FBARMH100   	: taille = [24000256,   1,   1]
+   GBARDB4     	: taille = [ 18000,   4,   1]
+   GBARDB8     	: taille = [  9000,  20,   1]
+   GBARDM4     	: taille = [ 18000,   4,   1]
+   GBARDP4     	: taille = [ 18000,   6,   1]
+   GBARDS1     	: taille = [ 72000,   3,   1]
+   GBARDS32    	: taille = [  2272,  16,   1]
+   GBARTB4     	: taille = [ 18000,   2,   1]
+   GBARTB8     	: taille = [  9000,   2,   1]
+   GBARTM4     	: taille = [ 18000,   2,   1]
+   GBARTP4     	: taille = [ 18000,   2,   1]
+   GBARTS1     	: taille = [ 72000,   2,   1]
+   GBARTS32    	: taille = [  2272,   2,   1]
+				----------------------
+
+DBFCE       		: absent
+				----------------------
+
+DBIDON      		: absent
+				----------------------
+
+DBOLO       		: present
+   GBOLOC1     	: taille = [  7000,  16,   1]
+   GBOLOC2     	: taille = [  7000,  16,   1]
+   GBOLOC3     	: taille = [     0,  16,   1]
+   GBOLOC4     	: taille = [     0,   8,   1]
+   GBOLOC5     	: taille = [     0,  16,   1]
+   GBOLOREEL   	: taille = [  7000,   3,   1]
+   GDATBOLO    	: taille = [  7000,   2,   1]
+				----------------------
+
+DBRAGG      		: absent
+				----------------------
+
+DCAES       		: absent
+				----------------------
+
+DCALOR      		: present
+	GCAL_F_BAFF1	: absente
+	GCAL_F_BAFF5	: absente
+	GCAL_F_CPL_3	: absente
+	GCAL_F_CPL_4	: absente
+	GCAL_F_FCI_1	: absente
+	GCAL_F_FCI_2	: absente
+	GCAL_F_FCI_4	: absente
+	GCAL_F_LDIVA	: absente
+	GCAL_F_LDIVB	: absente
+	GCAL_F_PEIE1	: absente
+	GCAL_F_PEIE3	: absente
+	GCAL_F_PEIE5	: absente
+	GCAL_F_PEII 	: absente
+	GCAL_F_PRIJ 	: absente
+	GCAL_F_PVDEA	: absente
+	GCAL_F_PVDEB	: absente
+	GCAL_F_UDIVA	: absente
+	GCAL_F_UDIVB	: absente
+	GCAL_TE_FCI 	: absente
+	GCAL_TS_FCI1	: absente
+	GCAL_TS_FCI2	: absente
+	GCAL_TS_FCI4	: absente
+	GCAL_T_BAFFA	: absente
+	GCAL_T_BAFFB	: absente
+	GCAL_T_CPL_3	: absente
+	GCAL_T_CPL_4	: absente
+	GCAL_T_GLOB3	: absente
+	GCAL_T_IN3BB	: absente
+	GCAL_T_IN5BB	: absente
+	GCAL_T_IN6BH	: absente
+	GCAL_T_LDIVA	: absente
+	GCAL_T_LDIVB	: absente
+	GCAL_T_PEIEA	: absente
+	GCAL_T_PEIEB	: absente
+	GCAL_T_PEIEJ	: absente
+	GCAL_T_PEII 	: absente
+	GCAL_T_PRIPJ	: absente
+	GCAL_T_PVDEA	: absente
+	GCAL_T_PVDEB	: absente
+	GCAL_T_UDIVA	: absente
+	GCAL_T_UDIVB	: absente
+	GETC_BAFF_2A	: absente
+	GETC_BAFF_5A	: absente
+	GETC_ISP_6A 	: absente
+	GETC_OSP_1A 	: absente
+	GETC_OSP_6A 	: absente
+	GETC_RIPL_6A	: absente
+	GIRT_TC_ENDO	: absente
+	GIRT_TENDOTG	: absente
+	GIRT_T_MI_6B	: absente
+	SCAL_D_FCE  	: absente
+	SCAL_D_GLOB 	: absente
+	SCAL_D_PH   	: absente
+	SCAL_F_LPA  	: absente
+	SCAL_T_LPA  	: absente
+	SCAL_T_TEGLO	: absente
+	SCAL_T_TEPH 	: absente
+	SCAL_T_TFCE 	: absente
+	SCAL_T_TSGLO	: absente
+	SCAL_T_TSPH 	: absente
+				----------------------
+
+DCAMIR      		: absent
+				----------------------
+
+DCEDRE      		: present
+   FCED_HEAD   	: taille = [   294]		
+   FCED_HFAC   	: taille = [503333]		
+   FCED_LFAC   	: taille = [283721192]		
+	FTST        	: absente
+	GDATEDD     	: absente
+				----------------------
+
+DCO2        		: absent
+				----------------------
+
+DCX         		: absent
+				----------------------
+
+DDIV1       		: absent
+				----------------------
+
+DDIV2       		: absent
+				----------------------
+
+DDUO        		: absent
+				----------------------
+
+DECE        		: absent
+				----------------------
+
+DECE2D      		: absent
+				----------------------
+
+DECERAP     		: present
+	FECERAP     	: absente
+	GDATEECERAP 	: absente
+	SECERAPTEST 	: absente
+				----------------------
+
+	FECERAP     	: absente
+	GDATEECERAP 	: absente
+	SECERAPTEST 	: absente
+				----------------------
+
+DEQUI       		: present
+	GDATE_EQUI  	: absente
+	GEQAEQUA    	: absente
+	GEQALPHA    	: absente
+	GEQELONG    	: absente
+	GEQFFPRIM   	: absente
+	GEQNE       	: absente
+	GEQPPRIM    	: absente
+	GEQPRESS    	: absente
+	GEQQPROF    	: absente
+	GEQRGEOM    	: absente
+	GEQTRIAN    	: absente
+	GEQUINOX    	: absente
+	GEQZGEOM    	: absente
+	GTEST_EQUI  	: absente
+				----------------------
+
+DFABRY      		: absent
+				----------------------
+
+DFARAD      		: absent
+				----------------------
+
+DFCE        		: absent
+				----------------------
+
+DFCI        		: present
+   GICHANTPOS  	: taille = [ 49500,   3,   1]
+   GICHANTPOWQ1	: taille = [ 49000,   4,   1]
+   GICHANTPOWQ2	: taille = [ 49000,   4,   1]
+   GICHANTPOWQ4	: taille = [ 49000,   4,   1]
+   GICHCAPA    	: taille = [ 49400,  12,   1]
+   GICHCAPAQ1  	: taille = [ 49000,   4,   1]
+   GICHCAPAQ2  	: taille = [ 49000,   4,   1]
+   GICHCAPAQ4  	: taille = [ 49000,   4,   1]
+   GICHCOMMU   	: taille = [ 49500,   6,   1]
+   GICHCONSPCS 	: taille = [ 49400,   9,   1]
+   GICHCOUPRES 	: taille = [ 49400,   6,   1]
+   GICHD7851   	: taille = [ 49000,   2,   1]
+   GICHD7853   	: taille = [ 49000,   2,   1]
+   GICHDT6225  	: taille = [ 49500,   2,   1]
+   GICHGENLIM  	: taille = [ 49500,   3,   1]
+   GICHICAPA   	: taille = [ 49400,  12,   1]
+   GICHLOOPTIME	: taille = [ 49400,   2,   1]
+   GICHPHASESQ1	: taille = [ 49000,   7,   1]
+   GICHPHASESQ2	: taille = [ 49000,   7,   1]
+   GICHPHASESQ4	: taille = [ 49000,   7,   1]
+   GICHPREFGEN 	: taille = [ 49500,   6,   1]
+   GICHPTRAGEN 	: taille = [ 49500,   6,   1]
+   GICHSIGERR  	: taille = [ 49400,  12,   1]
+   GICHSPP     	: taille = [ 49500,   3,   1]
+   GICHVCAP    	: taille = [ 49500,   4,   1]
+   GICHVIRTT   	: taille = [     0,   2,   1]
+   GICHVPIN    	: taille = [ 49500,   6,   1]
+   GICHVPROBEQ1	: taille = [ 49000,   4,   1]
+   GICHVPROBEQ2	: taille = [ 49000,   4,   1]
+   GICHVPROBEQ4	: taille = [ 49000,   4,   1]
+   GICHVTRANSFO	: taille = [ 49500,   6,   1]
+   SICHPHQ1    	: taille = [ 49400,   1,   1]
+   SICHPHQ2    	: taille = [ 49400,   1,   1]
+   SICHPHQ4    	: taille = [ 49400,   1,   1]
+   SICHPQ1     	: taille = [ 49400,   1,   1]
+   SICHPQ2     	: taille = [ 49400,   1,   1]
+   SICHPQ4     	: taille = [ 49400,   1,   1]
+   SICHPTOT    	: taille = [ 49400,   1,   1]
+				----------------------
+
+DFINIR      		: absent
+				----------------------
+
+DFINIR1     		: absent
+				----------------------
+
+DFINIR2     		: absent
+				----------------------
+
+DFLUC       		: absent
+				----------------------
+
+DFLUCTE     		: absent
+				----------------------
+
+DGAZ        		: present
+   GBARAT      	: taille = [ 13496,   8,   1]
+   GDATEGAZ1   	: taille = [ 13496,   2,   1]
+   GDATEGAZ2   	: taille = [ 13496,   2,   1]
+   GDEBCAL     	: taille = [ 12416,  24,   1]
+   GDEBIT      	: taille = [ 12416,  24,   1]
+   GDEBREF     	: taille = [ 13496,  24,   1]
+   GDEBTOT     	: taille = [ 12416,   3,   1]
+   GERATE      	: taille = [ 12416,  24,   1]
+   GISPI       	: taille = [ 13496,  12,   1]
+   GMANO       	: taille = [ 13496,  16,   1]
+   GMESDEB     	: taille = [ 13496,  24,   1]
+   GPBALLON    	: taille = [ 13496,  11,   1]
+   GPTORE      	: taille = [ 13496,   2,   1]
+   GRATE       	: taille = [ 12416,   3,   1]
+   GTBALLON    	: taille = [ 13496,   4,   1]
+   GTENSION    	: taille = [ 13496,  24,   1]
+   GTESTGAZ    	: taille = [ 13496,  16,   1]
+   SDEB        	: taille = [ 12416,   1,   1]
+   SDEBCAL     	: taille = [ 13496,   1,   1]
+   SPR         	: taille = [ 13496,   1,   1]
+				----------------------
+
+   GBARAT      	: taille = [ 13496,   8,   1]
+   GDATEGAZ1   	: taille = [ 13496,   2,   1]
+   GDATEGAZ2   	: taille = [ 13496,   2,   1]
+   GDEBCAL     	: taille = [ 12416,  24,   1]
+   GDEBIT      	: taille = [ 12416,  24,   1]
+   GDEBREF     	: taille = [ 13496,  24,   1]
+   GDEBTOT     	: taille = [ 12416,   3,   1]
+   GERATE      	: taille = [ 12416,  24,   1]
+   GISPI       	: taille = [ 13496,  12,   1]
+   GMANO       	: taille = [ 13496,  16,   1]
+   GMESDEB     	: taille = [ 13496,  24,   1]
+   GPBALLON    	: taille = [ 13496,  11,   1]
+   GPTORE      	: taille = [ 13496,   2,   1]
+   GRATE       	: taille = [ 12416,   3,   1]
+   GTBALLON    	: taille = [ 13496,   4,   1]
+   GTENSION    	: taille = [ 13496,  24,   1]
+   GTESTGAZ    	: taille = [ 13496,  16,   1]
+   SDEB        	: taille = [ 12416,   1,   1]
+   SDEBCAL     	: taille = [ 13496,   1,   1]
+   SPR         	: taille = [ 13496,   1,   1]
+				----------------------
+
+DGENE       		: present
+   GCONSGEN    	: taille = [ 51000,   8,   1]
+   GCUGENE     	: taille = [     0,   9,   1]
+   GDATGENE1   	: taille = [     0,   2,   1]
+   GDATGENE2   	: taille = [ 51000,   2,   1]
+   GDATGENE3   	: taille = [ 51000,   2,   1]
+   GDATGENE4   	: taille = [ 51000,   2,   1]
+   GDIVGEN     	: taille = [     0,   4,   1]
+   GENT13      	: taille = [ 51000,  12,   1]
+   GENT14      	: taille = [ 51000,   8,   1]
+   GIBOBGEN    	: taille = [ 51000,  10,   1]
+   GMIGENE     	: taille = [     0,  10,   1]
+   GMUGENE     	: taille = [     0,  10,   1]
+   GMXGENE     	: taille = [     0,  10,   1]
+   GPHASGEN    	: taille = [ 51000,   4,   1]
+   GSOR10      	: taille = [ 51000,   8,   1]
+   GTENGEN     	: taille = [ 51000,   9,   1]
+   GTESTGEN    	: taille = [ 51000,   8,   1]
+   GVOIEGENE   	: taille = [     0,  22,   1]
+   GVOIEGENE2  	: taille = [     0,  26,   1]
+   SCOAUX1     	: taille = [ 51000,   1,   1]
+   SCOAUX2     	: taille = [ 51000,   1,   1]
+   SCOAUX3     	: taille = [ 51000,   1,   1]
+   SCONSGEN0   	: taille = [ 51000,   1,   1]
+   SMRGENE     	: taille = [     0,   1,   1]
+   STENSBABA   	: taille = [ 51000,   1,   1]
+				----------------------
+
+DGLACON     		: absent
+				----------------------
+
+DHALLP      		: present
+	GHAL_BPROBE 	: absente
+	GHAL_DATE   	: absente
+	GHAL_TEMP   	: absente
+				----------------------
+
+DHXRAY      		: absent
+				----------------------
+
+DHYB        		: present
+   GCONSHYB    	: taille = [ 19200,  32,   1]
+   GCREFC1     	: taille = [ 16960,  16,   1]
+   GCREFC2     	: taille = [ 17632,  16,   1]
+   GDAT2HYB    	: taille = [ 19200,   2,   1]
+   GDAT3HYB    	: taille = [ 19200,   2,   1]
+   GDAT4HYB    	: taille = [ 19200,   2,   1]
+   GDAT5HYB    	: taille = [ 19200,   2,   1]
+   GDAT6HYB    	: taille = [ 19200,   2,   1]
+   GDAT7HYB    	: taille = [ 19200,   2,   1]
+   GDAT8HYB    	: taille = [ 19200,   2,   1]
+   GDAT9HYB    	: taille = [ 19200,   2,   1]
+   GDATHYB     	: taille = [ 19200,   2,   1]
+   GHYBPGENE   	: taille = [ 19200,   3,   1]
+   GHYBPLA     	: taille = [     0,   6,   1]
+   GHYBPOL     	: taille = [     0,   2,   1]
+   GISLH       	: taille = [ 19200,   8,   1]
+   GNPARDEM    	: taille = [ 19200,   2,   1]
+   GPFORWC1    	: taille = [ 19200,  16,   1]
+   GPFORWC2    	: taille = [ 19200,  16,   1]
+   GPHBC1      	: taille = [ 18976,  16,   1]
+   GPHBC2      	: taille = [ 19200,  16,   1]
+   GPHIC1      	: taille = [ 17856,  16,   1]
+   GPHIC2      	: taille = [ 17856,  16,   1]
+   GPHRC1      	: taille = [ 18752,  16,   1]
+   GPHRC2      	: taille = [ 19200,  16,   1]
+   GPHYB       	: taille = [ 19200,   3,   1]
+   GPIKLYC1    	: taille = [ 19200,   8,   1]
+   GPIKLYC2    	: taille = [ 19200,   8,   1]
+   GPINJC1     	: taille = [ 19200,  16,   1]
+   GPINJC2     	: taille = [ 19200,  16,   1]
+   GPOSHYB     	: taille = [ 19200,   2,   1]
+   GPREFLC1    	: taille = [ 19200,  16,   1]
+   GPREFLC2    	: taille = [ 19200,  16,   1]
+   GPRESHYB    	: taille = [ 19200,   2,   1]
+   GPRKLYC1    	: taille = [ 19200,   8,   1]
+   GPRKLYC2    	: taille = [ 18528,   8,   1]
+   GREFHYB     	: taille = [ 19200,   2,   1]
+   GREFHYBB    	: taille = [ 19200,   2,   1]
+   GREFHYBH    	: taille = [ 19200,   2,   1]
+   GSONDLH     	: taille = [     0,  10,   1]
+   GTEMPC1     	: taille = [  2624,  14,   1]
+   GTEMPC2     	: taille = [  2400,   5,   1]
+   GTEMPCH1    	: taille = [  2400,   8,   1]
+   GTEMPCH2    	: taille = [  2400,   8,   1]
+   GTESTHYB    	: taille = [ 19200,  16,   1]
+   GUSLH       	: taille = [ 19200,   2,   1]
+   SHYBP1      	: taille = [ 19200,   1,   1]
+   SHYBP2      	: taille = [ 19200,   1,   1]
+   SHYBPFORW1  	: taille = [ 19200,   1,   1]
+   SHYBPFORW2  	: taille = [ 19200,   1,   1]
+   SHYBPREFL1  	: taille = [ 19200,   1,   1]
+   SHYBPREFL2  	: taille = [ 19200,   1,   1]
+   SHYBPTOT    	: taille = [ 19200,   1,   1]
+   SHYBREF1    	: taille = [ 19200,   1,   1]
+   SHYBREF2    	: taille = [ 19200,   1,   1]
+   SPRIPHYB    	: taille = [ 19200,   1,   1]
+   STOSHYB     	: taille = [ 19200,   1,   1]
+   STPSHYB     	: taille = [ 19200,   1,   1]
+				----------------------
+
+DIAS        		: absent
+				----------------------
+
+DIDN        		: absent
+				----------------------
+
+DIFDOP      		: present
+   FACQIRIS0_V1	: taille = [4337310,   1,   1]
+   FACQIRIS0_V2	: taille = [4164372,   1,   1]
+   FACQIRIS1_V1	: taille = [9672007,   1,   1]
+   FACQIRIS1_V2	: taille = [9583063,   1,   1]
+   FACQIRIS_DAT	: taille = [   576,   1,   1]
+   FCOS        	: taille = [     0,   1,   1]
+   FDATEDOP    	: taille = [     0,   1,   1]
+   FDOP1       	: taille = [     0,   1,   1]
+   FDOP2       	: taille = [     0,   1,   1]
+   FDOP3       	: taille = [     0,   1,   1]
+   FSIN        	: taille = [     0,   1,   1]
+   SFREQ       	: taille = [ 39000,   1,   1]
+   SPOSVERIN   	: taille = [ 39000,   1,   1]
+   SRMSCOS     	: taille = [ 39000,   1,   1]
+   SRMSCOS_W   	: taille = [ 39000,   1,   1]
+   SRMSVIDEO   	: taille = [ 39000,   1,   1]
+   SRMSVIDEO_W 	: taille = [ 39000,   1,   1]
+				----------------------
+
+   FACQIRIS0_V1	: taille = [4337310,   1,   1]
+   FACQIRIS0_V2	: taille = [4164372,   1,   1]
+   FACQIRIS1_V1	: taille = [9672007,   1,   1]
+   FACQIRIS1_V2	: taille = [9583063,   1,   1]
+   FACQIRIS_DAT	: taille = [   576,   1,   1]
+   FCOS        	: taille = [     0,   1,   1]
+   FDATEDOP    	: taille = [     0,   1,   1]
+   FDOP1       	: taille = [     0,   1,   1]
+   FDOP2       	: taille = [     0,   1,   1]
+   FDOP3       	: taille = [     0,   1,   1]
+   FSIN        	: taille = [     0,   1,   1]
+   SFREQ       	: taille = [ 39000,   1,   1]
+   SPOSVERIN   	: taille = [ 39000,   1,   1]
+   SRMSCOS     	: taille = [ 39000,   1,   1]
+   SRMSCOS_W   	: taille = [ 39000,   1,   1]
+   SRMSVIDEO   	: taille = [ 39000,   1,   1]
+   SRMSVIDEO_W 	: taille = [ 39000,   1,   1]
+				----------------------
+
+DIFPOL      		: absent
+				----------------------
+
+DINTERF     		: absent
+				----------------------
+
+DINTMEG     		: present
+   FINTMEG     	: taille = [246414018,   1,   1]
+   GDATEINTMEG 	: taille = [    27,   2,   1]
+   SINTMEGTEST 	: taille = [    27,   1,   1]
+				----------------------
+
+DINTRPOL    		: present
+   FINTDCN1    	: taille = [1035600,   1,   1]
+   FINTDCN10   	: taille = [1035600,   1,   1]
+   FINTDCN2    	: taille = [1035600,   1,   1]
+   FINTDCN3    	: taille = [1035600,   1,   1]
+   FINTDCN4    	: taille = [1035600,   1,   1]
+   FINTDCN5    	: taille = [1035600,   1,   1]
+   FINTDCN6    	: taille = [1035600,   1,   1]
+   FINTDCN7    	: taille = [1035600,   1,   1]
+   FINTDCN8    	: taille = [1035600,   1,   1]
+   FINTDCN9    	: taille = [1035600,   1,   1]
+   FINTH2O1    	: taille = [1035600,   1,   1]
+   FINTH2O10   	: taille = [1035600,   1,   1]
+   FINTH2O2    	: taille = [1035600,   1,   1]
+   FINTH2O3    	: taille = [1035600,   1,   1]
+   FINTH2O4    	: taille = [1035600,   1,   1]
+   FINTH2O5    	: taille = [1035600,   1,   1]
+   FINTH2O6    	: taille = [1035600,   1,   1]
+   FINTH2O7    	: taille = [1035600,   1,   1]
+   FINTH2O8    	: taille = [1035600,   1,   1]
+   FINTH2O9    	: taille = [1035600,   1,   1]
+   FINTPOL1    	: taille = [1294436,   1,   1]
+   FINTPOL10   	: taille = [1294436,   1,   1]
+   FINTPOL2    	: taille = [1294436,   1,   1]
+   FINTPOL3    	: taille = [1294436,   1,   1]
+   FINTPOL4    	: taille = [1294436,   1,   1]
+   FINTPOL5    	: taille = [1294436,   1,   1]
+   FINTPOL6    	: taille = [1294436,   1,   1]
+   FINTPOL7    	: taille = [1294436,   1,   1]
+   FINTPOL8    	: taille = [1294436,   1,   1]
+   FINTPOL9    	: taille = [1294436,   1,   1]
+   FINTTSE1    	: taille = [     0,   1,   1]
+   FINTTSE10   	: taille = [     0,   1,   1]
+   FINTTSE2    	: taille = [     0,   1,   1]
+   FINTTSE3    	: taille = [     0,   1,   1]
+   FINTTSE4    	: taille = [     0,   1,   1]
+   FINTTSE5    	: taille = [     0,   1,   1]
+   FINTTSE6    	: taille = [     0,   1,   1]
+   FINTTSE7    	: taille = [     0,   1,   1]
+   FINTTSE8    	: taille = [     0,   1,   1]
+   FINTTSE9    	: taille = [     0,   1,   1]
+   GINTAVLIDRT 	: taille = [ 49000,  10,   1]
+   GINTCALPOS  	: taille = [     0,  10,   1]
+   GINTCALPOST 	: taille = [     0,   2,   1]
+   GINTDTSE    	: taille = [     0,  10,   1]
+   GINTFARART  	: taille = [ 49000,  10,   1]
+   GINTLIDRT   	: taille = [ 49000,  10,   1]
+   GINTPOL     	: taille = [     0,   4,   1]
+   GINTPOL1    	: taille = [     0,   9,   1]
+   GINTPOL10   	: taille = [     0,   9,   1]
+   GINTPOL2    	: taille = [     0,   9,   1]
+   GINTPOL3    	: taille = [     0,   9,   1]
+   GINTPOL4    	: taille = [     0,   9,   1]
+   GINTPOL5    	: taille = [     0,   9,   1]
+   GINTPOL6    	: taille = [     0,   9,   1]
+   GINTPOL7    	: taille = [     0,   9,   1]
+   GINTPOL8    	: taille = [     0,   9,   1]
+   GINTPOL9    	: taille = [     0,   9,   1]
+   GINTPOS     	: taille = [ 49000,  10,   1]
+   GINTTTSE    	: taille = [     0,   2,   1]
+   SINTALIVERT 	: taille = [ 49000,   1,   1]
+   SINTAVDENSRT	: taille = [ 49000,   1,   1]
+   SINTLASER2RT	: taille = [ 49000,   1,   1]
+   SINTLASERRT 	: taille = [ 49000,   1,   1]
+   SINTNETOTRT 	: taille = [ 49000,   1,   1]
+   SINTNUMSECRT	: taille = [ 49000,   1,   1]
+   SINTSECLIDRT	: taille = [ 49000,   1,   1]
+				----------------------
+
+DIPD        		: absent
+				----------------------
+
+DIR1        		: present
+   FIRT_LOPT11 	: taille = [   350]		
+   FIRT_LOPT12 	: taille = [   349]		
+	FIRT_LOPT13 	: absente
+   FIRT_LUT11  	: taille = [1991289]		
+   FIRT_LUT12  	: taille = [1990881]		
+	FIRT_LUT13  	: absente
+   FIRT_ROI11  	: taille = [2950440]		
+   FIRT_ROI12  	: taille = [2950515]		
+	FIRT_ROI13  	: absente
+   FIRT_RROI11 	: taille = [462293]		
+   FIRT_RROI12 	: taille = [465836]		
+	FIRT_RROI13 	: absente
+   FIRT_TRFUT11	: taille = [1310976]		
+   FIRT_TRFUT12	: taille = [983296]		
+	FIRT_TRFUT13	: absente
+   FIRT_TRHUB11	: taille = [1310976]		
+   FIRT_TRHUB12	: taille = [1310976]		
+	FIRT_TRHUB13	: absente
+   FIRT_TRMIR11	: taille = [1638656]		
+   FIRT_TRMIR12	: taille = [1310976]		
+	FIRT_TRMIR13	: absente
+   FIRT_VIDEO11	: taille = [529055460]		
+   FIRT_VIDEO12	: taille = [377129310]		
+	FIRT_VIDEO13	: absente
+	GIRT_DATE   	: absente
+				----------------------
+
+DIR2        		: present
+	FIRT_LOPT21 	: absente
+   FIRT_LOPT22 	: taille = [   350]		
+   FIRT_LOPT23 	: taille = [   350]		
+	FIRT_LUT21  	: absente
+   FIRT_LUT22  	: taille = [2003980]		
+   FIRT_LUT23  	: taille = [2011798]		
+	FIRT_ROI21  	: absente
+   FIRT_ROI22  	: taille = [2951360]		
+   FIRT_ROI23  	: taille = [2949859]		
+	FIRT_RROI21 	: absente
+   FIRT_RROI22 	: taille = [477188]		
+   FIRT_RROI23 	: taille = [457171]		
+	FIRT_TRFUT21	: absente
+   FIRT_TRFUT22	: taille = [1638656]		
+   FIRT_TRFUT23	: taille = [1310976]		
+	FIRT_TRHUB21	: absente
+   FIRT_TRHUB22	: taille = [1310976]		
+   FIRT_TRHUB23	: taille = [1310976]		
+	FIRT_TRMIR21	: absente
+   FIRT_TRMIR22	: taille = [1310976]		
+   FIRT_TRMIR23	: taille = [1638656]		
+	FIRT_VIDEO21	: absente
+   FIRT_VIDEO22	: taille = [459947707]		
+   FIRT_VIDEO23	: taille = [367217365]		
+				----------------------
+
+DIR3        		: present
+   FIRT_LOPT31 	: taille = [   350]		
+   FIRT_LOPT32 	: taille = [   350]		
+	FIRT_LOPT33 	: absente
+   FIRT_LUT31  	: taille = [1991479]		
+   FIRT_LUT32  	: taille = [1990336]		
+	FIRT_LUT33  	: absente
+   FIRT_ROI31  	: taille = [2950611]		
+   FIRT_ROI32  	: taille = [2951324]		
+	FIRT_ROI33  	: absente
+   FIRT_RROI31 	: taille = [461324]		
+   FIRT_RROI32 	: taille = [480836]		
+	FIRT_RROI33 	: absente
+   FIRT_TRFUT31	: taille = [1310976]		
+   FIRT_TRFUT32	: taille = [983296]		
+	FIRT_TRFUT33	: absente
+   FIRT_TRHUB31	: taille = [1310976]		
+   FIRT_TRHUB32	: taille = [1310976]		
+	FIRT_TRHUB33	: absente
+   FIRT_TRMIR31	: taille = [1638656]		
+   FIRT_TRMIR32	: taille = [1310976]		
+	FIRT_TRMIR33	: absente
+   FIRT_VIDEO31	: taille = [538841244]		
+   FIRT_VIDEO32	: taille = [354568002]		
+	FIRT_VIDEO33	: absente
+				----------------------
+
+DIR4        		: present
+   FIRT_LOPT41 	: taille = [   350]		
+   FIRT_LOPT42 	: taille = [   350]		
+   FIRT_LOPT43 	: taille = [   350]		
+   FIRT_LUT41  	: taille = [1991189]		
+   FIRT_LUT42  	: taille = [1992037]		
+   FIRT_LUT43  	: taille = [1978675]		
+   FIRT_ROI41  	: taille = [2950592]		
+   FIRT_ROI42  	: taille = [2950483]		
+   FIRT_ROI43  	: taille = [2950507]		
+   FIRT_RROI41 	: taille = [464687]		
+   FIRT_RROI42 	: taille = [466448]		
+   FIRT_RROI43 	: taille = [465401]		
+   FIRT_TRFUT41	: taille = [1310976]		
+   FIRT_TRFUT42	: taille = [983296]		
+   FIRT_TRFUT43	: taille = [983296]		
+   FIRT_TRHUB41	: taille = [1310976]		
+   FIRT_TRHUB42	: taille = [1310976]		
+   FIRT_TRHUB43	: taille = [1310976]		
+   FIRT_TRMIR41	: taille = [1638656]		
+   FIRT_TRMIR42	: taille = [1310976]		
+   FIRT_TRMIR43	: taille = [1310976]		
+   FIRT_VIDEO41	: taille = [978253824]		
+   FIRT_VIDEO42	: taille = [978253824]		
+   FIRT_VIDEO43	: taille = [978913024]		
+				----------------------
+
+DIR5        		: present
+   FIRT_LOPT51 	: taille = [   350]		
+   FIRT_LOPT52 	: taille = [   350]		
+	FIRT_LOPT53 	: absente
+   FIRT_LUT51  	: taille = [1991662]		
+   FIRT_LUT52  	: taille = [1991031]		
+	FIRT_LUT53  	: absente
+   FIRT_ROI51  	: taille = [2950407]		
+   FIRT_ROI52  	: taille = [2951223]		
+	FIRT_ROI53  	: absente
+   FIRT_RROI51 	: taille = [461691]		
+   FIRT_RROI52 	: taille = [479455]		
+	FIRT_RROI53 	: absente
+   FIRT_TRFUT51	: taille = [1310976]		
+   FIRT_TRFUT52	: taille = [983296]		
+	FIRT_TRFUT53	: absente
+   FIRT_TRHUB51	: taille = [1310976]		
+   FIRT_TRHUB52	: taille = [1310976]		
+	FIRT_TRHUB53	: absente
+   FIRT_TRMIR51	: taille = [1638656]		
+   FIRT_TRMIR52	: taille = [1310976]		
+	FIRT_TRMIR53	: absente
+   FIRT_VIDEO51	: taille = [495461380]		
+   FIRT_VIDEO52	: taille = [341740550]		
+	FIRT_VIDEO53	: absente
+				----------------------
+
+DLANG       		: present
+   FCARTE0     	: taille = [1970176,   1,   1]
+   FCARTE1     	: taille = [6858040,   1,   1]
+   FCARTE2     	: taille = [6858040,   1,   1]
+   FCARTE3     	: taille = [6858040,   1,   1]
+   GDATET150   	: taille = [  5800,   2,   1]
+   GLANGTEST   	: taille = [  5800,  16,   1]
+   GTSE        	: taille = [  5800,   4,   1]
+   GVOIESSMOB  	: taille = [     0,  16,   1]
+   SCPOS1      	: taille = [     0,   1,   1]
+   SCPOS2      	: taille = [     0,   1,   1]
+   SPOS1       	: taille = [     0,   1,   1]
+   SPOS2       	: taille = [     0,   1,   1]
+				----------------------
+
+DLIMIT      		: absent
+				----------------------
+
+DMAG        		: present
+   FMAG_BNORM  	: taille = [     0,   1,   1]
+   FMAG_BTANG  	: taille = [     0,   1,   1]
+   FMAG_FDIAM  	: taille = [     0,   1,   1]
+   FMAG_FLXLOOP	: taille = [     0,   1,   1]
+   FMAG_FOCS   	: taille = [     0,   1,   1]
+   FMAG_HALO   	: taille = [     0,   1,   1]
+   FMAG_VLOOP  	: taille = [     0,   1,   1]
+   GMAG_BARY   	: taille = [ 15296,   2,   1]
+   GMAG_BARYFB 	: taille = [ 15296,   6,   1]
+   GMAG_BARYTH 	: taille = [ 15296,   4,   1]
+   GMAG_BELI   	: taille = [ 15296,   6,   1]
+   GMAG_BILAN  	: taille = [ 15296,  12,   1]
+   GMAG_BLOC   	: taille = [ 15296,   2,   1]
+   GMAG_BND    	: taille = [ 15296,  64,   1]
+   GMAG_BNORM  	: taille = [ 15296,  55,   1]
+   GMAG_BTANG  	: taille = [ 15296,  55,   1]
+   GMAG_BTORO1 	: taille = [ 15296,  10,   1]
+   GMAG_BTORO2 	: taille = [ 15296,  10,   1]
+   GMAG_B_BND  	: taille = [ 15296,  64,   1]
+   GMAG_CALIB  	: taille = [ 15296,   5,   1]
+   GMAG_CONTACT	: taille = [ 15296,   2,   1]
+   GMAG_DATF01 	: taille = [     0,   2,   1]
+   GMAG_DATF02 	: taille = [     0,   2,   1]
+   GMAG_DATF03 	: taille = [     0,   2,   1]
+   GMAG_DATF04 	: taille = [     0,   2,   1]
+   GMAG_DATF05 	: taille = [     0,   2,   1]
+   GMAG_DATF06 	: taille = [     0,   2,   1]
+   GMAG_DATF07 	: taille = [     0,   2,   1]
+   GMAG_DATF08 	: taille = [     0,   2,   1]
+   GMAG_DATF09 	: taille = [     0,   2,   1]
+   GMAG_DATF10 	: taille = [     0,   2,   1]
+   GMAG_DATF11 	: taille = [     0,   2,   1]
+   GMAG_DATF12 	: taille = [     0,   2,   1]
+   GMAG_DATS   	: taille = [     0,   2,   1]
+   GMAG_DATV   	: taille = [ 15296,   4,   1]
+   GMAG_DATVFR 	: taille = [ 15296,   2,   1]
+   GMAG_DATVTH 	: taille = [ 15296,   2,   1]
+   GMAG_DIAM   	: taille = [ 15296,   5,   1]
+   GMAG_DSEP   	: taille = [ 15296,   2,   1]
+   GMAG_ENV    	: taille = [     0,  10,   1]
+   GMAG_ESTIM  	: taille = [ 15296,   4,   1]
+   GMAG_EXTREM 	: taille = [ 15296,  12,   1]
+   GMAG_FDIAM  	: taille = [ 15296,   6,   1]
+   GMAG_FLXCS  	: taille = [ 15296,   3,   1]
+   GMAG_FLXLOOP	: taille = [ 15296,  17,   1]
+   GMAG_FOCS1  	: taille = [ 15296,   5,   1]
+   GMAG_FOCS2  	: taille = [ 15296,   5,   1]
+   GMAG_FV     	: taille = [ 15296,   3,   1]
+   GMAG_GEOM   	: taille = [ 15296,  16,   1]
+   GMAG_HALO   	: taille = [ 15296,  12,   1]
+   GMAG_IDCOEF 	: taille = [ 15296,  28,   1]
+   GMAG_IFREEB 	: taille = [ 15296,   8,   1]
+   GMAG_IPGUESS	: taille = [ 15296,   4,   1]
+   GMAG_ITOR   	: taille = [ 15296,   2,   1]
+   GMAG_MHD    	: taille = [ 15296,   3,   1]
+   GMAG_MOD    	: taille = [ 15296,   3,   1]
+   GMAG_POSLPA 	: taille = [ 15296,   3,   1]
+   GMAG_POSX   	: taille = [ 15296,   4,   1]
+   GMAG_Q      	: taille = [ 15296,   2,   1]
+   GMAG_SHAF   	: taille = [ 15296,   8,   1]
+   GMAG_STRIKE 	: taille = [ 15296,   8,   1]
+   GMAG_TEST   	: taille = [ 15296,  16,   1]
+   GMAG_VLOOP  	: taille = [ 15296,  17,   1]
+   SMAG_CONFIG 	: taille = [ 15296,   1,   1]
+   SMAG_IP     	: taille = [ 15296,   1,   1]
+   SMAG_TCUB   	: taille = [ 15296,   1,   1]
+   SMAG_UTOR   	: taille = [ 15296,   1,   1]
+				----------------------
+
+DMAGMHD     		: present
+   FMHD_DATA   	: taille = [96000256,   1,   1]
+   GMHD_D1     	: taille = [ 20480,   2,   1]
+   GMHD_T1     	: taille = [ 20480,   2,   1]
+				----------------------
+
+DMIC        		: absent
+				----------------------
+
+DMSE        		: absent
+				----------------------
+
+DNEUTRON    		: present
+   FNTN        	: taille = [ 60870,   1,   1]
+   GDATENEUTRON	: taille = [ 14372,   2,   1]
+   GFLUNTN     	: taille = [ 33540,   2,   1]
+   GNTNMD2     	: taille = [ 33540,   3,   1]
+   GNTNMD4     	: taille = [ 33540,   3,   1]
+   GNTNMD6     	: taille = [ 33540,   2,   1]
+   GNTNQ1B     	: taille = [     0,   2,   1]
+   GNTNQ4A     	: taille = [     0,   2,   1]
+   GNTNQ5B     	: taille = [     0,   2,   1]
+   GNTNU8      	: taille = [ 33540,   4,   1]
+				----------------------
+
+   FNTN        	: taille = [ 60870,   1,   1]
+   GDATENEUTRON	: taille = [ 14372,   2,   1]
+   GFLUNTN     	: taille = [ 33540,   2,   1]
+   GNTNMD2     	: taille = [ 33540,   3,   1]
+   GNTNMD4     	: taille = [ 33540,   3,   1]
+   GNTNMD6     	: taille = [ 33540,   2,   1]
+   GNTNQ1B     	: taille = [     0,   2,   1]
+   GNTNQ4A     	: taille = [     0,   2,   1]
+   GNTNQ5B     	: taille = [     0,   2,   1]
+   GNTNU8      	: taille = [ 33540,   4,   1]
+				----------------------
+
+DPC1        		: absent
+				----------------------
+
+DPCS        		: present
+   FPCSDATA    	: taille = [268371193]		
+   FPCSPARAM   	: taille = [637256]		
+   FXEDIT2DCS  	: taille = [403444]		
+   FXEDITPROG  	: taille = [  6269]		
+				----------------------
+
+   FPCSDATA    	: taille = [268371193]		
+   FPCSPARAM   	: taille = [637256]		
+   FXEDIT2DCS  	: taille = [403444]		
+   FXEDITPROG  	: taille = [  6269]		
+				----------------------
+
+DPEROT      		: absent
+				----------------------
+
+DPILOTE     		: absent
+				----------------------
+
+DPLASMA     		: absent
+				----------------------
+
+DPOLO       		: present
+   GDATPXI1    	: taille = [ 26032,   4,   1]
+   GDATPXI2    	: taille = [ 26032,   2,   1]
+   GPOLO_ALARM 	: taille = [ 26032,   6,   1]
+   GPOLO_IAC1  	: taille = [ 26032,   6,   1]
+   GPOLO_IAC2  	: taille = [ 26032,   6,   1]
+   GPOLO_IDC1  	: taille = [ 26032,   8,   1]
+   GPOLO_IDC2  	: taille = [ 26032,   8,   1]
+   GPOLO_IMES  	: taille = [ 26032,  16,   1]
+   GPOLO_STAT1 	: taille = [ 26032,   8,   1]
+   GPOLO_STAT2 	: taille = [ 26032,   8,   1]
+   GPOLO_TEST  	: taille = [ 26032,  16,   1]
+   GPOLO_UCAL  	: taille = [ 26032,  16,   1]
+   GPOLO_UDC1  	: taille = [ 26032,   8,   1]
+   GPOLO_UDC2  	: taille = [ 26032,   8,   1]
+   GPOLO_UMES  	: taille = [ 26032,  16,   1]
+   GPOLO_UREF  	: taille = [ 26032,  16,   1]
+   SPOLO_CYCLE 	: taille = [ 26032,   1,   1]
+   SPOLO_IG0   	: taille = [ 26032,   1,   1]
+   SPOLO_STATE 	: taille = [ 26032,   1,   1]
+				----------------------
+
+DPROCI      		: absent
+				----------------------
+
+DREFLEC     		: absent
+				----------------------
+
+DREFLECH    		: present
+   FIQ1        	: taille = [15780200,   1,   1]
+   FIQ2        	: taille = [15780200,   1,   1]
+   FTRIGG      	: taille = [     0,   1,   1]
+   FTRIGG2     	: taille = [     0,   1,   1]
+   GRLH_TRIG   	: taille = [     0,   1,   1]
+				----------------------
+
+DREFLUC     		: present
+   FCOSD1      	: taille = [22400396,   1,   1]
+   FCOSD2      	: taille = [     0,   1,   1]
+   FDATEETEP   	: taille = [     0,   1,   1]
+   FDATEETEP2  	: taille = [     0,   1,   1]
+   FDATEREFLUC 	: taille = [     0,   1,   1]
+   FETEPCOSD1  	: taille = [47186204,   1,   1]
+   FETEPSIND1  	: taille = [47186204,   1,   1]
+   FSIND1      	: taille = [     0,   1,   1]
+   FSIND2      	: taille = [     0,   1,   1]
+   GDATEREFLUC 	: taille = [     0,   2,   1]
+   SCOSD1      	: taille = [     0,   1,   1]
+   SCOSD2      	: taille = [     0,   1,   1]
+   SSIND1      	: taille = [     0,   1,   1]
+   SSIND2      	: taille = [     0,   1,   1]
+				----------------------
+
+   FCOSD1      	: taille = [22400396,   1,   1]
+   FCOSD2      	: taille = [     0,   1,   1]
+   FDATEETEP   	: taille = [     0,   1,   1]
+   FDATEETEP2  	: taille = [     0,   1,   1]
+   FDATEREFLUC 	: taille = [     0,   1,   1]
+   FETEPCOSD1  	: taille = [47186204,   1,   1]
+   FETEPSIND1  	: taille = [47186204,   1,   1]
+   FSIND1      	: taille = [     0,   1,   1]
+   FSIND2      	: taille = [     0,   1,   1]
+   GDATEREFLUC 	: taille = [     0,   2,   1]
+   SCOSD1      	: taille = [     0,   1,   1]
+   SCOSD2      	: taille = [     0,   1,   1]
+   SSIND1      	: taille = [     0,   1,   1]
+   SSIND2      	: taille = [     0,   1,   1]
+				----------------------
+
+DREFRAP     		: present
+   FREFRAP     	: taille = [795273696,   1,   1]
+   GDATEREFRAP 	: taille = [     0,   2,   1]
+   GREFRAP1    	: taille = [1320000,   4,   1]
+				----------------------
+
+   FREFRAP     	: taille = [795273696,   1,   1]
+   GDATEREFRAP 	: taille = [     0,   2,   1]
+   GREFRAP1    	: taille = [1320000,   4,   1]
+				----------------------
+
+DREVE       		: absent
+				----------------------
+
+DRIPPLE     		: absent
+				----------------------
+
+DSIR        		: present
+   FDATEDSIR1  	: taille = [ 56052,   1,   1]
+   FDATEDSIR2  	: taille = [ 63320,   1,   1]
+   FDSIR1      	: taille = [7809520,   1,   1]
+   FDSIR2      	: taille = [7806840,   1,   1]
+   FSIR_SCRAM  	: taille = [     0,   1,   1]
+   FTRSIR      	: taille = [   160,   1,   1]
+   GDATEDSIR1  	: taille = [   100,   2,   1]
+   GDATEDSIR2  	: taille = [  2000,   2,   1]
+   GHTDSIR1    	: taille = [   100,   4,   1]
+   STCAMDSIR   	: taille = [  2000,   1,   1]
+   SVERINDSIR1 	: taille = [  2000,   1,   1]
+				----------------------
+
+DSPX        		: absent
+				----------------------
+
+DSTARK      		: absent
+				----------------------
+
+DSTD1       		: absent
+				----------------------
+
+DSTD2       		: absent
+				----------------------
+
+DSURVIE     		: present
+   GDATESURVIE 	: taille = [  1970,   2,   1]
+   SAG18       	: taille = [  1970,   1,   1]
+   SAG19       	: taille = [  1970,   1,   1]
+   SC4         	: taille = [  1970,   1,   1]
+   SCU19       	: taille = [  1970,   1,   1]
+   SFAG18      	: taille = [  1970,   1,   1]
+   SFAG19      	: taille = [  1970,   1,   1]
+   SFC4        	: taille = [  1970,   1,   1]
+   SFCU19      	: taille = [  1970,   1,   1]
+   SFDC4       	: taille = [  1970,   1,   1]
+   SFE15       	: taille = [  1970,   1,   1]
+   SFFE15      	: taille = [  1970,   1,   1]
+   SSURVIE1    	: taille = [2639800,   1,   1]
+				----------------------
+
+DTFIB       		: present
+	FTFIB_PICS  	: absente
+	FTFIB_SPECS 	: absente
+   FTFIB_TEMP  	: taille = [210739]		
+				----------------------
+
+DTHOM       		: absent
+				----------------------
+
+DTOMOX      		: present
+   FDATETEP1   	: taille = [     0,   1,   1]
+   FDATETEP2   	: taille = [     0,   1,   1]
+   FDATETEP3   	: taille = [     0,   1,   1]
+   FDATETEP4   	: taille = [     0,   1,   1]
+   FDATETEP5   	: taille = [     0,   1,   1]
+   FDATETEP6   	: taille = [     0,   1,   1]
+   FETEP1      	: taille = [     0,   1,   1]
+   FETEP2      	: taille = [     0,   1,   1]
+   FETEP3      	: taille = [     0,   1,   1]
+   FETEP4      	: taille = [     0,   1,   1]
+   FETEP5      	: taille = [     0,   1,   1]
+   FETEP6      	: taille = [     0,   1,   1]
+   GDATETEP1   	: taille = [     0,   2,   1]
+   GDATETEP2   	: taille = [     0,   2,   1]
+   GDATETEP3   	: taille = [     0,   2,   1]
+   GDATETEP4   	: taille = [     0,   2,   1]
+   GDATETEP5   	: taille = [     0,   2,   1]
+   GDATETEP6   	: taille = [     0,   2,   1]
+   GDATETOMOX  	: taille = [     0,   2,   1]
+   GTEMPCAM    	: taille = [     0,   3,   1]
+   GTESTETEP1  	: taille = [     0,  32,   1]
+   GTESTETEP2  	: taille = [     0,  32,   1]
+   GTESTETEP3  	: taille = [     0,  32,   1]
+   GTXMH1      	: taille = [     0,  28,   1]
+   GTXMH2      	: taille = [     0,  17,   1]
+   GTXMO       	: taille = [     0,   6,   1]
+   GTXMTB      	: taille = [     0,   4,   1]
+   GTXMTEST    	: taille = [     0,   5,   1]
+   GTXMV       	: taille = [     0,  31,   1]
+   SPOLAR      	: taille = [     0,   1,   1]
+				----------------------
+
+DTORO       		: absent
+				----------------------
+
+DTURB       		: present
+   FETEP101    	: taille = [1000000,   1,   1]
+   FETEP102    	: taille = [1000000,   1,   1]
+   FETEP103    	: taille = [1000000,   1,   1]
+   FETEP104    	: taille = [1000000,   1,   1]
+   FETEP105    	: taille = [1000000,   1,   1]
+   FETEP106    	: taille = [1000000,   1,   1]
+   FETEP107    	: taille = [1000000,   1,   1]
+   FETEP108    	: taille = [1000000,   1,   1]
+   FETEP109    	: taille = [1000000,   1,   1]
+   FETEP110    	: taille = [1000000,   1,   1]
+   FETEP111    	: taille = [1000000,   1,   1]
+   FETEP112    	: taille = [1000000,   1,   1]
+   FETEP113    	: taille = [1000000,   1,   1]
+   FETEP114    	: taille = [1000000,   1,   1]
+   FETEP115    	: taille = [1000000,   1,   1]
+   FETEP116    	: taille = [1000000,   1,   1]
+   FETEP1DATE  	: taille = [     8,   1,   1]
+   FETEP201    	: taille = [1000000,   1,   1]
+   FETEP202    	: taille = [1000000,   1,   1]
+   FETEP203    	: taille = [1000000,   1,   1]
+   FETEP204    	: taille = [1000000,   1,   1]
+   FETEP205    	: taille = [1000000,   1,   1]
+   FETEP206    	: taille = [1000000,   1,   1]
+   FETEP207    	: taille = [1000000,   1,   1]
+   FETEP208    	: taille = [1000000,   1,   1]
+   FETEP209    	: taille = [1000000,   1,   1]
+   FETEP210    	: taille = [1000000,   1,   1]
+   FETEP211    	: taille = [1000000,   1,   1]
+   FETEP212    	: taille = [1000000,   1,   1]
+   FETEP213    	: taille = [1000000,   1,   1]
+   FETEP214    	: taille = [1000000,   1,   1]
+   FETEP215    	: taille = [1000000,   1,   1]
+   FETEP216    	: taille = [1000000,   1,   1]
+   FETEP2DATE  	: taille = [     8,   1,   1]
+   GDATE150    	: taille = [ 19000,   2,   1]
+   GDATEDTURBL1	: taille = [  1000,   2,   1]
+   GDATEDTURBL2	: taille = [  1000,   2,   1]
+   GDATEDTURBL3	: taille = [  1000,   2,   1]
+   GIBOB       	: taille = [ 19000,   3,   1]
+   GRP1        	: taille = [  1000,  16,   1]
+   GRP2        	: taille = [  1000,  16,   1]
+   GTEST150    	: taille = [ 19000,  16,   1]
+   GTESTVL1    	: taille = [     0,  16,   1]
+   GTESTVL2    	: taille = [     0,  16,   1]
+   GUBOB       	: taille = [ 19000,   3,   1]
+   GUCOMBOB    	: taille = [ 19000,   3,   1]
+   GVPIV       	: taille = [ 19000,   3,   1]
+   GXPIV       	: taille = [ 19000,   3,   1]
+   SETATPIV    	: taille = [ 19000,   1,   1]
+   SGAINS1     	: taille = [  1000,   1,   1]
+   SGAINS2     	: taille = [  1000,   1,   1]
+   SMODES1     	: taille = [  1000,   1,   1]
+				----------------------
+
+   FETEP101    	: taille = [1000000,   1,   1]
+   FETEP102    	: taille = [1000000,   1,   1]
+   FETEP103    	: taille = [1000000,   1,   1]
+   FETEP104    	: taille = [1000000,   1,   1]
+   FETEP105    	: taille = [1000000,   1,   1]
+   FETEP106    	: taille = [1000000,   1,   1]
+   FETEP107    	: taille = [1000000,   1,   1]
+   FETEP108    	: taille = [1000000,   1,   1]
+   FETEP109    	: taille = [1000000,   1,   1]
+   FETEP110    	: taille = [1000000,   1,   1]
+   FETEP111    	: taille = [1000000,   1,   1]
+   FETEP112    	: taille = [1000000,   1,   1]
+   FETEP113    	: taille = [1000000,   1,   1]
+   FETEP114    	: taille = [1000000,   1,   1]
+   FETEP115    	: taille = [1000000,   1,   1]
+   FETEP116    	: taille = [1000000,   1,   1]
+   FETEP1DATE  	: taille = [     8,   1,   1]
+   FETEP201    	: taille = [1000000,   1,   1]
+   FETEP202    	: taille = [1000000,   1,   1]
+   FETEP203    	: taille = [1000000,   1,   1]
+   FETEP204    	: taille = [1000000,   1,   1]
+   FETEP205    	: taille = [1000000,   1,   1]
+   FETEP206    	: taille = [1000000,   1,   1]
+   FETEP207    	: taille = [1000000,   1,   1]
+   FETEP208    	: taille = [1000000,   1,   1]
+   FETEP209    	: taille = [1000000,   1,   1]
+   FETEP210    	: taille = [1000000,   1,   1]
+   FETEP211    	: taille = [1000000,   1,   1]
+   FETEP212    	: taille = [1000000,   1,   1]
+   FETEP213    	: taille = [1000000,   1,   1]
+   FETEP214    	: taille = [1000000,   1,   1]
+   FETEP215    	: taille = [1000000,   1,   1]
+   FETEP216    	: taille = [1000000,   1,   1]
+   FETEP2DATE  	: taille = [     8,   1,   1]
+   GDATE150    	: taille = [ 19000,   2,   1]
+   GDATEDTURBL1	: taille = [  1000,   2,   1]
+   GDATEDTURBL2	: taille = [  1000,   2,   1]
+   GDATEDTURBL3	: taille = [  1000,   2,   1]
+   GIBOB       	: taille = [ 19000,   3,   1]
+   GRP1        	: taille = [  1000,  16,   1]
+   GRP2        	: taille = [  1000,  16,   1]
+   GTEST150    	: taille = [ 19000,  16,   1]
+   GTESTVL1    	: taille = [     0,  16,   1]
+   GTESTVL2    	: taille = [     0,  16,   1]
+   GUBOB       	: taille = [ 19000,   3,   1]
+   GUCOMBOB    	: taille = [ 19000,   3,   1]
+   GVPIV       	: taille = [ 19000,   3,   1]
+   GXPIV       	: taille = [ 19000,   3,   1]
+   SETATPIV    	: taille = [ 19000,   1,   1]
+   SGAINS1     	: taille = [  1000,   1,   1]
+   SGAINS2     	: taille = [  1000,   1,   1]
+   SMODES1     	: taille = [  1000,   1,   1]
+				----------------------
+
+DUST        		: absent
+				----------------------
+
+DVCAMIR     		: absent
+				----------------------
+
+DVECE       		: present
+   GDATEVECE2  	: taille = [ 47200,   2,   1]
+   GDATEVECE3  	: taille = [     0,   2,   1]
+   GDATEVECE4  	: taille = [     0,   2,   1]
+   GDDS        	: taille = [ 47200,   4,   1]
+   GECEMODE    	: taille = [ 47200,   2,   1]
+   GTRSHR      	: taille = [     0,  32,   1]
+   GTRSHTE     	: taille = [     0,  32,   1]
+   GVSH1       	: taille = [ 47200,   8,   1]
+   GVSH2       	: taille = [ 47200,   8,   1]
+   GVSH3       	: taille = [ 47200,   8,   1]
+   GVSH4       	: taille = [ 47200,   8,   1]
+   GVSHTEMP    	: taille = [ 47200,   2,   1]
+   SCODE_ERR   	: taille = [     0,   1,   1]
+   SRHOT       	: taille = [     0,   1,   1]
+				----------------------
+
+DVIDEO      		: present
+	FBIDON      	: absente
+	FMPG01      	: absente
+   FMPG02      	: taille = [7430084]		
+	FMPG03      	: absente
+	FMPG04      	: absente
+	FMPG05      	: absente
+	FMPG06      	: absente
+	FMPG07      	: absente
+	FMPG08      	: absente
+	FMPG401     	: absente
+	FMPG402     	: absente
+	FMPG403     	: absente
+	FMPG404     	: absente
+				----------------------
+
+DVIS        		: present
+   GDATEVIS2   	: taille = [     0,   2,   1]
+   GDATE_VIS   	: taille = [  5400,   2,   1]
+   GFIL        	: taille = [     0,  32,   1]
+   GTESTVIS2   	: taille = [     0,  16,   1]
+   GZEFF       	: taille = [  5400,  24,   1]
+				----------------------
+
+   GDATEVIS2   	: taille = [     0,   2,   1]
+   GDATE_VIS   	: taille = [  5400,   2,   1]
+   GFIL        	: taille = [     0,  32,   1]
+   GTESTVIS2   	: taille = [     0,  16,   1]
+   GZEFF       	: taille = [  5400,  24,   1]
+				----------------------
+
+DVIS1       		: absent
+				----------------------
+
+DVIS2       		: present
+   FVIS2DATE   	: taille = [ 20000]		
+   FVIS2SPECTRE	: taille = [110592000]		
+				----------------------
+
+DVIS3       		: absent
+				----------------------
+
+DVIS4       		: present
+   FVIS4DATE   	: taille = [  1500]		
+   FVIS4SPECTRE	: taille = [2304000]		
+				----------------------
+
+DVIS5       		: absent
+				----------------------
+
+DVISB       		: absent
+				----------------------
+
+DVISCCD     		: absent
+				----------------------
+
+DVISR       		: absent
+				----------------------
+
+DVME1       		: present
+	GCARTE1     	: absente
+	GDATEC1     	: absente
+				----------------------
+
+DVSPX       		: present
+   GCALVSPX    	: taille = [   900,   6,   1]
+   GDATEVSPXTST	: taille = [   900,   2,   1]
+   GPROFCHKVSPX	: taille = [   900,   3,   1]
+   GPROFILEVSPX	: taille = [   900,  28,   1]
+   GRECVSPX    	: taille = [   900,  59,   1]
+   GTSTVSPX    	: taille = [   900,   4,   1]
+   GVRX01      	: taille = [   900,   7,   1]
+   GVRX02      	: taille = [   900,   7,   1]
+   GVRX03      	: taille = [   900,   7,   1]
+   GVRX04      	: taille = [   900,   7,   1]
+   GVRX05      	: taille = [   900,   7,   1]
+   GVRX06      	: taille = [   900,   7,   1]
+   GVRX07      	: taille = [   900,   7,   1]
+   GVRX08      	: taille = [   900,   7,   1]
+   GVRX09      	: taille = [   900,   7,   1]
+   GVRX10      	: taille = [   900,   7,   1]
+   GVRX11      	: taille = [   900,   7,   1]
+   GVRX12      	: taille = [   900,   7,   1]
+   GVRX13      	: taille = [   900,   7,   1]
+   GVRX14      	: taille = [   900,   7,   1]
+   GVRX15      	: taille = [   900,   7,   1]
+   GVRX16      	: taille = [   900,   7,   1]
+   GVRX17      	: taille = [   900,   7,   1]
+   GVRX18      	: taille = [   900,   7,   1]
+   GVRX19      	: taille = [   900,   7,   1]
+   GVRX20      	: taille = [   900,   7,   1]
+   GVRX21      	: taille = [   900,   7,   1]
+   GVRX22      	: taille = [   900,   7,   1]
+   GVRX23      	: taille = [   900,   7,   1]
+   GVRX24      	: taille = [   900,   7,   1]
+   GVRX25      	: taille = [   900,   7,   1]
+   GVRX26      	: taille = [   900,   7,   1]
+   GVRX27      	: taille = [   900,   7,   1]
+   GVRX28      	: taille = [   900,   7,   1]
+   GVRX29      	: taille = [   900,   7,   1]
+   GVRX30      	: taille = [   900,   7,   1]
+   GVRX31      	: taille = [   900,   7,   1]
+   GVRX32      	: taille = [   900,   7,   1]
+   GVRX33      	: taille = [   900,   7,   1]
+   GVRX34      	: taille = [   900,   7,   1]
+   GVRX35      	: taille = [   900,   7,   1]
+   GVRX36      	: taille = [   900,   7,   1]
+   GVRX37      	: taille = [   900,   7,   1]
+   GVRX38      	: taille = [   900,   7,   1]
+   GVRX39      	: taille = [   900,   7,   1]
+   GVRX40      	: taille = [   900,   7,   1]
+   GVRX41      	: taille = [   900,   7,   1]
+   GVRX42      	: taille = [   900,   7,   1]
+   GVRX43      	: taille = [   900,   7,   1]
+   GVRX44      	: taille = [   900,   7,   1]
+   GVRX45      	: taille = [   900,   7,   1]
+   GVRX46      	: taille = [   900,   7,   1]
+   GVRX47      	: taille = [   900,   7,   1]
+   GVRX48      	: taille = [   900,   7,   1]
+   GVRX49      	: taille = [   900,   7,   1]
+   GVRX50      	: taille = [   900,   7,   1]
+   GVRX51      	: taille = [   900,   7,   1]
+   GVRX52      	: taille = [   900,   7,   1]
+   GVRX53      	: taille = [   900,   7,   1]
+   GVRX54      	: taille = [   900,   7,   1]
+   GVRX55      	: taille = [   900,   7,   1]
+   GVRX56      	: taille = [   900,   7,   1]
+   GVRX57      	: taille = [   900,   7,   1]
+   GVRX58      	: taille = [   900,   7,   1]
+   GVRX59      	: taille = [   900,   7,   1]
+   GVX01       	: taille = [   900,   8,   1]
+   GVX02       	: taille = [   900,   8,   1]
+   GVX03       	: taille = [   900,   8,   1]
+   GVX04       	: taille = [   900,   8,   1]
+   GVX05       	: taille = [   900,   8,   1]
+   GVX06       	: taille = [   900,   8,   1]
+   GVX07       	: taille = [   900,   8,   1]
+   GVX08       	: taille = [   900,   8,   1]
+   GVX09       	: taille = [   900,   8,   1]
+   GVX10       	: taille = [   900,   8,   1]
+   GVX11       	: taille = [   900,   8,   1]
+   GVX12       	: taille = [   900,   8,   1]
+   GVX13       	: taille = [   900,   8,   1]
+   GVX14       	: taille = [   900,   8,   1]
+   GVX15       	: taille = [   900,   8,   1]
+   GVX16       	: taille = [   900,   8,   1]
+   GVX17       	: taille = [   900,   8,   1]
+   GVX18       	: taille = [   900,   8,   1]
+   GVX19       	: taille = [   900,   8,   1]
+   GVX20       	: taille = [   900,   8,   1]
+   GVX21       	: taille = [   900,   8,   1]
+   GVX22       	: taille = [   900,   8,   1]
+   GVX23       	: taille = [   900,   8,   1]
+   GVX24       	: taille = [   900,   8,   1]
+   GVX25       	: taille = [   900,   8,   1]
+   GVX26       	: taille = [   900,   8,   1]
+   GVX27       	: taille = [   900,   8,   1]
+   GVX28       	: taille = [   900,   8,   1]
+   GVX29       	: taille = [   900,   8,   1]
+   GVX30       	: taille = [   900,   8,   1]
+   GVX31       	: taille = [   900,   8,   1]
+   GVX32       	: taille = [   900,   8,   1]
+   GVX33       	: taille = [   900,   8,   1]
+   GVX34       	: taille = [   900,   8,   1]
+   GVX35       	: taille = [   900,   8,   1]
+   GVX36       	: taille = [   900,   8,   1]
+   GVX37       	: taille = [   900,   8,   1]
+   GVX38       	: taille = [   900,   8,   1]
+   GVX39       	: taille = [   900,   8,   1]
+   GVX40       	: taille = [   900,   8,   1]
+   GVX41       	: taille = [   900,   8,   1]
+   GVX42       	: taille = [   900,   8,   1]
+   GVX43       	: taille = [   900,   8,   1]
+   GVX44       	: taille = [   900,   8,   1]
+   GVX45       	: taille = [   900,   8,   1]
+   GVX46       	: taille = [   900,   8,   1]
+   GVX47       	: taille = [   900,   8,   1]
+   GVX48       	: taille = [   900,   8,   1]
+   GVX49       	: taille = [   900,   8,   1]
+   GVX50       	: taille = [   900,   8,   1]
+   GVX51       	: taille = [   900,   8,   1]
+   GVX52       	: taille = [   900,   8,   1]
+   GVX53       	: taille = [   900,   8,   1]
+   GVX54       	: taille = [   900,   8,   1]
+   GVX55       	: taille = [   900,   8,   1]
+   GVX56       	: taille = [   900,   8,   1]
+   GVX57       	: taille = [   900,   8,   1]
+   GVX58       	: taille = [   900,   8,   1]
+   GVX59       	: taille = [   900,   8,   1]
+   SPROFMPVSPX 	: taille = [   900,   1,   1]
+   SPROFWVSPX  	: taille = [   900,   1,   1]
+				----------------------
+
+DWMS        		: present
+   GTSTWMS1    	: taille = [     0,   1,   1]
+   GTSTWMS10   	: taille = [     0,   1,   1]
+   GTSTWMS11   	: taille = [     0,   1,   1]
+   GTSTWMS12   	: taille = [     0,   1,   1]
+   GTSTWMS13   	: taille = [     0,   1,   1]
+   GTSTWMS14   	: taille = [     0,   1,   1]
+   GTSTWMS2    	: taille = [     0,   1,   1]
+   GTSTWMS3    	: taille = [     0,   1,   1]
+   GTSTWMS5    	: taille = [     0,   1,   1]
+   GTSTWMS6    	: taille = [     0,   1,   1]
+   GTSTWMS7    	: taille = [     0,   1,   1]
+   GTSTWMS8    	: taille = [     0,   1,   1]
+   GTSTWMS9    	: taille = [     0,   1,   1]
+   GWMSIRT11   	: taille = [  2950,   8,   1]
+   GWMSIRT12   	: taille = [  2950,   8,   1]
+   GWMSIRT22   	: taille = [  2950,   8,   1]
+   GWMSIRT31   	: taille = [  2950,   8,   1]
+   GWMSIRT32   	: taille = [  2950,   8,   1]
+   GWMSIRT33   	: taille = [     0,   8,   1]
+   GWMSIRT41   	: taille = [  2950,   8,   1]
+   GWMSIRT42   	: taille = [  2950,   8,   1]
+   GWMSIRT43   	: taille = [  2950,   8,   1]
+   GWMSIRT51   	: taille = [  2950,   8,   1]
+   GWMSIRT52   	: taille = [  2950,   8,   1]
+   GWMS_CALO   	: taille = [     0,  10,   1]
+   GWMS_CALOTST	: taille = [     0, 105,   1]
+   GWMS_DATE   	: taille = [  2950,   2,   1]
+   GWMS_DATV1  	: taille = [     0,   2,   1]
+   GWMS_DATV2  	: taille = [  2950,   2,   1]
+   GWMS_DATV3  	: taille = [  2950,   2,   1]
+   SWMSALM11   	: taille = [  2950,   1,   1]
+   SWMSALM12   	: taille = [  2950,   1,   1]
+   SWMSALM22   	: taille = [  2950,   1,   1]
+   SWMSALM31   	: taille = [  2950,   1,   1]
+   SWMSALM32   	: taille = [  2950,   1,   1]
+   SWMSALM33   	: taille = [     0,   1,   1]
+   SWMSALM41   	: taille = [  2950,   1,   1]
+   SWMSALM42   	: taille = [  2950,   1,   1]
+   SWMSALM43   	: taille = [  2950,   1,   1]
+   SWMSALM51   	: taille = [  2950,   1,   1]
+   SWMSALM52   	: taille = [  2950,   1,   1]
+   SWMSCPT11   	: taille = [  2950,   1,   1]
+   SWMSCPT12   	: taille = [  2950,   1,   1]
+   SWMSCPT22   	: taille = [  2950,   1,   1]
+   SWMSCPT31   	: taille = [  2950,   1,   1]
+   SWMSCPT32   	: taille = [  2950,   1,   1]
+   SWMSCPT33   	: taille = [     0,   1,   1]
+   SWMSCPT41   	: taille = [  2950,   1,   1]
+   SWMSCPT42   	: taille = [  2950,   1,   1]
+   SWMSCPT43   	: taille = [  2950,   1,   1]
+   SWMSCPT51   	: taille = [  2950,   1,   1]
+   SWMSCPT52   	: taille = [  2950,   1,   1]
+				----------------------
+
+DXICS       		: absent
+				----------------------
+
+EXP-T-S     		: present
+   num_choc    	: taille = [     1,   1,   1]
+				----------------------
+
+   num_choc    	: taille = [     1,   1,   1]
+				----------------------
+
+GLOBAL      		: absent
+				----------------------

@@ -26,7 +26,7 @@ from qtpy.QtGui import QIcon, QCursor, QDesktopServices
 from qtpy.QtCore import QDir, Slot, Signal, Qt, QUrl, QStringListModel, QSize
 
 from pppat.ui.collapsible_toolbox import QCollapsibleToolbox
-from pppat.ui.control_room.signals import signals, get_sig
+from pppat.ui.control_room.signals import signals, get_sig, add_arcad_signals
 from pppat.libpulse.utils import wait_cursor, nested_dict
 from pppat.libpulse.pulse_settings import PulseSettings
 from pppat.libpulse.utils_west import last_pulse_nb
@@ -96,7 +96,7 @@ def list_signals(pulse=None) -> list:
 
     """
     sig_list = []
-    for sig in signals:
+    for sig in add_arcad_signals(signals):
         # do not keep signals marked as display=False
         if signals[sig].get('options', {}).get('display', True):
             sig_list.append(sig+': '+signals[sig]['label'])
@@ -261,6 +261,12 @@ class Panel(QSplitter):
 
                     # retrieve data from the parent model
                     values, times = self.parent.model.data( (pulse, sig), None)
+                    
+                    # if the group of data -> keep only first element
+                    # TODO : do better????
+                    if values.shape[1] > 1:
+                        values = values[:,0]
+                        times = times[:,0]
 
                     
                     # TODO : probably better to use setData on defined PlotCurveItem ?
