@@ -12,6 +12,7 @@ import pickle
 import pyqtgraph as pg
 import matplotlib.pyplot as plt
 import itertools  # to cycle the style and colors
+from lxml import html  # for strip_html_tags
 import qtpy.QtGui as QtGui
 import qtpy.QtCore as QtCore
 import qtpy.QtWidgets as QtWidgets
@@ -262,11 +263,11 @@ class Panel(QSplitter):
                     # retrieve data from the parent model
                     values, times = self.parent.model.data( (pulse, sig), None)
                     
-                    # if the group of data -> keep only first element
-                    # TODO : do better????
-                    if values.shape[1] > 1:
-                        values = values[:,0]
-                        times = times[:,0]
+                    # # if the group of data -> keep only first element
+                    # # TODO : do better????
+                    # if values.shape[1] > 1:
+                    #     values = values[:,0]
+                    #     times = times[:,0]
 
                     
                     # TODO : probably better to use setData on defined PlotCurveItem ?
@@ -375,6 +376,8 @@ class Panel(QSplitter):
         self.qt_signals_list.customContextMenuRequested[QtCore.QPoint].connect(self.ui_item_context_menu_event)
         # double clik switches the selection (add/remove)
         self.qt_signals_list.itemDoubleClicked.connect(self.ui_item_switch_state)
+        # change default selection color
+        self.qt_signals_list.setStyleSheet("selection-background-color: gray")
         
     
         ## Creating the panel
@@ -717,6 +720,23 @@ class ControlRoom(QMainWindow):
         self.qt_pulses_layout.addWidget(self.qt_plot_button)
 
         self.qt_pulses.setLayout(self.qt_pulses_layout)
+
+    def ui_format_pulse_line_edit(self, pulses_str: str):
+        """
+        Format the pulse edit (colors, etc)
+
+        Parameters
+        ----------
+        pulses_str : str
+            pulse edit line string
+
+        """
+        # format the qt_pulse_line_edit
+        self.qt_pulse_line_edit.setStyleSheet("QLineEdit"
+                        "{"
+                        "color : black;"
+                        "}")
+
 
     def ui_add_tab(self, panel_configs: list=None, label: str=None) -> None:
         '''
@@ -1128,18 +1148,29 @@ class ControlRoom(QMainWindow):
         if not self.config['config_file']:
             self.ui_save_configuration_as()
         else:
-            self.export_config(self.config['config_file'])
+            # try if the file path exists first. If not, open a saveas instead
+            if os.path.exists(self.config['config_file']):
+                self.export_config(self.config['config_file'])
+            else:
+                self.ui_save_configuration_as()
 
 
     def ui_save_configuration_as(self):
         """
         Open a File Dialog to save a Control Room configuration (.config)
         """
-        file_name, selected_filter = QFileDialog.getSaveFileName(self,
-                  "Save Configuration File", "", filter="Config file (*.config)")
-        print(f'Saving configuration to {file_name}...')
-        self.config['config_file'] = file_name
-        self.export_config(self.config['config_file'])
+        fdialog = QFileDialog()
+        fdialog.setWindowTitle("Save Configuration to a File")
+        fdialog.setAcceptMode(QtGui.QFileDialog.AcceptSave)
+        fdialog.setNameFilter('Configuration files (*.config)')
+        fdialog.setDefaultSuffix('config')
+        
+        if fdialog.exec_() == QtGui.QFileDialog.Accepted:
+            file_name = fdialog.selectedFiles()[0]
+
+            print(f'Saving configuration to {file_name}...')
+            self.config['config_file'] = file_name
+            self.export_config(self.config['config_file'])
 
     def ui_setup_from_config(self, clear=True):
         """
@@ -1153,6 +1184,8 @@ class ControlRoom(QMainWindow):
         """
         # fill the edit text line with the configuration pulses
         self.qt_pulse_line_edit.setText(self.pulses_str())
+        # format the string (add colors etc)
+        self.ui_format_pulse_line_edit(self.pulses_str())
 
         # eventually clear all the tabs
         if clear:
@@ -1467,6 +1500,24 @@ class ControlRoom(QMainWindow):
         for tab in self.tabs:
             for panel in tab.panels:
                 panel.update_plot(self.config['pulses'])
+
+    def strip_html_tags(self, html: str) -> str:
+        """
+        Strip html tags to a string
+
+        Parameters
+        ----------
+        html : str
+            string with html tags 
+
+        Returns
+        -------
+        str : cleaned_string
+            string without html tags
+
+        """
+        return html.fromstring(self.qt_pulse_line_edit.text()).text_content().strip()
+
                         
 class ControlRoomDataModel(QtGui.QStandardItemModel):
     """
