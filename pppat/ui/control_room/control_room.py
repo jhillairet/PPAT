@@ -263,13 +263,7 @@ class Panel(QSplitter):
                     # retrieve data from the parent model
                     values, times = self.parent.model.data( (pulse, sig), None)
                     
-                    # # if the group of data -> keep only first element
-                    # # TODO : do better????
-                    # if values.shape[1] > 1:
-                    #     values = values[:,0]
-                    #     times = times[:,0]
-
-                    
+                  
                     # TODO : probably better to use setData on defined PlotCurveItem ?
                         
                     # plot values only if they are both arrays

@@ -1519,13 +1519,26 @@ def arcad_diags(filename=LDP_EXAMPLE):
                 if words[0].startswith('D'):
                     cur_diag = words[0].strip().strip(':')
                     # create the empty signal list
-                    diags[cur_diag]['status'] = words[2].strip()
-                    diags[cur_diag]['signals'] = []
-                # signal name
-                if words[0].startswith('G') or words[0].startswith('S') or words[0].startswith('F'):
+                    if words[2] != 'absent':
+                        diags[cur_diag]['status'] = words[2].strip()
+                        diags[cur_diag]['signals'] = []
+                # signal
+                if words[0].startswith('S'):
                     signal = words[0].strip()
                     if cur_diag:
-                        diags[cur_diag]['signals'].append(signal)
+                        diags[cur_diag]['signals'].append(signal)                    
+                # group 
+                if words[0].startswith('G') and words[0] != 'GLOBAL':
+                    if words[-1] != 'absente':
+                        signal = words[0].strip()
+                        nb_sig = int(words[-2].split(',')[0])
+                        if cur_diag:
+                            # append all group signal numbers : %1, %2, etc
+                            for idx in range(1, nb_sig+1): 
+                                diags[cur_diag]['signals'].append(signal+f'%{idx}')
+                if words[0].startswith('F'):
+                    pass  # not treated
+
     return diags
 
 def add_arcad_signals(signals_dict):
