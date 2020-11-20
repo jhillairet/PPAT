@@ -232,15 +232,8 @@ class Panel(QSplitter):
                                               QtCore.Qt.DashDotDotLine]
             line_styles = itertools.cycle(qt_line_styles)
 
-
-            if getattr(self.config, 'display_crosshair', False):
-                # if crosshair
-                self.p.addItem(self.vLine, ignoreBounds=True)
-                self.p.addItem(self.hLine, ignoreBounds=True)
-                # update vertical lines on all plots
-                self.p.scene().sigMouseMoved.connect(self.parent.ui_plot_mouse_moved_panels)
-                # update horizontal line on current plot
-                self.p.scene().sigMouseMoved.connect(self.ui_plot_mouse_moved)
+            # when mouse is mouved
+            self.p.scene().sigMouseMoved.connect(self.ui_plot_mouse_moved)               
 
             if getattr(self.config, 'display_legend', True):
                 self.graphWidget.addLegend()  # addLegend() must be called BEFORE plot()
@@ -313,6 +306,7 @@ class Panel(QSplitter):
         'GUI: Create right side (plot window)'
         self.graphWidget = pg.PlotWidget()
         self.p = self.graphWidget.getPlotItem()
+        
         self.vb = self.p.vb
         # cross-hair display
         self.vLine = pg.InfiniteLine(angle=90, movable=False)
@@ -327,14 +321,27 @@ class Panel(QSplitter):
         """
         Slot for mouve moved over a PlotWidget() of a Panel
         """
-        # pos = (event.x(), event.y())
-        if self.p.sceneBoundingRect().contains(event):
-            mousePoint = self.vb.mapSceneToView(event)
-            # index = int(mousePoint.x())
-            # if index > 0 and index < len(data1):
-            #     label.setText("<span style='font-size: 12pt'>x=%0.1f,   <span style='color: red'>y1=%0.1f</span>,   <span style='color: green'>y2=%0.1f</span>" % (mousePoint.x(), data1[index], data2[index]))
-            # self.vLine.setPos(mousePoint.x())
-            self.hLine.setPos(mousePoint.y())
+        # The signal sigMouseMoved returns the coordinates in pixels 
+        # with respect to the PlotWidget, not in the coordinates of the plot, 
+        # so a conversion must be done using the mapSceneToView method 
+        plot_pos = self.p.vb.mapSceneToView(event)
+        
+        # display the current mouse position on the status bar in the plot coordinates
+        self.parent.qt_plot_position_label.setText(f'x={plot_pos.x():.2f}, y={plot_pos.y():.2f}')
+        
+        # plot cross hair if requested
+        if getattr(self.config, 'display_crosshair', False):
+            self.p.addItem(self.vLine, ignoreBounds=True)
+            self.p.addItem(self.hLine, ignoreBounds=True)
+            # update vertical lines on all plots
+            self.p.scene().sigMouseMoved.connect(self.parent.ui_plot_mouse_moved_panels)
+            # update horizontal line on current plot only       
+            if self.p.sceneBoundingRect().contains(event):
+                # index = int(mousePoint.x())
+                # if index > 0 and index < len(data1):
+                #     label.setText("<span style='font-size: 12pt'>x=%0.1f,   <span style='color: red'>y1=%0.1f</span>,   <span style='color: green'>y2=%0.1f</span>" % (mousePoint.x(), data1[index], data2[index]))
+                # self.vLine.setPos(mousePoint.x())
+                self.hLine.setPos(plot_pos.y())
 
     def ui_create_left_side(self):
         'GUI; Create left side (search bar and list of signals)'
@@ -577,14 +584,15 @@ class ControlRoom(QMainWindow):
         rec = QApplication.desktop().availableGeometry()
         self.resize(MINIMUM_WIDTH, .9*rec.height())
 
-        # Menu Bar
+        ###################### Menu Bar
         self.ui_menu_bar()
 
-        # create pulse number edit bar
+        ###################### create pulse number edit bar
         self.ui_pulses()
-        # TODO : validator
+        # TODO : make a validator
         # .setValidator(QIntValidator())
 
+        ###################### tabs
         # create tabs. Panels are defined inside each tab
         # self.tab = TabBarPlus()
         self.qt_tabs = QTabWidget()
@@ -592,18 +600,29 @@ class ControlRoom(QMainWindow):
         self.qt_tabs.setTabsClosable(True)
         self.qt_tabs.setMovable(True)
         self.qt_tabs.tabCloseRequested.connect(self.ui_close_tab)
-        # status bar
-        self.qt_status_bar = QStatusBar()
-        self.setStatusBar(self.qt_status_bar)
-        self.qt_progress_bar = QProgressBar(self.qt_status_bar)
-        self.qt_progress_bar.setAlignment(QtCore.Qt.AlignRight)
-        self.qt_progress_bar.setMaximumSize(180,19)
-        self.qt_status_bar.addWidget(self.qt_progress_bar)
         
-        # Data Viewer (separate windows)
+        ###################### status bar
+        self.qt_status_bar = QStatusBar()
+        self.setStatusBar(self.qt_status_bar)        
+        # progress bar
+        self.qt_progress_bar = QProgressBar(self.qt_status_bar)
+        self.qt_progress_bar.setMinimumWidth(300)
+        
+        # mouse position indicator
+        self.qt_plot_position_label = QLabel(self.qt_status_bar)
+        self.qt_plot_position_label.setMinimumWidth(100)
+        
+        # dummy spacer to align one stuff at the left and the other at the right 
+        # (is there better way??)
+        spacer = QLabel()        
+        self.qt_status_bar.addPermanentWidget(self.qt_progress_bar)
+        self.qt_status_bar.addPermanentWidget(spacer, 1)
+        self.qt_status_bar.addPermanentWidget(self.qt_plot_position_label)
+        
+        ###################### Data Viewer (separate windows)
         self.qt_data_viewer = DataViewer()
         
-        # Central Widget
+        ###################### Central Widget
         self.qt_central = QWidget()
         self.qt_central_layout = QVBoxLayout()
         self.qt_central_layout.addWidget(self.qt_pulses)
@@ -622,17 +641,17 @@ class ControlRoom(QMainWindow):
 
     def ui_plot_mouse_moved_panels(self, event):
         """
-        Slot for mouve moved over a All PlotWidget() of each Panel for all Tabs
+        Slot called uo update *all* PlotWidget() (all Panel) of the current Tab
         """
-        # TODO : pass the points values to the statusbar
+        # NB : the points values are passed to the statusbar
+        # the callback is defined in the panel ui_plot_mouse_moved method
         
-        # update the vertical lines on all plots (time)
-        for tab in self.tabs:
-            for panel in tab.panels:
-                if panel.p.sceneBoundingRect().contains(event):
-                    mousePoint = panel.vb.mapSceneToView(event)
-                    panel.vLine.setPos(mousePoint.x())
-                    # panel.hLine.setPos(mousePoint.y())       
+        # update the vertical lines on all plots (time)      
+        cur_tab = self.tabs[self.current_selected_tab_index]
+        for panel in cur_tab.panels:
+            if panel.p.sceneBoundingRect().contains(event):
+                mousePoint = panel.vb.mapSceneToView(event)
+                panel.vLine.setPos(mousePoint.x())
 
     def ui_synchronize_panels(self, sharex: bool=True, sharey: bool=False):
         """
