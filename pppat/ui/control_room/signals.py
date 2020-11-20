@@ -936,7 +936,8 @@ except ModuleNotFoundError as e:
 def imas(func):
     """
     Decorator for IMAS data 
-    Will generate NaN data is IMAS is not available
+    
+    Will generate NaN data if IMAS is not available
     """
     def wrapper(*args,**kwargs):
         try:
@@ -1002,7 +1003,7 @@ def Rext_outboard_nice(pulse):
 
 def Rext_upper_nice(pulse):
     " Return Rext upper @ Z=+250 mm estimated by NICE reconstruction "
-    script_name='save_from_imas_Rext_upper.py'  
+    script_name='save_from_imas.py'  
     cmd = 'module load tools_dc; python '+script_name+' \'{"pulse":"'+str(pulse)+'", "Z":"0.25"}\''
 
     data  = imas_get_remote(pulse, cmd, script_name)
@@ -1014,7 +1015,7 @@ def Rext_upper_nice(pulse):
 
 def Rext_median_nice(pulse):
     " Return Rext lower @ Z=0 mm estimated by NICE reconstruction "
-    script_name='save_from_imas_Rext_upper.py'  
+    script_name='save_from_imas.py'  
     cmd = 'module load tools_dc; python '+script_name+' \'{"pulse":"'+str(pulse)+'", "Z":"0"}\''
 
     data  = imas_get_remote(pulse, cmd, script_name)
@@ -1026,7 +1027,7 @@ def Rext_median_nice(pulse):
 
 def Rext_lower_nice(pulse):
     " Return Rext lower @ Z=-250 mm estimated by NICE reconstruction "
-    script_name='save_from_imas_Rext_upper.py'  
+    script_name='save_from_imas.py'  
     cmd = 'module load tools_dc; python '+script_name+' \'{"pulse":"'+str(pulse)+'", "Z":"-0.25"}\''
 
     data  = imas_get_remote(pulse, cmd, script_name)
@@ -1039,7 +1040,7 @@ def Rext_lower_nice(pulse):
 
 def z_at_r_ext_nice(pulse):
     " Return Rext lower @ Z=-250 mm estimated by NICE reconstruction "
-    script_name='save_from_imas_Rext_upper.py'  
+    script_name='save_from_imas.py'  
     cmd = 'module load tools_dc; python '+script_name+' \'{"pulse":"'+str(pulse)+'", "Z":"0"}\''
 
     data  = imas_get_remote(pulse, cmd, script_name)
@@ -1148,10 +1149,6 @@ def Separatrix_power(pulse):
 
 
 def imas_get_remote(pulse, cmd, script_name):
-                    # ids_name='ece',
-                    # paths=['t_e_central.data', 'time'],
-                    # imas_obj_fname='tmp_imas_data.npz',
-                    # ):
     """
     Get a WEST IMAS data for a given IMAS IDS and paths
 
@@ -1159,12 +1156,8 @@ def imas_get_remote(pulse, cmd, script_name):
     ----------
     pulse : int
         WEST pulse number
-    ids_name : str, optional
-        IMAS IDS name. The default is 'ece'.
-    paths : list, optional
-        list of IMAS IDS path to retrieve. Default is paths=['t_e_central.data', 'time']
-    imas_obj_fname : str, optional
-        Temporary name for file exchange. The default is 'tmp_imas_data.npz'.
+    cmd: str
+        Command to execute on the remote terminal. Cf example below.
     scipt_name: string
         filename of the python script to execute remotly
 
@@ -1173,49 +1166,65 @@ def imas_get_remote(pulse, cmd, script_name):
     data : dict
         Data corresponding to the order of the path dictionnary
 
+    Example
+    -------
+    cmd = 'module load tools_dc; python save_from_imas.py \'{"pulse":"'+str(pulse)+'", "ids_name":"'+ids_name+'", "paths":'+json.dumps(paths)+'}\''
+
+
     """
     # temp local file
     from tempfile import TemporaryFile
     from pathlib import Path
     
+    # default values
     imas_obj_fname = 'tmp_imas_data.npz'
-    # if this temp file already exist
+    script_path = os.path.dirname(__file__)
+   
+    # TODO ? if this temp file already exist
+    
+    # dummy data to return in case of failure
+    data = {'arr_0':0, 'arr_1':0}
     
     # First need to set up SSH keys
     privatekeyfile = os.path.expanduser('id_priv.rsa')
-    mykey = paramiko.RSAKey.from_private_key_file(privatekeyfile, password='HenS2008')
-
-    client = paramiko.SSHClient()
-    client.load_system_host_keys()
-    client.connect('talitha.intra.cea.fr', username='JH218595', pkey=mykey)
-
-    # Setup sftp connection and transmit this script
-    sftp = client.open_sftp()
-    sftp.put('C:/Users/JH218595/Documents/WEST_C4/'+script_name, script_name)
-
-    stdin, stdout, stderr = client.exec_command(cmd)
-    print(cmd)
-    # shows the output of the command
-    print('Error message:', stderr.read())
-    for line in stdout:
-        # Process each line in the remote output
-        print(line)
-
-    # Retrieve the IMAS object
-    path_local = Path(os.getcwd()+'/'+imas_obj_fname)
-    print(f'Copying remote file locally to {path_local}....')
-    sftp.get(remotepath=f'/Home/JH218595/{imas_obj_fname}',
-             localpath=path_local.as_posix())
-    sftp.close()
     
-    # close the SSH session
-    client.close()
+    try:
+        mykey = paramiko.RSAKey.from_private_key_file(privatekeyfile)
     
-    # test: open local file
-    data = np.load(imas_obj_fname, allow_pickle=True)
+        client = paramiko.SSHClient()
+        client.load_system_host_keys()
+        client.connect(SERVER, username=os.getlogin(), pkey=mykey)
+    
+        # Setup sftp connection and transmit this script
+        sftp = client.open_sftp()
+        sftp.put(os.path.join(script_path, script_name), script_name)
+    
+        stdin, stdout, stderr = client.exec_command(cmd)
+        print(cmd)
+        # shows the output of the command
+        print('Error message:', stderr.read())
+        for line in stdout:
+            # Process each line in the remote output
+            print(line)
+    
+        # Retrieve the IMAS object
+        path_local = Path(os.getcwd() + '/' + imas_obj_fname)
+        print(f'Copying remote file locally to {path_local}....')
+        sftp.get(remotepath=f'/Home/JH218595/{imas_obj_fname}',
+                 localpath=path_local.as_posix())
+        sftp.close()
+        
+        # close the SSH session
+        client.close()
+        
+        # test: open local file
+        data = np.load(imas_obj_fname, allow_pickle=True)
 
+    except FileNotFoundError as e:
+        print(e)
+        print('SSH public key not found - cannot retrieve IMAS data.')
+        
     return data
-
 
 
 # @imas
@@ -1234,7 +1243,7 @@ def get_Te(pulse):
     data = imas_get_remote(pulse, cmd, script_name) 
 
     y = data['arr_0']
-    t = data['arr_1'] - tignitron(pulse)[0]
+    t = data['arr_1'] - np.asarray(tignitron(pulse)[0])
     return y, t
     # y = data['data'][0,:]
     # t = data['data'][1,:]
