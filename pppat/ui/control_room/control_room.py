@@ -268,6 +268,17 @@ class Panel(QSplitter):
                         # append signal labels and units 
                         units.append(self.parent.model.signal_unit(sig))
                         titles.append(self.parent.model.signal_label(sig))
+                        
+                        # retrieve signal options if any
+                        signame = sig.split(':')[0]
+                        if signame in signals:
+                            if 'options' in signals[signame]:
+                                if 'yscale' in signals[signame]['options']:
+                                    self.p.setLogMode(y=True)
+                                if 'ylim' in signals[signame]['options']:
+                                    self.p.vb.setRange(yRange=signals[signame]['options']['ylim'])
+
+
                     else:
                         print('Bad data!!!!')
 

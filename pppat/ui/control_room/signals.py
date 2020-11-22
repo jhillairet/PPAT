@@ -57,7 +57,7 @@ signals = {
     'Neutron1': {'name': 'GFLUNTN%1', 'unit': 'N/s', 'label':'Neutron#1', 'options':{'ymin':10}},
     'Neutron2': {'name': 'GFLUNTN%2', 'unit': 'N/s', 'label':'Neutron#2', 'options':{'ymin':10}},
     # Movable limiter position (LPA)
-    'LPA_Position': {'name': 'GMAG_POSLPA%1', 'unit': 'm', 'label': 'LPA position'},  
+    'LPA_Position': {'name': 'GMAG_POSLPA%1', 'unit': 'mm', 'label': 'LPA position', 'options':{'scaling':1e3}},  
     
     ## Fueling
     'nl': {'name': 'GINTLIDRT%3', 'unit': '$m^{-2}$', 'label': 'Line integrated density'},
@@ -101,9 +101,9 @@ signals = {
     'IC_P_Gen5_fwd' : {'name': None, 'fun':'IC_Gen_fwd5', 'unit': 'kW', 'label': 'Generator 5 forward power'},
     'IC_P_Gen6_fwd' : {'name': None, 'fun':'IC_Gen_fwd6', 'unit': 'kW', 'label': 'Generator 6 forward power'},
     # IC antennas positions vs time 
-    'IC_Q1_position': {'name': 'GICHANTPOS%1', 'unit': 'm', 'label': 'Q1 Antenna radial position', 'options':{'scaling':1e-3}},
-    'IC_Q2_position': {'name': 'GICHANTPOS%2', 'unit': 'm', 'label': 'Q2 Antenna radial position', 'options':{'scaling':1e-3}},
-    'IC_Q4_position': {'name': 'GICHANTPOS%3', 'unit': 'm', 'label': 'Q4 Antenna radial position', 'options':{'scaling':1e-3}},        
+    'IC_Q1_position': {'name': 'GICHANTPOS%1', 'unit': 'mm', 'label': 'Q1 Antenna radial position'},
+    'IC_Q2_position': {'name': 'GICHANTPOS%2', 'unit': 'mm', 'label': 'Q2 Antenna radial position'},
+    'IC_Q4_position': {'name': 'GICHANTPOS%3', 'unit': 'mm', 'label': 'Q4 Antenna radial position'},        
     'IC_Positions': {'name': None, 'fun': 'IC_Positions', 'unit': 'm', 'label': 'IC Antenna positions', 'options':{'display': False}},  # returns scalar values
     # IC antenna frequencies (use tsmat)
     'IC_Frequencies': {'name': None, 'fun': 'IC_Frequencies', 'unit': 'MHz', 'label': 'IC Antenna Frequencies'},
@@ -288,8 +288,8 @@ signals = {
     'LH_Rc_LH1': {'name': 'SHYBREF1', 'unit': '%', 'label': 'Avg. Refl. Coeff LH1'},
     'LH_Rc_LH2': {'name': 'SHYBREF2', 'unit': '%', 'label': 'Avg. Refl. Coeff LH2'},
     # LH antenna positions (vs time)
-    'LH_LH1_position': {'name': 'GPOSHYB%1', 'unit': 'm', 'label': 'LH1 Antenna radial position'},
-    'LH_LH2_position': {'name': 'GPOSHYB%2', 'unit': 'm', 'label': 'LH2 Antenna radial position'},
+    'LH_LH1_position': {'name': 'GPOSHYB%1', 'unit': 'mm', 'label': 'LH1 Antenna radial position', 'options':{'scaling':1e3}},
+    'LH_LH2_position': {'name': 'GPOSHYB%2', 'unit': 'mm', 'label': 'LH2 Antenna radial position', 'options':{'scaling':1e3}},
     'LH_Positions': {'name': None, 'fun': 'LH_Positions', 'unit': 'm', 'label': 'LH Antenna positions', 'options':{'display': False}},  # returns scalar values
     
     # Impurities (SURVIE)
