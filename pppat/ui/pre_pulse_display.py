@@ -30,5 +30,13 @@ class PrePulseDisplayWidget(QWidget):
         layout = QVBoxLayout()
         layout.addWidget(self.push_controlroom)
         
+        self.push_bigpicture = QPushButton("Big Picture")
+        # self.push_bigpicture.setEnabled(False) # disable per default
+        self.push_bigpicture.setIcon(QIcon('resources/icons/ui/line-chart-fill_.png'))
+
+        layout.addWidget(self.push_bigpicture)
+        
+
+        
         self.setLayout(layout)
         

@@ -19,7 +19,7 @@ from pppat.libpulse.pulse_settings import PulseSettings
 from pppat.libpulse.utils import wait_cursor
 from pppat.libpulse.check_result import CheckResultQTableWidgetItem
 from pppat.libpulse.utils_west import is_online, last_pulse_nb
-# from pppat.ui.BigPicture import BigPicture_disp
+from pppat.ui.BigPicture import BigPicture_disp
 from pppat.ui.control_room.control_room import ControlRoom
 
 from functools import partial  # used to pass parameters for open_url
@@ -47,6 +47,20 @@ URLS = {
 DEFAULT_CONTROL_ROOM_CONFIG = 'configurations/default_EiC.config'
  
 class MainWindow(QMainWindow):
+
+    @Slot()
+    def display_big_picture(self):
+        """
+        Display the big picture of the pulse setting.
+        """
+        # TODO : check data first?
+        nominal_scenario = self.pulse_settings.DCS_settings.nominal_scenario
+        dp_file = self.pulse_settings.files['dp']
+        wfs = self.pulse_settings.waveforms
+        pulse_nb = self.pulse_settings.pulse_nb
+
+        BigPicture_disp(nominal_scenario, dp_file, wfs, pulse_nb)    
+    
     """
     Central GUI class which also serves as main Controller
     """
@@ -79,6 +93,7 @@ class MainWindow(QMainWindow):
         self.panel_pre_pulse.widget.radio_file.toggled.connect(self.clean_table_pre_test)  # clean table when toggling radio
 
         # self.panel_pulse_display.widget.push_controlroom.clicked.connect(self.push_control_room)
+        self.panel_pulse_display.widget.push_bigpicture.clicked.connect(self.display_big_picture)
 
         self.panel_post_pulse.widget.edit_pulse_nb.editingFinished.connect(self.get_post_pulse_analysis_nb)
         self.panel_post_pulse.widget.button_check_all.clicked.connect(self.check_post_pulse_all)
@@ -184,7 +199,7 @@ class MainWindow(QMainWindow):
         # Define the various collabsible panels (leave "child=" avoid Qt bug)
         self.panel_rappels = QCollapsibleToolbox(child=EiCReminderWidget(), title='Cahier de liaison des EiC / EiC\'s Notebook')
         self.panel_pre_pulse = QCollapsibleToolbox(child=PrePulseAnalysisWidget(), title='Pre-pulse Analysis')
-        # self.panel_pulse_display = QCollapsibleToolbox(child=PrePulseDisplayWidget(), title='Pre-pulse Display')
+        self.panel_pulse_display = QCollapsibleToolbox(child=PrePulseDisplayWidget(), title='Pre-pulse Display')
         self.panel_post_pulse = QCollapsibleToolbox(child=PostPulseAnalysisWidget(), title='Post-pulse Analysis')
         self.panel_log = QCollapsibleToolbox(child=QPlainTextEditLogger(), title='Logs')
         self.panel_console = QCollapsibleToolbox(child=ConsoleWidget(), title='Python Console')
@@ -193,7 +208,7 @@ class MainWindow(QMainWindow):
         vbox = QVBoxLayout()
         vbox.addWidget(self.panel_rappels)
         vbox.addWidget(self.panel_pre_pulse)
-        # vbox.addWidget(self.panel_pulse_display)
+        vbox.addWidget(self.panel_pulse_display)
         vbox.addWidget(self.panel_post_pulse)
         vbox.addWidget(self.panel_log)
         vbox.addWidget(self.panel_console)
@@ -452,21 +467,21 @@ class MainWindow(QMainWindow):
         else:
             logger.error("One or both of the pulse setting files do not exist!" )
 
-    # @Slot()
-    # def push_control_room(self):
-    #     """
-    #     Display the big picture of the pulse setting.
-    #     """
-    #     # # TODO : check data first?
-    #     # nominal_scenario = self.pulse_settings.DCS_settings.nominal_scenario
-    #     # dp_file = self.pulse_settings.files['dp']
-    #     # wfs = self.pulse_settings.waveforms
-    #     # pulse_nb = self.pulse_settings.pulse_nb
+    @Slot()
+    def push_control_room(self):
+        """
+        Display the big picture of the pulse setting.
+        """
+        # TODO : check data first?
+        nominal_scenario = self.pulse_settings.DCS_settings.nominal_scenario
+        dp_file = self.pulse_settings.files['dp']
+        wfs = self.pulse_settings.waveforms
+        pulse_nb = self.pulse_settings.pulse_nb
 
-    #     # BigPicture_disp(nominal_scenario, dp_file, wfs, pulse_nb)
+        BigPicture_disp(nominal_scenario, dp_file, wfs, pulse_nb)
         
-    #     # TODO: update Control Room shot number?
-    #     self.control_room.show()
+        # # TODO: update Control Room shot number?
+        # self.control_room.show()
 
     @Slot()
     def get_post_pulse_analysis_nb(self):
