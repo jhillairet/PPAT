@@ -75,9 +75,9 @@ def translate_pulse_numbers(pulses: list) -> list:
     west_pulses = np.array(pulses, dtype=int)
     # if there are any negative number, get the lastest pulse number
     # and translate negative numbers into meaningfull pulse numbers
-    if np.any(west_pulses <= 0):
+    if np.any(west_pulses < 0):
         last_achieved_plasma = last_pulse_nb()
-        west_pulses[west_pulses <= 0] += last_achieved_plasma + 1
+        west_pulses[west_pulses < 0] += last_achieved_plasma + 1
     # convert back to a list (of integer)
     return [int(pulse) for pulse in west_pulses]
 
@@ -1623,10 +1623,12 @@ class ControlRoomDataModel(QtGui.QStandardItemModel):
         
     def update_data(self, pulse, signal):
         print(f'Updating data for pulses {pulse}')
-        if not self._data[pulse]['PulseSetting']:
+
+        # avoid downloading new data unless if it's a relative pulse number (negative or null numbers)        
+        if (pulse > 0) and (not self._data[pulse]['PulseSetting']):
+            print(f'Updating Pulse Settings for pulse {pulse}')
             self._data[pulse]['PulseSetting'] = PulseSettings(pulse)
-            
-        if self._data[pulse][signal]:
+        if self._data[pulse][signal] and (pulse > 0):
             print(f'{signal} for #{pulse} already downloaded. Skipping...')
         else:
             print(f'Retrieve {signal} for #{pulse}...')
