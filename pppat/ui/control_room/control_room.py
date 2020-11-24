@@ -1507,7 +1507,10 @@ class ControlRoom(QMainWindow):
                     for pulse in west_pulses:
                         for signal in panel.config.selected_signals:
                             print(f'Updating {signal} for {pulse}')
-                            self.model.update_data(pulse, signal)
+                            try:
+                                self.model.update_data(pulse, signal)
+                            except Exception as e: # catch all errors
+                                print(e)
                             counter += 1
                             self.qt_progress_bar.setValue(counter/plot_numbers*100)
         
@@ -1552,6 +1555,9 @@ class ControlRoomDataModel(QtGui.QStandardItemModel):
     def __init__(self, *args, **kwargs):
         super(ControlRoomDataModel, self).__init__(*args, **kwargs)
         self._data = nested_dict()
+        
+        # initialize the next pulse number (aka pulse "0") to a dummy value 
+        self.next_pulse = 99999
     
     def data(self, index, role):
         """
@@ -1624,6 +1630,17 @@ class ControlRoomDataModel(QtGui.QStandardItemModel):
     def update_data(self, pulse, signal):
         print(f'Updating data for pulses {pulse}')
 
+        # pulse 0 is the next pulse : retrieve data
+        if pulse == 0:
+            # if this is the first time that the next pulse config is asked, download it
+            if self.next_pulse != last_pulse_nb():
+                print(f'Loading next pulse settings, for future pulse {self.next_pulse}...')
+                self._data[pulse]['PulseSetting'] = PulseSettings(pulse)
+                self.next_pulse = last_pulse_nb()
+        if pulse < 0:
+            # replace relative pulse numbers (i.e. negative ones) by absolute values
+            pulse += last_pulse_nb + 1
+            
         # avoid downloading new data unless if it's a relative pulse number (negative or null numbers)        
         if (pulse > 0) and (not self._data[pulse]['PulseSetting']):
             print(f'Updating Pulse Settings for pulse {pulse}')
