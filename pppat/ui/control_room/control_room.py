@@ -129,6 +129,24 @@ def list_waveforms(pulse=None) -> list:
         return data.splitlines()
 
 
+def error_message(msg):
+    '''
+    Display an Error Message to the user.
+
+    Parameters
+    ----------
+    msg : str
+        Error Description.
+
+    Returns
+    -------
+    None.
+
+    '''
+    
+    error_dialog = QtWidgets.QErrorMessage()
+    error_dialog.showMessage(msg)
+    error_dialog.exec_()
 
 
 
@@ -716,7 +734,15 @@ class ControlRoom(QMainWindow):
         text = self.qt_pulse_line_edit.text()
         # split ',' -> pulses number
         if text:
-            return [int(p) for p in text.split(',')]
+            try:
+                return [int(p) for p in text.split(',')]
+            except Exception as e:
+                error_message('''Incorrect pulse number(s). 
+                              
+                              Pulse numbers should be valid WEST pulse number 
+                              or relative pulse number with respect to 
+                              the last one (-1, -2, ...) and separated by a "," ''')
+                return None
         else:
             return None
 
