@@ -258,6 +258,10 @@ class Panel(QSplitter):
                 
             units, titles = [], []
             for idx_pulse, pulse in enumerate(pulses):
+                # convert relative pulse number (negative values) to absolute pulse number
+                if pulse < 0:
+                    pulse += last_pulse_nb() + 1
+
                 for idx_sig, (sig, line_style) in enumerate(zip(self.config.selected_signals, line_styles)):
                     
                     # colored_pulse = True
@@ -1584,7 +1588,7 @@ class ControlRoomDataModel(QtGui.QStandardItemModel):
         
         # initialize the next pulse number (aka pulse "0") to a dummy value 
         self.next_pulse = 99999
-    
+
     def data(self, index, role):
         """
         return y(t) for a signals at a given pulse. 
