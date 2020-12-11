@@ -547,12 +547,13 @@ def IC_Gen_fwd6(pulse):
 phases ICRH
 """
 def delta_phi_toro_Qi_Top_LmR(pulse, i=1):
-    PhasesQi, tPhasesQi = pw.tsbase(pulse, f'GICHPHASESQ{i}', nargout=2)
-    dPhiToroTOP_LmR = PhasesQi[:,3] + PhasesQi[:,0] - PhasesQi[:,5]
-    return  dPhiToroTOP_LmR % 360, tPhasesQi[:,0]
+    PhasesQi, tPhasesQi = pw.tsbase(pulse, f'GICHPHASESQ{i}%1', nargout=2)
+    #dPhiToroTOP_LmR = PhasesQi[:,3] + PhasesQi[:,0] - PhasesQi[:,5]
+    #return  dPhiToroTOP_LmR % 360, tPhasesQi[:,0]
+    return PhasesQi, tPhasesQi 
 
 def delta_phi_toro_Qi_Bot_LmR(pulse, i=1):
-    PhasesQi, tPhasesQi = pw.tsbase(pulse, f'GICHPHASESQ{i}', nargout=2)
+    PhasesQi, tPhasesQi = pw.tsbase(pulse, f'GICHPHASESQ{i}%1', nargout=2)
     dPhiToroBOT_LmR = PhasesQi[:,4] + PhasesQi[:,0] - PhasesQi[:,6]
     return  dPhiToroBOT_LmR % 360, tPhasesQi[:,0]
 
@@ -601,22 +602,22 @@ IC Antenna Toroidal Phase filtered (gives NaN when no IC power)
 def phase_Q1(pulse):
     P, t_P = get_sig(pulse, signals['IC_P_Q1'])
     Phase, t_phase = get_sig(pulse, signals['IC_delta_phi_toro_Q1_Bot_LmR'])
-    _filter = np.interp(t_phase, t_P, P > 0.11)
-    # _filter[_filter == False] = np.nan
+    _filter = np.interp(t_phase, t_P, P > 0.05)
+    _filter[_filter == False] = 0
     return _filter*Phase, t_phase
 
 def phase_Q2(pulse):
     P, t_P = get_sig(pulse, signals['IC_P_Q2'])
     Phase, t_phase = get_sig(pulse, signals['IC_delta_phi_toro_Q2_Top_LmR'])
-    _filter = np.interp(t_phase, t_P, P > 0.11)
-    # _filter[_filter == False] = np.nan
+    _filter = np.interp(t_phase, t_P, P > 0.05)
+    _filter[_filter == False] = 0
     return _filter*Phase, t_phase
 
 def phase_Q4(pulse):
     P, t_P = get_sig(pulse, signals['IC_P_Q4'])
     Phase, t_phase = get_sig(pulse, signals['IC_delta_phi_toro_Q4_Top_LmR'])
-    _filter = np.interp(t_phase, t_P, P > 0.11)
-    # _filter[_filter == False] = np.nan
+    _filter = np.interp(t_phase, t_P, P > 0.05)
+    _filter[_filter == False] = 0
     return _filter*Phase, t_phase
 
 '''
