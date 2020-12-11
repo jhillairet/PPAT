@@ -242,6 +242,8 @@ class Panel(QSplitter):
         if pulses:
             # clear graph
             self.graphWidget.clear()
+            # disable auto range before plotting to speed up
+            self.graphWidget.disableAutoRange()
             # cycling automatically on linestyles
             qt_line_styles = [QtCore.Qt.SolidLine, 
                                               QtCore.Qt.DashLine, 
@@ -311,7 +313,10 @@ class Panel(QSplitter):
                     self.graphWidget.setTitle(', '.join(filter(None, titles)))
                 else:
                     self.graphWidget.setTitle(None)
-                
+
+                # put back autoRange is desired
+                if self.parent.action_autorange.isChecked():
+                    self.graphWidget.autoRange()
 
         
     def shorten_name(self, sig_name: str) -> str:
@@ -1001,6 +1006,12 @@ class ControlRoom(QMainWindow):
         self.action_title.triggered.connect(self.ui_titles)
         menu_config.addAction(self.action_title)
         
+        self.action_autorange = QAction('Auto &Range After Plot', self)
+        self.action_autorange.setCheckable(True)
+        self.action_autorange.setChecked(True)
+        self.action_autorange.triggered.connect(self.ui_autorange)
+        menu_config.addAction(self.action_autorange)
+
         menu_config.addSeparator()
         
         self.action_view_data = QAction('Data Viewer', self)
@@ -1030,7 +1041,13 @@ class ControlRoom(QMainWindow):
         """
         # update drawings
         self.update()
-                
+
+    def ui_autorange(self):
+        """
+        Toggle auto range
+        """
+        self.update()
+
 
     def ui_clean_data(self):
         """
