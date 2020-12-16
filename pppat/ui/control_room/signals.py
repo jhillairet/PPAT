@@ -293,10 +293,14 @@ signals = {
     'LH_Positions': {'name': None, 'fun': 'LH_Positions', 'unit': 'm', 'label': 'LH Antenna positions', 'options':{'display': False}},  # returns scalar values
     
     # Impurities (SURVIE)
-    'Cu': {'name': 'scu19', 'unit': 'a.u.', 'label': 'Copper'},
+    'Cu': {'name': 'SCU19', 'unit': 'a.u.', 'label': 'Copper'},
     'Fe': {'name': 'SFE15', 'unit': 'a.u.', 'label': 'Iron'},
     'Ag18': {'name': 'SAG18', 'unit':'a.u.', 'label':'Silver-18'},
     'Ag19': {'name': 'SAG19', 'unit':'a.u.', 'label':'Silver-19'},
+    'Cu_normalized': {'name':None, 'fun':'Cu_normalized', 'unit':'a.u.', 'label':'Copper normalized to central lineic density'},
+    'Fe_normalized': {'name':None, 'fun':'Fe_normalized', 'unit':'a.u.', 'label':'Iron normalized to central lineic density'},
+    'Ag18_normalized': {'name':None, 'fun':'Ag18_normalized', 'unit':'a.u.', 'label':'Silver18 normalized to central lineic density'},
+    'Ag19_normalized': {'name':None, 'fun':'Ag19_normalized', 'unit':'a.u.', 'label':'Silver19 normalized to central lineic density'},
     
     ## Plasma Temperature
     'Te': {'name':None, 'fun':'get_Te', 'unit':'eV', 'label':'Te Central',  },
@@ -334,6 +338,46 @@ signals = {
     # MHD
     'MHD' : {'name':'GMHD_D1%2', 'unit':'a.u.', 'label':'MHD mode envelop'},
     }
+
+def Cu_normalized(pulse):
+    ''' Copper impurity signal (SCU19) normalized to central lineic density (GINTLIDRT%3) '''
+    nl, t_nl = get_sig(pulse, signals['nl'])
+    cu, t_cu = get_sig(pulse, signals['Cu'])
+    # interpolate nl on Cu signals
+    nl = np.interp(t_cu, t_nl, nl)
+    # remove nl=0 points
+    indexes = nl.nonzero()
+    return cu[indexes]/nl[indexes], t_cu[indexes]
+
+def Fe_normalized(pulse):
+    ''' Iron impurity signal (SFE18) normalized to central lineic density (GINTLIDRT%3) '''
+    nl, t_nl = get_sig(pulse, signals['nl'])
+    fe, t_fe = get_sig(pulse, signals['Fe'])
+    # interpolate nl on Cu signals
+    nl = np.interp(t_fe, t_nl, nl)
+    # remove nl=0 points
+    indexes = nl.nonzero()
+    return fe[indexes]/nl[indexes], t_fe[indexes]
+
+def Ag18_normalized(pulse):
+    ''' Silver18 impurity signal (SAG18) normalized to central lineic density (GINTLIDRT%3) '''
+    nl, t_nl = get_sig(pulse, signals['nl'])
+    ag, t_ag = get_sig(pulse, signals['Ag18'])
+    # interpolate nl on Cu signals
+    nl = np.interp(t_ag, t_nl, nl)
+    # remove nl=0 points
+    indexes = nl.nonzero()
+    return ag[indexes]/nl[indexes], t_ag[indexes]
+
+def Ag19_normalized(pulse):
+    ''' Silver19 impurity signal (SAG19) normalized to central lineic density (GINTLIDRT%3) '''
+    nl, t_nl = get_sig(pulse, signals['nl'])
+    ag, t_ag = get_sig(pulse, signals['Ag19'])
+    # interpolate nl on Ag signals
+    nl = np.interp(t_ag, t_nl, nl)
+    # remove nl=0 points
+    indexes = nl.nonzero()
+    return ag[indexes]/nl[indexes], t_ag[indexes]        
 
 def VSWR_Q1_left(pulse):
     Pow_IncRefQ1, tPow_IncRefQ1 = pw.tsbase(pulse,'GICHANTPOWQ1', nargout=2)   
@@ -547,12 +591,13 @@ def IC_Gen_fwd6(pulse):
 phases ICRH
 """
 def delta_phi_toro_Qi_Top_LmR(pulse, i=1):
-    PhasesQi, tPhasesQi = pw.tsbase(pulse, f'GICHPHASESQ{i}', nargout=2)
-    dPhiToroTOP_LmR = PhasesQi[:,3] + PhasesQi[:,0] - PhasesQi[:,5]
-    return  dPhiToroTOP_LmR % 360, tPhasesQi[:,0]
+    PhasesQi, tPhasesQi = pw.tsbase(pulse, f'GICHPHASESQ{i}%1', nargout=2)
+    #dPhiToroTOP_LmR = PhasesQi[:,3] + PhasesQi[:,0] - PhasesQi[:,5]
+    #return  dPhiToroTOP_LmR % 360, tPhasesQi[:,0]
+    return PhasesQi, tPhasesQi 
 
 def delta_phi_toro_Qi_Bot_LmR(pulse, i=1):
-    PhasesQi, tPhasesQi = pw.tsbase(pulse, f'GICHPHASESQ{i}', nargout=2)
+    PhasesQi, tPhasesQi = pw.tsbase(pulse, f'GICHPHASESQ{i}%1', nargout=2)
     dPhiToroBOT_LmR = PhasesQi[:,4] + PhasesQi[:,0] - PhasesQi[:,6]
     return  dPhiToroBOT_LmR % 360, tPhasesQi[:,0]
 
@@ -601,22 +646,22 @@ IC Antenna Toroidal Phase filtered (gives NaN when no IC power)
 def phase_Q1(pulse):
     P, t_P = get_sig(pulse, signals['IC_P_Q1'])
     Phase, t_phase = get_sig(pulse, signals['IC_delta_phi_toro_Q1_Bot_LmR'])
-    _filter = np.interp(t_phase, t_P, P > 0.11)
-    # _filter[_filter == False] = np.nan
+    _filter = np.interp(t_phase, t_P, P > 0.05)
+    _filter[_filter == False] = 0
     return _filter*Phase, t_phase
 
 def phase_Q2(pulse):
     P, t_P = get_sig(pulse, signals['IC_P_Q2'])
     Phase, t_phase = get_sig(pulse, signals['IC_delta_phi_toro_Q2_Top_LmR'])
-    _filter = np.interp(t_phase, t_P, P > 0.11)
-    # _filter[_filter == False] = np.nan
+    _filter = np.interp(t_phase, t_P, P > 0.05)
+    _filter[_filter == False] = 0
     return _filter*Phase, t_phase
 
 def phase_Q4(pulse):
     P, t_P = get_sig(pulse, signals['IC_P_Q4'])
     Phase, t_phase = get_sig(pulse, signals['IC_delta_phi_toro_Q4_Top_LmR'])
-    _filter = np.interp(t_phase, t_P, P > 0.11)
-    # _filter[_filter == False] = np.nan
+    _filter = np.interp(t_phase, t_P, P > 0.05)
+    _filter[_filter == False] = 0
     return _filter*Phase, t_phase
 
 '''
