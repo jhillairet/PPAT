@@ -14,6 +14,9 @@ from pathlib import Path
 
 from pppat.libpulse.utils import nested_dict
 
+# Allows copy/paste to clipboard using crtl+c command
+plt.rcParams['toolbar'] = 'toolmanager'
+
 # define the resource directory in a way that works everywhere
 # (one could probably do better using importlib.resources... )
 RESOURCES_PATH = Path(__file__).parent.parent.parent.parent / "resources"
@@ -283,8 +286,8 @@ signals = {
    
     ## LHCD
     'LH_P_tot': {'name': 'SHYBPTOT', 'unit': 'MW', 'label': 'LH total coupled power'},
-    'LH_P_LH1': {'name': 'SHYBPFORW1', 'unit': 'kW', 'label': 'LH1 coupled power'},
-    'LH_P_LH2': {'name': 'SHYBPFORW2', 'unit': 'kW', 'label': 'LH2 coupled power'},
+    'LH_P_LH1': {'name': 'SHYBPFORW1', 'unit': 'MW', 'label': 'LH1 coupled power', 'options':{'scaling':1e-3}},
+    'LH_P_LH2': {'name': 'SHYBPFORW2', 'unit': 'MW', 'label': 'LH2 coupled power', 'options':{'scaling':1e-3}},
     'LH_Rc_LH1': {'name': 'SHYBREF1', 'unit': '%', 'label': 'Avg. Refl. Coeff LH1'},
     'LH_Rc_LH2': {'name': 'SHYBREF2', 'unit': '%', 'label': 'Avg. Refl. Coeff LH2'},
     # LH antenna positions (vs time)
@@ -888,6 +891,8 @@ def scope(pulses, signames,
         Should we smooth signals? The default is False.
     style_label : str, optional
         Matplotlib style to use for the figures. The default is 'default'.
+        see https://matplotlib.org/gallery/style_sheets/style_sheets_reference.html
+        for the list of style available
     cycling_mode : str, optional
         'ls' (linestyle) or 'color'. The default is 'ls'.
     window_loc : tuple of 2 integer, optional
@@ -895,7 +900,9 @@ def scope(pulses, signames,
 
     Returns
     -------
-    None.
+    fig: matplotlib.figure.Figure
+        Figure object
+    axes: list of 
 
     """
     with plt.style.context(style_label):
@@ -1166,7 +1173,7 @@ def RF_P_tot(pulse):
         # no LH data -> 0
         P_LH_tot = np.zeros_like(P_IC_tot)
                   
-    return P_LH_tot + P_IC_tot*1e-3, t_tot
+    return P_LH_tot + P_IC_tot, t_tot
 
 def Ohmic_power(pulse):
     ''' Ohmic Power in MW '''

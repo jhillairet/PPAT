@@ -1,3 +1,8 @@
+# convenience import shortcuts
+from . ui.control_room import signals
+from . ui.control_room import control_room
+from . ui.control_room.signals import *
+
 # Setup the logging style
 import logging
 from logging.config import dictConfig
