@@ -21,9 +21,11 @@ try:
 except ModuleNotFoundError as e:
     logger.error('imas_west package cannot be imported!')
 
-# Visible sectroscopy channel to use for the Halha/Dalpha
-CHANNEL_NAME = 'LODIVIN19'
-#CHANNEL_NAME = 'LODIVOU15'
+# Visible sectroscopy channels to use for the Halha/Dalpha
+# Available channels are LODIVIN19, LODIVOU15 and INBUM04 
+#CHANNEL_NAME = 'LODIVIN19'  # not available at start of C5
+CHANNEL_NAME = 'LODIVOU15'
+#CHANNEL_NAME = 'INBUM04'
 # min and max values for the isotopic ratio. If lower or higher, trigger an ERROR
 RATIO_MAX = 15 # in %
 RATIO_MIN = 5  # in %
@@ -97,6 +99,10 @@ class check_isotopic_ratio(Result):
             # or IMAS is not available
             self.code = self.UNAVAILABLE
             self.text = 'Visible Spectrometer data not available. Check log for more details'
+        elif density_ratio.size == 0 or time.size == 0:
+            # empty data
+            self.code = self.UNAVAILABLE
+            self.text = 'Empty data... Check with the diagnostic responsible'
         else:
             # filter the density ratop for time corresponding to Ip plateau
             #ip, t_ip = pw.tsbase(pulse_nb, 'SMAG_IP', nargout=2)
@@ -145,3 +151,14 @@ class check_isotopic_ratio(Result):
             ax.set_ylabel('Density Ratio [%]')
             ax.set_title(f'#{pulse_nb}')
             fig.show()
+
+if __name__ == '__main__':
+    pulse = 56241
+    test = check_isotopic_ratio()
+    print(test)
+    #test.plot(pulse)
+
+    density_ratio, time = imas_density_ratio(pulse)
+    print(density_ratio)
+    fig, ax = plt.subplots()
+    ax.plot(time, density_ratio)
