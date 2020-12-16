@@ -297,7 +297,7 @@ signals = {
     'Fe': {'name': 'SFE15', 'unit': 'a.u.', 'label': 'Iron'},
     'Ag18': {'name': 'SAG18', 'unit':'a.u.', 'label':'Silver-18'},
     'Ag19': {'name': 'SAG19', 'unit':'a.u.', 'label':'Silver-19'},
-    'Cu_normalized': {'name':None, 'fun':'Cu_normalized', 'unit':'a.u.', 'label':'Copper normalized to central lineic density'},
+    'Cu_normalized': {'name':None, 'fun':'Cu_normalized', 'unit':'a.u.', 'label':'Copper normalized to central lineic density', 'options': {'ylimit':0, 'ylimit_low':100}},
     'Fe_normalized': {'name':None, 'fun':'Fe_normalized', 'unit':'a.u.', 'label':'Iron normalized to central lineic density'},
     'Ag18_normalized': {'name':None, 'fun':'Ag18_normalized', 'unit':'a.u.', 'label':'Silver18 normalized to central lineic density'},
     'Ag19_normalized': {'name':None, 'fun':'Ag19_normalized', 'unit':'a.u.', 'label':'Silver19 normalized to central lineic density'},
@@ -339,12 +339,24 @@ signals = {
     'MHD' : {'name':'GMHD_D1%2', 'unit':'a.u.', 'label':'MHD mode envelop'},
     }
 
+def cut_on_nonzero_ip(pulse, y, t):
+    ip, t_ip = get_sig(pulse, signals['Ip'])
+    # interpolate y on t_ip
+    y = np.interp(t_ip, t, y)
+    indexes = ip > 1e-6
+    return y[indexes], t_ip[indexes]
+
+
 def Cu_normalized(pulse):
     ''' Copper impurity signal (SCU19) normalized to central lineic density (GINTLIDRT%3) '''
     nl, t_nl = get_sig(pulse, signals['nl'])
     cu, t_cu = get_sig(pulse, signals['Cu'])
     # interpolate nl on Cu signals
     nl = np.interp(t_cu, t_nl, nl)
+    # remove zeros Ip points
+    nl, t_nl = cut_on_nonzero_ip(pulse, nl, t_cu)
+    cu, t_cu = cut_on_nonzero_ip(pulse, cu, t_cu)
+
     # remove nl=0 points
     indexes = nl.nonzero()
     return cu[indexes]/nl[indexes], t_cu[indexes]
