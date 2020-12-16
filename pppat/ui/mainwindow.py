@@ -174,8 +174,10 @@ class MainWindow(QMainWindow):
         self.action_control_room.setCheckable(True)
         self.action_control_room.setChecked(False)
         self.action_control_room.setToolTip('Show/Hide Control Room Window')     
-        self.menuBar_right.addAction(self.action_control_room)
-        self.menu.setCornerWidget(self.menuBar_right)
+        # JH 2020-12-15 : remove the icon to launch control room from PPPAT directly
+        # because the python environement used when launching CR is different from the one expected (??)
+        #self.menuBar_right.addAction(self.action_control_room)
+        #self.menu.setCornerWidget(self.menuBar_right)
 
     def toggle_control_room(self):
         """

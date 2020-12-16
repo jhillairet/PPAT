@@ -72,14 +72,17 @@ def translate_pulse_numbers(pulses: list) -> list:
         List of WEST pulse numbers (all positives and shot numbers >50000).
 
     '''
-    west_pulses = np.array(pulses, dtype=int)
-    # if there are any negative number, get the lastest pulse number
-    # and translate negative numbers into meaningfull pulse numbers
-    if np.any(west_pulses < 0):
-        last_achieved_plasma = last_pulse_nb()
-        west_pulses[west_pulses < 0] += last_achieved_plasma + 1
-    # convert back to a list (of integer)
-    return [int(pulse) for pulse in west_pulses]
+    if pulses:
+        west_pulses = np.array(pulses, dtype=int)
+        # if there are any negative number, get the lastest pulse number
+        # and translate negative numbers into meaningfull pulse numbers
+        if np.any(west_pulses < 0):
+            last_achieved_plasma = last_pulse_nb()
+            west_pulses[west_pulses < 0] += last_achieved_plasma + 1
+        # convert back to a list (of integer)
+        return [int(pulse) for pulse in west_pulses]
+    else:
+        return None
 
 def list_signals(pulse=None) -> list:
     """
@@ -242,6 +245,8 @@ class Panel(QSplitter):
         if pulses:
             # clear graph
             self.graphWidget.clear()
+            # disable auto range before plotting to speed up
+            self.graphWidget.disableAutoRange()
             # cycling automatically on linestyles
             qt_line_styles = [QtCore.Qt.SolidLine, 
                                               QtCore.Qt.DashLine, 
@@ -311,7 +316,10 @@ class Panel(QSplitter):
                     self.graphWidget.setTitle(', '.join(filter(None, titles)))
                 else:
                     self.graphWidget.setTitle(None)
-                
+
+                # put back autoRange is desired
+                if self.parent.action_autorange.isChecked():
+                    self.graphWidget.autoRange()
 
         
     def shorten_name(self, sig_name: str) -> str:
@@ -1001,6 +1009,12 @@ class ControlRoom(QMainWindow):
         self.action_title.triggered.connect(self.ui_titles)
         menu_config.addAction(self.action_title)
         
+        self.action_autorange = QAction('Auto &Range After Plot', self)
+        self.action_autorange.setCheckable(True)
+        self.action_autorange.setChecked(True)
+        self.action_autorange.triggered.connect(self.ui_autorange)
+        menu_config.addAction(self.action_autorange)
+
         menu_config.addSeparator()
         
         self.action_view_data = QAction('Data Viewer', self)
@@ -1030,7 +1044,13 @@ class ControlRoom(QMainWindow):
         """
         # update drawings
         self.update()
-                
+
+    def ui_autorange(self):
+        """
+        Toggle auto range
+        """
+        self.update()
+
 
     def ui_clean_data(self):
         """
@@ -1521,35 +1541,37 @@ class ControlRoom(QMainWindow):
         self.update_config_pulses()
         west_pulses = translate_pulse_numbers(self.config['pulses'])
         
-        # determine the number of signal to update
-        plot_numbers = 0
-        for tab in self.tabs:
-            for panel in tab.panels:
-                for pulse in west_pulses:
-                    for signal in panel.config.selected_signals:
-                        plot_numbers += 1
-        
-        # update data (if needed)
-        counter = 0
-        with wait_cursor():
+        if west_pulses:
+            # determine the number of signal to update
+            plot_numbers = 0
             for tab in self.tabs:
                 for panel in tab.panels:
                     for pulse in west_pulses:
                         for signal in panel.config.selected_signals:
-                            print(f'Updating {signal} for {pulse}')
-                            try:
-                                self.model.update_data(pulse, signal)
-                            except Exception as e: # catch all errors
-                                print(e)
-                            counter += 1
-                            self.qt_progress_bar.setValue(counter/plot_numbers*100)
-        
-        # once done reset the progress bar
-        self.qt_progress_bar.reset()
+                            plot_numbers += 1
+            
+            # update data (if needed)
+            counter = 0
+            with wait_cursor():
+                for tab in self.tabs:
+                    for panel in tab.panels:
+                        for pulse in west_pulses:
+                            for signal in panel.config.selected_signals:
+                                print(f'Updating {signal} for {pulse}')
+                                try:
+                                    self.model.update_data(pulse, signal)
+                                except Exception as e: # catch all errors
+                                    print(e)
+                                counter += 1
+                                self.qt_progress_bar.setValue(counter/plot_numbers*100)
+            
+            # then update plots
+            with wait_cursor():
+                self.update_plots()
 
-        # then update plots
-        self.update_plots()
-        
+            # once done reset the progress bar
+            self.qt_progress_bar.reset()
+
     def update_plots(self):
         """
         Update all panel plots (for all pulses and selected signals)

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Use the default IRFM scientific Python distribution
 source /etc/profile.d/modules.sh
-module load tools_dc/4
+module load tools_dc
 HERE=$(dirname ${BASH_SOURCE[0]})
 python $HERE/run_control_room.py
