@@ -203,13 +203,13 @@ signals = {
     'IC_Vacuum_Q4_left': {'name': None, 'fun': 'IC_Q4_vacuum_right', 'unit': 'Pa', 'label': 'Vaccum Q4 left', 'options': {'yscale':'log', 'ylimit':4.5e-3, 'ylimit_low':2.2e-4}},
     'IC_Vacuum_Q4_right': {'name': None, 'fun': 'IC_Q4_vacuum_right', 'unit': 'Pa', 'label': 'Vaccum Q4 right', 'options': {'yscale':'log', 'ylimit':4.5e-3, 'ylimit_low':2.2e-4}},
     # Acquisition des Consignes de puissance en sortie des FPGA 
-    'IC_cons_Power_Q1': {'name': 'GICHSPP%1', 'unit': 'kW', 'label': 'Acquisition consigne generee Q1'},
-    'IC_cons_Power_Q2': {'name': 'GICHSPP%2', 'unit': 'kW', 'label': 'Acquisition consigne generee Q1'},
-    'IC_cons_Power_Q4': {'name': 'GICHSPP%3', 'unit': 'kW', 'label': 'Acquisition consigne generee Q1'},
+    'IC_cons_Power_Q1': {'name': 'GICHSPP%1', 'unit': 'MW', 'label': 'Acquisition consigne generee Q1', 'options':{'scaling':1e-3}},
+    'IC_cons_Power_Q2': {'name': 'GICHSPP%2', 'unit': 'MW', 'label': 'Acquisition consigne generee Q2', 'options':{'scaling':1e-3}},
+    'IC_cons_Power_Q4': {'name': 'GICHSPP%3', 'unit': 'MW', 'label': 'Acquisition consigne generee Q4', 'options':{'scaling':1e-3}},
     # PCS: power, phase request and authorisation
-    'IC_PCS_Power_Q1': {'name': 'GICHCONSPCS%1', 'unit': 'kW', 'label': 'PCS Power request Q1'},
-    'IC_PCS_Power_Q2': {'name': 'GICHCONSPCS%2', 'unit': 'kW', 'label': 'PCS Power request Q2'},
-    'IC_PCS_Power_Q4': {'name': 'GICHCONSPCS%3', 'unit': 'kW', 'label': 'PCS Power request Q4'},
+    'IC_PCS_Power_Q1': {'name': 'GICHCONSPCS%1', 'unit': 'MW', 'label': 'PCS Power request Q1', 'options':{'scaling':1e-3}},
+    'IC_PCS_Power_Q2': {'name': 'GICHCONSPCS%2', 'unit': 'MW', 'label': 'PCS Power request Q2', 'options':{'scaling':1e-3}},
+    'IC_PCS_Power_Q4': {'name': 'GICHCONSPCS%3', 'unit': 'MW', 'label': 'PCS Power request Q4', 'options':{'scaling':1e-3}},
     'IC_PCS_Phase_Q1': {'name': 'GICHCONSPCS%4', 'unit': 'deg', 'label': 'PCS Phase request Q1'},
     'IC_PCS_Phase_Q2': {'name': 'GICHCONSPCS%5', 'unit': 'deg', 'label': 'PCS Phase request Q2'},
     'IC_PCS_Phase_Q4': {'name': 'GICHCONSPCS%6', 'unit': 'deg', 'label': 'PCS Phase request Q4'},    
@@ -1626,6 +1626,6 @@ def add_arcad_signals(signals_dict):
     for diag in arcad_dict:
         for sig in arcad_dict[diag]['signals']:
             sig_name = f'{diag}_{sig}'
-            signals_dict[sig_name] = {'name':sig, 'unit':'', 'label':''}      
+            signals_dict[sig_name] = {'name':sig, 'unit':'', 'label':sig}      
     
     return signals_dict
