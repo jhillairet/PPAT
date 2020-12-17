@@ -159,6 +159,8 @@ class check_ripple_protection(Result):
         ax.set_xlim(1, 6)
         ax.grid(True)
         ax.legend()
+        ax.set_xlabel('nl [$m^{-2}$]')
+        ax.set_ylabel('P LH [MW]')
 
         fig.show(True)
 

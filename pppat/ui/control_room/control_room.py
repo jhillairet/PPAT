@@ -258,9 +258,15 @@ class Panel(QSplitter):
             # when mouse is mouved
             self.p.scene().sigMouseMoved.connect(self.ui_plot_mouse_moved)               
 
+            # clear previous legends before plotting to avoid superposition of legends (ptQtGraph old bug)
+            try:
+                self.legend.scene().removeItem(self.legend)
+            except Exception as e:
+                print(e)
+
             if getattr(self.config, 'display_legend', True):
-                self.graphWidget.addLegend()  # addLegend() must be called BEFORE plot()
-                
+                self.legend = self.graphWidget.addLegend()  # addLegend() must be called BEFORE plot()
+
             units, titles = [], []
             for idx_pulse, pulse in enumerate(pulses):
                 # convert relative pulse number (negative values) to absolute pulse number
@@ -776,12 +782,20 @@ class ControlRoom(QMainWindow):
         self.qt_plot_button = QPushButton(text='Plot')
         self.qt_plot_button.clicked.connect(self.update)
 
+        # clear all plots
+        self.qt_clear_plots_button = QPushButton(text='Clear Plots')
+        self.qt_clear_plots_button.clicked.connect(self.clear_all_plots)
+
+        # integrate
         self.qt_pulses = QWidget()
         self.qt_pulses_layout = QHBoxLayout()
+        self.qt_pulses_layout.addWidget(self.qt_clear_plots_button)
         self.qt_pulses_layout.addWidget(self.qt_pulse_line_edit)
         self.qt_pulses_layout.addWidget(self.qt_plot_button)
 
+
         self.qt_pulses.setLayout(self.qt_pulses_layout)
+
 
     def ui_format_pulse_line_edit(self, pulses_str: str):
         """
@@ -1530,6 +1544,21 @@ class ControlRoom(QMainWindow):
         self.config['pulses'] = self.pulses
 
         print('Qt Line Edit Pulse list:', self.config['pulses'])
+
+    def clear_all_plots(self) -> None:
+        '''
+        Clear all plots
+        '''
+        with wait_cursor():
+            for tab in self.tabs:
+                for panel in tab.panels:
+                    # clear curves
+                    panel.graphWidget.clear()
+                    # clear legends
+                    try:
+                        panel.legend.scene().removeItem(panel.legend)
+                    except Exception as e:
+                        print(e)
 
     def update(self) -> None:
         '''
