@@ -362,6 +362,8 @@ class Panel(QSplitter):
         self.panel_right = QWidget()
         self.panel_right_layout = QVBoxLayout()
         self.panel_right_layout.addWidget(self.graphWidget)
+        self.panel_right_layout.setSpacing(0)
+        self.panel_right_layout.setContentsMargins(0, 0, 0, 0) 
         self.panel_right.setLayout(self.panel_right_layout)
 
     def ui_plot_mouse_moved(self, event):
@@ -404,6 +406,8 @@ class Panel(QSplitter):
         self.qt_widget_search_layout = QHBoxLayout()
         self.qt_widget_search_layout.addWidget(self.qt_search_bar)
         self.qt_widget_search_layout.addWidget(self.qt_sig_type)
+        self.qt_widget_search_layout.setSpacing(0)
+        self.qt_widget_search_layout.setContentsMargins(0, 0, 0, 0) 
         self.qt_widget_search.setLayout(self.qt_widget_search_layout)
 
         # move up/down the panel
@@ -631,6 +635,7 @@ class ControlRoom(QMainWindow):
         rec = QApplication.desktop().availableGeometry()
         self.resize(MINIMUM_WIDTH, .8*rec.height())
 
+        # avoid bug on Windows when maximizing the application, hide part of the app
         self.setMinimumSize(200,200)
 
         ###################### Menu Bar
@@ -676,6 +681,8 @@ class ControlRoom(QMainWindow):
         self.qt_central_layout = QVBoxLayout()
         self.qt_central_layout.addWidget(self.qt_pulses)
         self.qt_central_layout.addWidget(self.qt_tabs)
+        self.qt_central_layout.setSpacing(0)
+        self.qt_central_layout.setContentsMargins(0, 0, 0, 0) 
         self.qt_central.setLayout(self.qt_central_layout)
         self.setCentralWidget(self.qt_central)
 
@@ -795,8 +802,9 @@ class ControlRoom(QMainWindow):
         self.qt_pulses_layout.addWidget(self.qt_pulse_line_edit)
         self.qt_pulses_layout.addWidget(self.qt_plot_button)
 
-
         self.qt_pulses.setLayout(self.qt_pulses_layout)
+        # self.qt_pulses.setFixedHeight(35)
+
 
 
     def ui_format_pulse_line_edit(self, pulses_str: str):
