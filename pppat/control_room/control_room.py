@@ -1263,7 +1263,7 @@ class ControlRoom(QMainWindow):
         fdialog.setNameFilter('Configuration files (*.config)')
         fdialog.setDefaultSuffix('config')
         
-        if fdialog.exec_() == QtGui.QFileDialog.Accepted:
+        if fdialog.exec_() == QFileDialog.Accepted:
             file_name = fdialog.selectedFiles()[0]
 
             print(f'Saving configuration to {file_name}...')
