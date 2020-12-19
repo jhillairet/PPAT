@@ -631,6 +631,8 @@ class ControlRoom(QMainWindow):
         rec = QApplication.desktop().availableGeometry()
         self.resize(MINIMUM_WIDTH, .8*rec.height())
 
+        self.setMinimumSize(200,200)
+
         ###################### Menu Bar
         self.ui_menu_bar()
 
