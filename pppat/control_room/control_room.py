@@ -27,7 +27,7 @@ from qtpy.QtGui import QIcon, QCursor, QDesktopServices
 from qtpy.QtCore import QDir, Slot, Signal, Qt, QUrl, QStringListModel, QSize
 
 from pppat.ui.collapsible_toolbox import QCollapsibleToolbox
-from pppat.ui.control_room.signals import signals, get_sig, add_arcad_signals
+from pppat.control_room.signals import signals, get_sig, add_arcad_signals
 from pppat.libpulse.utils import wait_cursor, nested_dict
 from pppat.libpulse.pulse_settings import PulseSettings
 from pppat.libpulse.utils_west import last_pulse_nb
@@ -1249,7 +1249,7 @@ class ControlRoom(QMainWindow):
         """
         fdialog = QFileDialog()
         fdialog.setWindowTitle("Save Configuration to a File")
-        fdialog.setAcceptMode(QtGui.QFileDialog.AcceptSave)
+        fdialog.setAcceptMode(QFileDialog.AcceptSave)
         fdialog.setNameFilter('Configuration files (*.config)')
         fdialog.setDefaultSuffix('config')
         
