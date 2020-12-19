@@ -1,7 +1,7 @@
 # convenience import shortcuts
-from . ui.control_room import signals
-from . ui.control_room import control_room
-from . ui.control_room.signals import *
+from . control_room import signals
+from . control_room import control_room
+from . control_room.signals import *
 
 # Setup the logging style
 import logging
