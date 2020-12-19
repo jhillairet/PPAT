@@ -6,7 +6,9 @@ Various utility functions for PPPAT
 from contextlib import contextmanager
 from qtpy.QtWidgets import QApplication
 from qtpy.QtGui import QCursor
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, pyqtRemoveInputHook
+from pdb import set_trace
+
 from pppat.libpulse.check_result import CheckResult as Result
 from pppat.libpulse.utils_west import is_online
 from pywed import PyWEDException, tsmat
@@ -23,6 +25,11 @@ AUTORISATION_ICRH = 'EXP=T=S;Autorisation;ChocICRH'  # 1 or 0
 
 from collections import defaultdict
 
+
+def debug_trace():
+  '''Set a tracepoint in the Python debugger that works with Qt'''
+  pyqtRemoveInputHook()
+  set_trace()
 
 def nested_dict():
     '''
