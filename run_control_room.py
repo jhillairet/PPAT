@@ -6,7 +6,7 @@ Control Room
 # Running this script will launch control room's graphical user interface
 if __name__ == '__main__':
     import sys
-    from pppat.ui.control_room.control_room import *
+    from pppat.control_room.control_room import *
 
     app = QApplication(sys.argv)
     app.setStyle(QStyleFactory.create('Fusion'))

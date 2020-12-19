@@ -1,11 +1,13 @@
 qtpy
 watchdog
 numpy
+matplotlib
 pyqtgraph
-pywed
-IRFMtb
 tornado
 jupyter_client
 pandas
 linecache
-
+paramiko
+json
+pywed
+IRFMtb
