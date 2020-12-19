@@ -27,8 +27,8 @@ from qtpy.QtGui import QIcon, QCursor, QDesktopServices
 from qtpy.QtCore import QDir, Slot, Signal, Qt, QUrl, QStringListModel, QSize
 
 from pppat.ui.collapsible_toolbox import QCollapsibleToolbox
-from pppat.ui.control_room.signals import signals, get_sig, add_arcad_signals
-from pppat.libpulse.utils import wait_cursor, nested_dict
+from pppat.control_room.signals import signals, get_sig, add_arcad_signals
+from pppat.libpulse.utils import wait_cursor, nested_dict, debug_trace
 from pppat.libpulse.pulse_settings import PulseSettings
 from pppat.libpulse.utils_west import last_pulse_nb
 from pppat.libpulse.waveform import get_waveform
@@ -362,6 +362,8 @@ class Panel(QSplitter):
         self.panel_right = QWidget()
         self.panel_right_layout = QVBoxLayout()
         self.panel_right_layout.addWidget(self.graphWidget)
+        self.panel_right_layout.setSpacing(0)
+        self.panel_right_layout.setContentsMargins(0, 0, 0, 0) 
         self.panel_right.setLayout(self.panel_right_layout)
 
     def ui_plot_mouse_moved(self, event):
@@ -404,6 +406,8 @@ class Panel(QSplitter):
         self.qt_widget_search_layout = QHBoxLayout()
         self.qt_widget_search_layout.addWidget(self.qt_search_bar)
         self.qt_widget_search_layout.addWidget(self.qt_sig_type)
+        self.qt_widget_search_layout.setSpacing(0)
+        self.qt_widget_search_layout.setContentsMargins(0, 0, 0, 0) 
         self.qt_widget_search.setLayout(self.qt_widget_search_layout)
 
         # move up/down the panel
@@ -629,7 +633,10 @@ class ControlRoom(QMainWindow):
 
         # setup window size to 90% of avail. screen height
         rec = QApplication.desktop().availableGeometry()
-        self.resize(MINIMUM_WIDTH, .9*rec.height())
+        self.resize(MINIMUM_WIDTH, .8*rec.height())
+
+        # avoid bug on Windows when maximizing the application, hide part of the app
+        self.setMinimumSize(200,200)
 
         ###################### Menu Bar
         self.ui_menu_bar()
@@ -674,6 +681,8 @@ class ControlRoom(QMainWindow):
         self.qt_central_layout = QVBoxLayout()
         self.qt_central_layout.addWidget(self.qt_pulses)
         self.qt_central_layout.addWidget(self.qt_tabs)
+        self.qt_central_layout.setSpacing(0)
+        self.qt_central_layout.setContentsMargins(0, 0, 0, 0) 
         self.qt_central.setLayout(self.qt_central_layout)
         self.setCentralWidget(self.qt_central)
 
@@ -793,8 +802,9 @@ class ControlRoom(QMainWindow):
         self.qt_pulses_layout.addWidget(self.qt_pulse_line_edit)
         self.qt_pulses_layout.addWidget(self.qt_plot_button)
 
-
         self.qt_pulses.setLayout(self.qt_pulses_layout)
+        # self.qt_pulses.setFixedHeight(35)
+
 
 
     def ui_format_pulse_line_edit(self, pulses_str: str):
@@ -1249,7 +1259,7 @@ class ControlRoom(QMainWindow):
         """
         fdialog = QFileDialog()
         fdialog.setWindowTitle("Save Configuration to a File")
-        fdialog.setAcceptMode(QtGui.QFileDialog.AcceptSave)
+        fdialog.setAcceptMode(QFileDialog.AcceptSave)
         fdialog.setNameFilter('Configuration files (*.config)')
         fdialog.setDefaultSuffix('config')
         
@@ -1342,6 +1352,10 @@ class ControlRoom(QMainWindow):
         """
         # TODO: test validity of the file??
         with open(file_name, 'rb') as fhandler:
+            # patch for compatibility with previous versions and pickle files
+            # when control_room module was in the ui/ directory...
+            sys.modules['pppat.ui.control_room'] = sys.modules['pppat.control_room'] 
+
             config = pickle.load(fhandler)
             print(f'Configuration loaded: {config}')
         return config

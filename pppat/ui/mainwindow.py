@@ -20,7 +20,6 @@ from pppat.libpulse.utils import wait_cursor
 from pppat.libpulse.check_result import CheckResultQTableWidgetItem
 from pppat.libpulse.utils_west import is_online, last_pulse_nb
 from pppat.ui.BigPicture import BigPicture_disp
-from pppat.ui.control_room.control_room import ControlRoom
 
 from functools import partial  # used to pass parameters for open_url
 
@@ -77,7 +76,7 @@ class MainWindow(QMainWindow):
         self.menu_bar()
         
         # Control Room
-        self.control_room = ControlRoom()
+        # self.control_room = ControlRoom()
         # self.control_room.show()
 
         # Set the various PPPAT tools as the central Widget
@@ -167,27 +166,27 @@ class MainWindow(QMainWindow):
         menu_links.addAction(action_links_github)
         
         # Right menu bar (icons)
-        self.menuBar_right = QMenu()
-        self.menuBar_right.triggered.connect(self.toggle_control_room)      
-        self.action_control_room = QAction(icon=QIcon('resources/icons/ui/line-chart-fill_'), 
-                                          text='Control Room', parent=self)
-        self.action_control_room.setCheckable(True)
-        self.action_control_room.setChecked(False)
-        self.action_control_room.setToolTip('Show/Hide Control Room Window')     
+        # self.menuBar_right = QMenu()
+        # self.menuBar_right.triggered.connect(self.toggle_control_room)      
+        # self.action_control_room = QAction(icon=QIcon('resources/icons/ui/line-chart-fill_'), 
+        #                                   text='Control Room', parent=self)
+        # self.action_control_room.setCheckable(True)
+        # self.action_control_room.setChecked(False)
+        # self.action_control_room.setToolTip('Show/Hide Control Room Window')     
         # JH 2020-12-15 : remove the icon to launch control room from PPPAT directly
         # because the python environement used when launching CR is different from the one expected (??)
         #self.menuBar_right.addAction(self.action_control_room)
         #self.menu.setCornerWidget(self.menuBar_right)
 
-    def toggle_control_room(self):
-        """
-        Show or Hide the Control Room window
-        """
-        status = self.action_control_room.isChecked()
-        if status:
-            self.control_room.show()
-        else:
-            self.control_room.hide()
+    # def toggle_control_room(self):
+    #     """
+    #     Show or Hide the Control Room window
+    #     """
+    #     status = self.action_control_room.isChecked()
+    #     if status:
+    #         self.control_room.show()
+    #     else:
+    #         self.control_room.hide()
 
     def open_url_woi(self, url):
         " Open an URL in an external browser "
