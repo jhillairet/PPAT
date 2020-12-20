@@ -54,6 +54,7 @@ signals = {
     'Dext_LH2': {'name': None, 'fun':'Dext_LH2', 'unit': 'mm', 'label': 'Radial Gap with LH2', 'options':{'ylim':(0, 60)}},
     'Zgeo': {'name': 'GMAG_BARY%2', 'unit': 'm', 'label': 'Zgeo'},  # Zgeo barycentre
     'R0': {'name': 'GMAG_BARY%1', 'unit': 'm', 'label': 'Large radius'},  # grand rayon
+    'Isotopic Ratio': {'name':None, 'fun':'get_isotopic_ratio', 'unit': '%', 'label'; 'nH/nD'},
     # Ignitron
     'Ignitron': {'name' : None, 'fun': 'tignitron', 'unit': 's', 'label': 'Ignitron Time'},
     # Neutron flux
@@ -192,9 +193,9 @@ signals = {
     'IC_delta_phi_toro_Q2_LmR_FPGA': {'name': 'SICHPHQ2', 'unit': 'deg', 'label':' DeltaPhase Q2 (L - R) FPGA'},
     'IC_delta_phi_toro_Q4_LmR_FPGA': {'name': 'SICHPHQ4', 'unit': 'deg', 'label':' DeltaPhase Q4 (L - R) FPGA'},
     # convenient shortcut to toroidal phase without noise (Gives NaN when no power instead of noisy values)
-    'IC_Phase_Q1': {'name':None, 'fun':'phase_Q1', 'unit':'deg', 'label':'Tor.Phase Q1'},
-    'IC_Phase_Q2': {'name':None, 'fun':'phase_Q2', 'unit':'deg', 'label':'Tor.Phase Q2'},
-    'IC_Phase_Q4': {'name':None, 'fun':'phase_Q4', 'unit':'deg', 'label':'Tor.Phase Q4'},    
+    'IC_Phase_Q1': {'name':'SICHPHQ1', 'unit':'deg', 'label':'Tor.Phase Q1'},
+    'IC_Phase_Q2': {'name':'SICHPHQ2', 'unit':'deg', 'label':'Tor.Phase Q2'},
+    'IC_Phase_Q4': {'name':'SICHPHQ4', 'unit':'deg', 'label':'Tor.Phase Q4'},    
     # IC Antennas internal vacuum (y = 10**(1.5*y - 10))
     'IC_Vacuum_Q1_left': {'name': None, 'fun': 'IC_Q1_vacuum_left', 'unit': 'Pa', 'label': 'Vaccum Q1 left', 'options': {'yscale':'log', 'ylimit':4.5e-3, 'ylimit_low':2.2e-4}},
     'IC_Vacuum_Q1_right': {'name': None, 'fun': 'IC_Q1_vacuum_right', 'unit': 'Pa', 'label': 'Vaccum Q1 right', 'options': {'yscale':'log', 'ylimit':4.5e-3, 'ylimit_low':2.2e-4}},
@@ -728,9 +729,9 @@ def get_sig(pulse, sig, do_smooth=False):
     Returns
     -------
     y : Numpy Array
-        data
+        data array or np.nan if not available
     t : Numpy Array
-        time
+        time array or np.nan if not available
 
     '''
     try:
@@ -1629,3 +1630,42 @@ def add_arcad_signals(signals_dict):
             signals_dict[sig_name] = {'name':sig, 'unit':'', 'label':''}      
     
     return signals_dict
+
+@imas
+def get_isotopic_ratio(pulse, channel_name='LODIVOU15'):
+    '''
+    Get isotopic density ratio nH/nD in percent from a given spectrocopy channel name. 
+    
+    Require IMAS access.
+
+    Parameters
+    ----------
+    pulse: int
+        WEST pulse number
+    channel_name: str
+        Spectroscopic channel name. Default is 'LODIVOU15'
+
+    Returns
+    -------
+    isotopic_ratio: np.array
+        isotopic ratio nH/nD in percent or np or np.nan if not available 
+    t: np.array
+        time array or np.nan if not available
+    '''
+    density_ratio, t = np.nan, np.nan
+    try:
+        specv = imas_west.get(pulse, 'spectrometer_visible')
+        # find the channel index corresponding to the channel to use for isotopic ratio measurement
+        channel_idx = [channel_idx for (channel_idx, channel) in enumerate(specv.channel) if channel_name in channel.name]
+
+        if channel_idx:
+            # the specific channel exists, return the data
+            channel_idx = channel_idx[0]
+            t = specv.channel[channel_idx].isotope_ratios.time - 32
+            density_ratio = 100*specv.channel[channel_idx].isotope_ratios.isotope[0].density_ratio
+        else:
+           t = None
+           density_ratio = None
+    except Exception as e:
+        pass
+    return density_ratio, t
