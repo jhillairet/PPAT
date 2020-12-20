@@ -54,7 +54,7 @@ signals = {
     'Dext_LH2': {'name': None, 'fun':'Dext_LH2', 'unit': 'mm', 'label': 'Radial Gap with LH2', 'options':{'ylim':(0, 60)}},
     'Zgeo': {'name': 'GMAG_BARY%2', 'unit': 'm', 'label': 'Zgeo'},  # Zgeo barycentre
     'R0': {'name': 'GMAG_BARY%1', 'unit': 'm', 'label': 'Large radius'},  # grand rayon
-    'Isotopic Ratio': {'name':None, 'fun':'get_isotopic_ratio', 'unit': '%', 'label'; 'nH/nD'},
+    'Isotopic Ratio': {'name':None, 'fun':'get_isotopic_ratio', 'unit': '%', 'label': 'nH/nD'},
     # Ignitron
     'Ignitron': {'name' : None, 'fun': 'tignitron', 'unit': 's', 'label': 'Ignitron Time'},
     # Neutron flux
