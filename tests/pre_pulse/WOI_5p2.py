@@ -23,25 +23,11 @@ LH2_MAX_POWER = 2.7  # MW, PAM launcher
 wf_names = {'LH1': 'rts:WEST_PCS/Actuators/Heating/LHCD/power/1/waveform.ref',
             'LH2': 'rts:WEST_PCS/Actuators/Heating/LHCD/power/2/waveform.ref'}
 
+# Update JH 21/12/2020: removed time/power limits with LH1 and LH2
 LH_MAX_POWER_vs_TIME = {
-    'LH1': np.array([[1, 4],
-                     [5, 3],
-                     [20, 2],
-                     [30, 1.87],
-                     [60, 1.6]]),
-    'LH2': np.array([[0, 2],
-                     [0.5, 2],
-                     [1, 2],
-                     [1.5, 2],
-                     [2, 2],
-                     [2, 1.8],
-                     [2, 1.5],
-                     [2, 1.4],
-                     [2, 0.8],
-                     [2, 0.8],
-                     [5, 0.515],
-                     [20, 0.294],
-                     [30, 0.25]])}
+    'LH1': np.array([[1000, 4]]),  # LH1: 4 MW/1000s
+    'LH2': np.array([[1000, 2.7]])  # LH2: 2.7 MW/1000s
+    }  
 
 
 @pre_pulse_test
