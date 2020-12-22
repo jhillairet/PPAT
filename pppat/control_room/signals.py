@@ -910,11 +910,14 @@ def scope(pulses, signames,
     
         t_fin_acq = []
         fig, axes = plt.subplots(len(signames), 1, sharex=True, figsize=(7, 9))
+        # if not isinstance(axes, list):
+        #     axes = [axes]   
         # move the figure 
         fig.canvas.manager.window.move(window_loc[0], window_loc[1])
-        # cycle the color for each shot number
+        # cycle the color for each shot number   
         color_cycle = axes[0]._get_lines.prop_cycler
-        
+
+
         plt.locator_params(axis='y', nbins=6)
         if type(axes) is not list:  # case of only one signal -> put axe in a list
             axes = np.array(axes)
@@ -945,7 +948,7 @@ def scope(pulses, signames,
                     
                     _legend += f"{sig['label']}, "
                 ax.set_ylabel(f"[{sig['unit']}]")
-                ax.text(0.01, 0.85, _legend, color='gray',
+                ax.text(0.01, 0.95, _legend, color='gray',
                         horizontalalignment='left', transform=ax.transAxes)
                 ax.autoscale(enable=True, axis='y')
                 if 'options' in sig:           
