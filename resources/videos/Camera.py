@@ -20,8 +20,6 @@ except ValueError as e:
     print('Pulse number not correct')
 
 # Download both camera movies
-TSRfile(pulse, 'FMPG01', path+'CCD'+str(pulse)+'_K1'+'.MPG')
-TSRfile(pulse, 'FMPG02', path+'CCD'+str(pulse)+'_K2'+'.MPG')
-TSRfile(pulse, 'FMPG07', path+'CCD'+str(pulse)+'_K7'+'.MPG')
-TSRfile(pulse, 'FMPG9', path+'CCD'+str(pulse)+'_K8'+'.MPG')
-TSRfile(pulse, 'FMPG401', path+'CCD'+str(pulse)+'_K1'+'.mp4')
+TSRfile(pulse, 'FMPG401', path+'CCD'+str(pulse)+'_Q4Bm'+'.mp4')
+TSRfile(pulse, 'FMPG402', path+'CCD'+str(pulse)+'_Q4Am'+'.mp4')
+
