@@ -1740,7 +1740,10 @@ class ControlRoomDataModel(QtGui.QStandardItemModel):
         if (pulse > 0) and (not self._data[pulse]['PulseSetting']):
             print(f'Updating Pulse Settings for pulse {pulse}')
             self._data[pulse]['PulseSetting'] = PulseSettings(pulse)
-        if self._data[pulse][signal] and (pulse > 0):
+        if self._data[pulse][signal] and (pulse > 0) and (self._data[pulse][signal]['values'] != None):
+            _values = self._data[pulse][signal]['values']
+            print(f'{pulse}:{signal} values:', _values)
+            print(type(_values))
             print(f'{signal} for #{pulse} already downloaded. Skipping...')
         else:
             print(f'Retrieve {signal} for #{pulse}...')
