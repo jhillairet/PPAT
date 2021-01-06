@@ -176,16 +176,16 @@ class PulseSettings():
     
         """
         computer_name = platform.node()
-        if computer_name == self.XEDIT2DCS_SERVER:
-            # user is under the DCS server, we assume he's the EiC
-            logger.info(f'User is connected on {self.XEDIT2DCS_SERVER}. EiC assumed.')
-            dp_file = os.path.join(self.XEDIT2DCS_DIR_PATH, self.XEDIT2DCS_FILENAMES['dp'])
-            sup_file = os.path.join(self.XEDIT2DCS_DIR_PATH, self.XEDIT2DCS_FILENAMES['sup'])
-        else:
-            logger.info(f'User is not connected on {self.XEDIT2DCS_SERVER}...')
-            logger.info(f'...Read public DCS Settings from {self.XEDIT2DCS_PUBLIC_PATH}')            
-            dp_file = os.path.join(self.XEDIT2DCS_PUBLIC_PATH, self.XEDIT2DCS_FILENAMES['dp'])
-            sup_file = os.path.join(self.XEDIT2DCS_PUBLIC_PATH, self.XEDIT2DCS_FILENAMES['sup'])
+        #if computer_name == self.XEDIT2DCS_SERVER:
+        #    # user is under the DCS server, we assume he's the EiC
+        #    logger.info(f'User is connected on {self.XEDIT2DCS_SERVER}. EiC assumed.')
+        #    dp_file = os.path.join(self.XEDIT2DCS_DIR_PATH, self.XEDIT2DCS_FILENAMES['dp'])
+        #    sup_file = os.path.join(self.XEDIT2DCS_DIR_PATH, self.XEDIT2DCS_FILENAMES['sup'])
+        #else:
+        logger.info(f'User is not connected on {self.XEDIT2DCS_SERVER}...')
+        logger.info(f'...Read public DCS Settings from {self.XEDIT2DCS_PUBLIC_PATH}')            
+        dp_file = os.path.join(self.XEDIT2DCS_PUBLIC_PATH, self.XEDIT2DCS_FILENAMES['dp'])
+        sup_file = os.path.join(self.XEDIT2DCS_PUBLIC_PATH, self.XEDIT2DCS_FILENAMES['sup'])
    
         self.files = {'sup': sup_file, 'dp': dp_file}
 
