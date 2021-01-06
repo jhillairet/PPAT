@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from scipy.signal import savgol_filter
 import numpy as np
 import matplotlib.pyplot as plt
@@ -63,6 +64,15 @@ signals = {
     # Movable limiter position (LPA)
     'LPA_Position': {'name': 'GMAG_POSLPA%1', 'unit': 'mm', 'label': 'LPA position', 'options':{'scaling':1e3}},  
     
+    # IMAS Equilibirum data 
+    'W_MHD': {'name':None, 'fun':'W_MHD', 'unit':'', 'label':'W_MHD'},
+    'area': {'name':None, 'fun':'area', 'unit':'', 'label':'area'},
+    'volume': {'name':None, 'fun':'volume', 'unit':'', 'label':'volume'},
+    'q_95': {'name':None, 'fun':'q_95', 'unit':'', 'label':'q_95'},
+    'li_3': {'name':None, 'fun':'li_3', 'unit':'', 'label':'li_3'},
+    'q_min': {'name':None, 'fun':'q_min', 'unit':'', 'label':'q_min'},
+    'q_axis': {'name':None, 'fun':'q_axis', 'unit':'', 'label':'q_axis'},
+
     ## Fueling
     'nl': {'name': 'GINTLIDRT%3', 'unit': '$m^{-2}$', 'label': 'Line integrated density'},
     'Valve1': {'name': 'GDEBIT%1', 'unit': '$Pa.m^3/s$', 'label': 'Valve#1 (LH1)'},
@@ -307,7 +317,7 @@ signals = {
     'Ag19_normalized': {'name':None, 'fun':'Ag19_normalized', 'unit':'a.u.', 'label':'Silver19 normalized to central lineic density'},
     
     ## Plasma Temperature
-    'Te': {'name':None, 'fun':'get_Te', 'unit':'eV', 'label':'Te Central',  },
+    'Te': {'name':None, 'fun':'get_Te', 'unit':'eV', 'label':'Te Central (IMAS)',  },
     'Te1': {'name': None, 'fun': 'ECE_1', 'unit': 'eV', 'label': 'Temperature (ECE_1)'},
     'Te2': {'name': None, 'fun': 'ECE_2', 'unit': 'eV', 'label': 'Temperature (ECE_2)'},
     'Te3': {'name': None, 'fun': 'ECE_3', 'unit': 'eV', 'label': 'Temperature (ECE_3)'},
@@ -1292,27 +1302,27 @@ def imas_get_remote(pulse, cmd, script_name):
     return data
 
 
-# @imas
-# def Te(pulse):
-#     ece = imas_west.get(pulse, 'ece')
-#     return ece.t_e_central.data, ece.time - tignitron(pulse)[0]
-
+@imas
 def get_Te(pulse):
-    script_name='save_from_imas.py'   
-    ids_name='ece'
-    paths=["t_e_central.data", "time"]
-    # Run the transmitted script remotely with args passed as json-like
-    #https://stackoverflow.com/questions/18006161/how-to-pass-dictionary-as-command-line-argument-to-python-script
-    cmd = 'module load tools_dc; python save_from_imas.py \'{"pulse":"'+str(pulse)+'", "ids_name":"'+ids_name+'", "paths":'+json.dumps(paths)+'}\''
+    ece = imas_west.get(pulse, 'ece')
+    return ece.t_e_central.data, ece.time - tignitron(pulse)[0]
 
-    data = imas_get_remote(pulse, cmd, script_name) 
-
-    y = data['arr_0']
-    t = data['arr_1'] - np.asarray(tignitron(pulse)[0])
-    return y, t
-    # y = data['data'][0,:]
-    # t = data['data'][1,:]
-    # return y, t - tignitron(pulse)[0]
+#def get_Te(pulse):
+#    script_name='save_from_imas.py'   
+#    ids_name='ece'
+#    paths=["t_e_central.data", "time"]
+#    # Run the transmitted script remotely with args passed as json-like
+#    #https://stackoverflow.com/questions/18006161/how-to-pass-dictionary-as-command-line-argument-to-python-script
+#    cmd = 'module load tools_dc; python save_from_imas.py \'{"pulse":"'+str(pulse)+'", "ids_name":"'+ids_name+'", "paths":'+json.dumps(paths)+'}\''#
+#
+#    data = imas_get_remote(pulse, cmd, script_name) 
+#
+#    y = data['arr_0']
+#    t = data['arr_1'] - np.asarray(tignitron(pulse)[0])
+#    return y, t
+#    # y = data['data'][0,:]
+#    # t = data['data'][1,:]
+#    # return y, t - tignitron(pulse)[0]
 
 
 
@@ -1669,3 +1679,72 @@ def get_isotopic_ratio(pulse, channel_name='LODIVOU15'):
     except Exception as e:
         pass
     return density_ratio, t
+
+@imas
+def imas_equilibrium_data(pulse: int, signal_name: str):
+    """
+    Generic function to retrieve global quantities of the WEST IMAS equilibrium dataset
+
+    Parameters
+    ----------
+    pulse : int
+        WEST pulse number
+    signal_name : str
+        name of the dataset. Could be one of:
+            area           ip             psi_boundary   volume
+            beta_normal    length_pol     q_95           w_mhd
+            beta_pol       li_3           q_axis         
+            beta_tor       magnetic_axis  q_min          
+            energy_mhd     psi_axis       surface
+
+    Returns
+    -------
+    y : np.array
+        data
+    t : np.array
+        Associated data time array
+
+    """
+    equi = imas_west.get(pulse, 'equilibrium', 0, 1)
+    return eval(f'equi.global_quantities.{signal_name}'), equi.time - 32
+
+def W_MHD(pulse):
+    """
+    W_MHD is part of the equilibrium data
+
+    Parameters
+    ----------
+    pulse : int
+        WEST pulse number
+    
+    Returns
+    -------
+    w_mhd : np.array
+        W_MHD
+    t : np.array
+        Associated time array
+    """  
+    return imas_equilibrium_data(pulse, 'w_mhd')
+
+def area(pulse):
+    " plasma boundary area "
+    return imas_equilibrium_data(pulse, 'area')
+
+def volume(pulse):
+    " plasma volume "
+    return imas_equilibrium_data(pulse, 'volume')
+
+def q_95(pulse):
+    " plasma q_95 "
+    return imas_equilibrium_data(pulse, 'q_95')
+
+def li_3(pulse):
+    " plasma li_3 "
+    return imas_equilibrium_data(pulse, 'li_3')
+
+def q_min(pulse):
+    " plasma q_min "
+    return imas_equilibrium_data(pulse, 'q_min')
+
+def q_axis(pulse):
+    return imas_equilibrium_data(pulse, 'q_axis')
