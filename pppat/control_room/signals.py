@@ -55,7 +55,12 @@ signals = {
     'Dext_LH2': {'name': None, 'fun':'Dext_LH2', 'unit': 'mm', 'label': 'Radial Gap with LH2', 'options':{'ylim':(0, 60)}},
     'Zgeo': {'name': 'GMAG_BARY%2', 'unit': 'm', 'label': 'Zgeo'},  # Zgeo barycentre
     'R0': {'name': 'GMAG_BARY%1', 'unit': 'm', 'label': 'Large radius'},  # grand rayon
-    'Isotopic Ratio': {'name':None, 'fun':'get_isotopic_ratio', 'unit': '%', 'label': 'nH/nD'},
+
+    # Isotopic Ratios
+    'Isotopic Ratio INBUM04': {'name':None, 'fun':'nH_over_nD_INBUM04', 'unit': '%', 'label': 'nH/nD (Inner Numper)'},
+    'Isotopic Ratio LODIVIN19': {'name':None, 'fun':'nH_over_nD_LODIVIN19', 'unit': '%', 'label': 'nH/nD (Inner Lower Divertor)'},
+    'Isotopic Ratio LODIVOU15': {'name':None, 'fun':'nH_over_nD_LODIVOU15', 'unit': '%', 'label': 'nH/nD (Outer Lower Divertor)'},
+
     # Ignitron
     'Ignitron': {'name' : None, 'fun': 'tignitron', 'unit': 's', 'label': 'Ignitron Time'},
     # Neutron flux
@@ -299,8 +304,9 @@ signals = {
     'LH_P_tot': {'name': 'SHYBPTOT', 'unit': 'MW', 'label': 'LH total coupled power'},
     'LH_P_LH1': {'name': 'SHYBPFORW1', 'unit': 'MW', 'label': 'LH1 coupled power', 'options':{'scaling':1e-3}},
     'LH_P_LH2': {'name': 'SHYBPFORW2', 'unit': 'MW', 'label': 'LH2 coupled power', 'options':{'scaling':1e-3}},
-    'LH_Rc_LH1': {'name': 'SHYBREF1', 'unit': '%', 'label': 'Avg. Refl. Coeff LH1'},
-    'LH_Rc_LH2': {'name': 'SHYBREF2', 'unit': '%', 'label': 'Avg. Refl. Coeff LH2'},
+    'LH_Rc_LH1': {'name': 'SHYBREF1', 'unit': '%', 'label': 'Avg. Refl. Coeff LH1', 'options':{'ylim':(0,20)}},
+    #'LH_Rc_LH2': {'name': 'SHYBREF2', 'unit': '%', 'label': 'Avg. Refl. Coeff LH2'},
+    'LH_Rc_LH2': {'name': None, 'fun':'LH_Rc_LH2_clean', 'unit': '%', 'label': 'Avg. Refl. Coeff LH2', 'options':{'ylim':(0,20)}},
     # LH antenna positions (vs time)
     'LH_LH1_position': {'name': 'GPOSHYB%1', 'unit': 'mm', 'label': 'LH1 Antenna radial position', 'options':{'scaling':1e3}},
     'LH_LH2_position': {'name': 'GPOSHYB%2', 'unit': 'mm', 'label': 'LH2 Antenna radial position', 'options':{'scaling':1e3}},
@@ -409,37 +415,37 @@ def VSWR_Q1_left(pulse):
     Pow_IncRefQ1, tPow_IncRefQ1 = pw.tsbase(pulse,'GICHANTPOWQ1', nargout=2)   
     VSWR_Q1_left  = (1 + np.sqrt(Pow_IncRefQ1[:,1]/Pow_IncRefQ1[:,0])) / \
                     (1 - np.sqrt(Pow_IncRefQ1[:,1]/Pow_IncRefQ1[:,0]))
-    return VSWR_Q1_left, tPow_IncRefQ1
+    return VSWR_Q1_left, tPow_IncRefQ1[:,0]
 
 def VSWR_Q1_right(pulse):
     Pow_IncRefQ1, tPow_IncRefQ1 = pw.tsbase(pulse,'GICHANTPOWQ1', nargout=2)   
     VSWR_Q1_right  = (1 + np.sqrt(Pow_IncRefQ1[:,3]/Pow_IncRefQ1[:,2])) / \
                     (1 - np.sqrt(Pow_IncRefQ1[:,3]/Pow_IncRefQ1[:,2]))
-    return VSWR_Q1_right, tPow_IncRefQ1
+    return VSWR_Q1_right, tPow_IncRefQ1[:,0]
 
 def VSWR_Q2_left(pulse):
     Pow_IncRefQ2, tPow_IncRefQ2 = pw.tsbase(pulse,'GICHANTPOWQ2', nargout=2)   
     VSWR_Q2_left  = (1 + np.sqrt(Pow_IncRefQ2[:,1]/Pow_IncRefQ2[:,0])) / \
                     (1 - np.sqrt(Pow_IncRefQ2[:,1]/Pow_IncRefQ2[:,0]))
-    return VSWR_Q2_left, tPow_IncRefQ2
+    return VSWR_Q2_left, tPow_IncRefQ2[:,0]
 
 def VSWR_Q2_right(pulse):
     Pow_IncRefQ2, tPow_IncRefQ2 = pw.tsbase(pulse,'GICHANTPOWQ2', nargout=2)   
     VSWR_Q2_right  = (1 + np.sqrt(Pow_IncRefQ2[:,3]/Pow_IncRefQ2[:,2])) / \
                     (1 - np.sqrt(Pow_IncRefQ2[:,3]/Pow_IncRefQ2[:,2]))
-    return VSWR_Q2_right, tPow_IncRefQ2
+    return VSWR_Q2_right, tPow_IncRefQ2[:,0]
 
 def VSWR_Q4_left(pulse):
     Pow_IncRefQ4, tPow_IncRefQ4 = pw.tsbase(pulse,'GICHANTPOWQ4', nargout=2)   
     VSWR_Q4_left  = (1 + np.sqrt(Pow_IncRefQ4[:,1]/Pow_IncRefQ4[:,0])) / \
                     (1 - np.sqrt(Pow_IncRefQ4[:,1]/Pow_IncRefQ4[:,0]))
-    return VSWR_Q4_left, tPow_IncRefQ4
+    return VSWR_Q4_left, tPow_IncRefQ4[:,0]
 
 def VSWR_Q4_right(pulse):
     Pow_IncRefQ4, tPow_IncRefQ4 = pw.tsbase(pulse,'GICHANTPOWQ4', nargout=2)   
     VSWR_Q4_right  = (1 + np.sqrt(Pow_IncRefQ4[:,3]/Pow_IncRefQ4[:,2])) / \
                     (1 - np.sqrt(Pow_IncRefQ4[:,3]/Pow_IncRefQ4[:,2]))
-    return VSWR_Q4_right, tPow_IncRefQ4
+    return VSWR_Q4_right, tPow_IncRefQ4[:,0]
 
 
 def smooth(y, window_length=51, polyorder=3):
@@ -1656,7 +1662,7 @@ def get_isotopic_ratio(pulse, channel_name='LODIVOU15'):
     pulse: int
         WEST pulse number
     channel_name: str
-        Spectroscopic channel name. Default is 'LODIVOU15'
+        Spectroscopic channel name. Default is 'LODIVOU15' (Lower Outer DIVertor) 
 
     Returns
     -------
@@ -1682,6 +1688,21 @@ def get_isotopic_ratio(pulse, channel_name='LODIVOU15'):
     except Exception as e:
         pass
     return density_ratio, t
+
+"""
+Isotopic Ratio analysis are performed on LODIVIN19, LODIVOU15 et INBUM04 
+"""
+def nH_over_nD_LODIVOU15(pulse):
+    " Isotopic Ratio measured at the LOwer Divertor OUter "
+    return get_isotopic_ratio(pulse, channel_name='LODIVOU15')
+
+def nH_over_nD_LODIVIN19(pulse):
+    " Isotopic Ratio measured at LOwer DIVter Inner "
+    return get_isotopic_ratio(pulse, channel_name='LODIVIN19') 
+
+def nH_over_nD_INBUM04(pulse):
+    " Isotopic Ratio measured at the Anneau de garde "
+    return get_isotopic_ratio(pulse, channel_name='INBUM04') 
 
 @imas
 def imas_equilibrium_data(pulse: int, signal_name: str):
@@ -1751,3 +1772,10 @@ def q_min(pulse):
 
 def q_axis(pulse):
     return imas_equilibrium_data(pulse, 'q_axis')
+
+def LH_Rc_LH2_clean(pulse):
+    P_LH2, t_LH2 = get_sig(pulse, signals['LH_P_LH2'])
+    Rc_LH2, t_LH2 = pw.tsbase(pulse, 'SHYBREF2', nargout=2)
+    # force values outside of the LH2 power to be 0 to avoid noise
+    Rc_LH2[P_LH2 < 0.01] = 0
+    return Rc_LH2, t_LH2
