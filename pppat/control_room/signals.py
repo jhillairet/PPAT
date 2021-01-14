@@ -1198,7 +1198,7 @@ def RF_P_tot(pulse):
         P_IC_tot = 0
 
     P_RF_tot = P_LH_tot + P_IC_tot
-    if len(P_RF_tot) == 1:
+    if P_RF_tot == 0:
         np.zeros_like(t_ip)
         
     return  P_RF_tot, t_ip
