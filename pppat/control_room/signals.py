@@ -1197,9 +1197,9 @@ def RF_P_tot(pulse):
     except Exception as e:
         P_IC_tot = 0
 
-    P_RF_tot = P_LH_tot + P_IC_tot
-    if P_RF_tot == 0:
-        np.zeros_like(t_ip)
+    # sum IC and LH power. Create a zero array if no LH or no IC
+    P_RF_tot = P_LH_tot + P_IC_tot + np.zeros_as(t_ip)
+
         
     return  P_RF_tot, t_ip
 
