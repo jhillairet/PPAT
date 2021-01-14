@@ -1183,17 +1183,25 @@ def Vloop(pulse):
 
 def RF_P_tot(pulse):
     ''' Total RF Power in MW '''
-    P_LH_tot, t_LH_tot = get_sig(pulse, signals['LH_P_tot'])   
-    P_IC_tot, t_tot = get_sig(pulse, signals['IC_P_tot'])   
+    Ip, t_ip = get_sig(pulse, signals['Ip'])  # for interpolation purpose
     
-    # interpolate LH data on IC data or the opposite 
-    if not np.any(np.isnan(P_LH_tot)):
-        P_LH_tot = np.interp(t_tot, t_LH_tot, P_LH_tot)   
-    else:
-        # no LH data -> 0
-        P_LH_tot = np.zeros_like(P_IC_tot)
-                  
-    return P_LH_tot + P_IC_tot, t_tot
+    try:
+        P_LH_tot, t_LH_tot = get_sig(pulse, signals['LH_P_tot'])
+        P_LH_tot = np.interp(t_ip, t_LH_tot, P_LH_tot)
+    except Exception as e:
+        P_LH_tot = 0
+        
+    try:
+        P_IC_tot, t_IC_tot = get_sig(pulse, signals['IC_P_tot'])
+        P_IC_tot = np.interp(t_ip, t_IC_tot, P_IC_tot)
+    except Exception as e:
+        P_IC_tot = 0
+
+    P_RF_tot = P_LH_tot + P_IC_tot
+    if len(P_RF_tot) == 1:
+        np.zeros_like(t_ip)
+        
+    return  P_RF_tot, t_ip
 
 def Ohmic_power(pulse):
     ''' Ohmic Power in MW '''
