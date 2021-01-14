@@ -58,7 +58,7 @@ signals = {
 
     # Isotopic Ratios
     'Isotopic Ratio INBUM04': {'name':None, 'fun':'nH_over_nD_INBUM04', 'unit': '%', 'label': 'nH/nD (Inner Numper)'},
-    'Isotopic Ratio LODIVIN19': {'name':None, 'fun':'nH_over_nD_LODIVIN19', 'unit': '%', 'label': 'nH/nD (Inner Lower Divertor)'},
+    'Isotopic Ratio LODIVIN15': {'name':None, 'fun':'nH_over_nD_LODIVIN15', 'unit': '%', 'label': 'nH/nD (Inner Lower Divertor)'},
     'Isotopic Ratio LODIVOU15': {'name':None, 'fun':'nH_over_nD_LODIVOU15', 'unit': '%', 'label': 'nH/nD (Outer Lower Divertor)'},
 
     # Ignitron
@@ -1690,15 +1690,15 @@ def get_isotopic_ratio(pulse, channel_name='LODIVOU15'):
     return density_ratio, t
 
 """
-Isotopic Ratio analysis are performed on LODIVIN19, LODIVOU15 et INBUM04 
+Isotopic Ratio analysis are performed on LODIVIN15, LODIVOU15 et INBUM04 
 """
 def nH_over_nD_LODIVOU15(pulse):
     " Isotopic Ratio measured at the LOwer Divertor OUter "
     return get_isotopic_ratio(pulse, channel_name='LODIVOU15')
 
-def nH_over_nD_LODIVIN19(pulse):
+def nH_over_nD_LODIVIN15(pulse):
     " Isotopic Ratio measured at LOwer DIVter Inner "
-    return get_isotopic_ratio(pulse, channel_name='LODIVIN19') 
+    return get_isotopic_ratio(pulse, channel_name='LODIVIN15') 
 
 def nH_over_nD_INBUM04(pulse):
     " Isotopic Ratio measured at the Anneau de garde "
