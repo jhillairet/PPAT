@@ -347,7 +347,8 @@ signals = {
     'Prad': {'name': None, 'fun':'Prad_pradwest', 'unit':'MW', 'label':'Total Radiated Power'},
     'Prad_bulk': {'name': None, 'fun':'Prad_bulk_pradwest', 'unit':'MW', 'label':'Bulk Radiated Power'},    
     'Prad_imas': {'name': None, 'fun':'Prad_imas', 'unit':'MW', 'label':'Total Radiated Power (imas)'},
-    'Prad_bulk_imas': {'name': None, 'fun':'Prad_bulk_imas', 'unit':'MW', 'label':'Bulk Radiated Power (imas)'},    
+    'Prad_bulk_imas': {'name': None, 'fun':'Prad_bulk_imas', 'unit':'MW', 'label':'Bulk Radiated Power (imas)'},
+    'frad_imas': {'name':None, 'fun':'frad_imas', 'unit':'%', 'label':'Radiated Power Fraction (imas)'},
     
     # Divertor current
     'Divertor_lower_current_cons': {'name':'GPOLO_IDC2%1', 'unit':'kA', 'label':'Lower divertor current consigne'},
@@ -819,7 +820,9 @@ def pulse_datetime(pulse):
         date_apilote = -1
     pulse_dt = pd.to_datetime(date_apilote)
     # return pulse_dt, pulse_dt.to_pydatetime()
-    return [pulse_dt.year, pulse_dt.month, pulse_dt.day], [-1,-1,-1]
+    return [pulse_dt.year, pulse_dt.month, pulse_dt.day], [pulse_dt.hour,
+                                                           pulse_dt.minute,
+                                                           pulse_dt.second]
 
 def pulse_year(pulse):
     ' Return the pulse year '
@@ -1051,13 +1054,7 @@ def Prad_bulk_pradwest(pulse):
         Prad,Pbulk,Pdivb,Pdivh,Pchan,bolofmas,tbolo,trad = pradwest1(pulse, fi=0)
         return Pbulk, trad - tignitron(pulse)[0]
     except TypeError as e:
-        return np.nan, np.nan
-
-# def frad(pulse):
-#     "Radiated power fraction"
-#     P_ohmic, t_P_ohmic = get_sig(pulse, signals['Ohmic_P'])
-#     P_RF, t_P_RF = get_sig(pulse, signals['RF_P_tot'])
-       
+        return np.nan, np.nan      
     
 @imas
 def Prad_imas(pulse):
@@ -1068,6 +1065,18 @@ def Prad_imas(pulse):
 def Prad_bulk_imas(pulse):
     bolo = imas_west.get(pulse, 'bolometer')
     return bolo.power_radiated_inside_lcfs/1e6, bolo.time - tignitron(pulse)[0]
+
+@imas
+def frad_imas(pulse):
+    Prad, t_Prad = Prad_imas(pulse)
+    P_ohmic, t_P_ohmic = get_sig(pulse, signals['Ohmic_P'])
+    P_RF, t_P_RF = get_sig(pulse, signals['RF_P_tot'])
+    P_ohmic_interp = np.squeeze(np.interp(t_Prad, t_P_ohmic, np.squeeze(P_ohmic)))
+    P_RF_interp = np.squeeze(np.interp(t_Prad, t_P_RF, np.squeeze(P_RF)))
+    frad = Prad/(P_ohmic_interp + P_RF_interp)*100
+    # replace nan with 0
+    frad = np.nan_to_num(frad)
+    return frad, t_Prad
 
 
 def Rext_outboard_nice(pulse):
@@ -1176,7 +1185,7 @@ def Dext_LH2(pulse):
 
 def Vloop(pulse):
     # best flux loop among the 17 available
-    V, t = pw.tsbase(pulse, 'GMAG_VLOOP%4', nargout=2)
+    V, t = pw.tsbase(pulse, 'GMAG_VLOOP%3', nargout=2)
     # smoothing the result
     V_smooth = smooth(V)
     return V_smooth, t
@@ -1205,8 +1214,8 @@ def RF_P_tot(pulse):
 
 def Ohmic_power(pulse):
     ''' Ohmic Power in MW '''
-    V, t_V = Vloop(pulse) # V
-    Ip, t_Ip = get_sig(pulse, signals['Ip'])  # kA
+    V, t_V = get_sig(pulse, signals['Vloop']) # V
+    Ip, t_Ip = get_sig(pulse, signals['Ip'])  # MA
     # interpolate signals
     _Ip = np.squeeze(np.interp(t_V, t_Ip, np.squeeze(Ip)))
     P = V * _Ip  # in MW as Ip is in MA
