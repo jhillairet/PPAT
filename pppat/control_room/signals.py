@@ -279,6 +279,17 @@ signals = {
     'IC_Voltage_right_max_Q2': {'name':None, 'fun':'IC_Voltage_right_max_Q2', 'unit':'kV', 'label': 'right Maximum voltage Q2', 'options': {'ylimit':27}},
     'IC_Voltage_left_max_Q4': {'name':None, 'fun':'IC_Voltage_left_max_Q4', 'unit':'kV', 'label': 'left Maximum voltage Q4', 'options': {'ylimit':27}},
     'IC_Voltage_right_max_Q4': {'name':None, 'fun':'IC_Voltage_right_max_Q4', 'unit':'kV', 'label': 'right Maximum voltage Q4', 'options': {'ylimit':27}},
+    # IC Poloidal Voltage Difference (proxy for mismatch)
+    'IC_Voltage_Poloidal_Difference_Q1_left': {'name':None, 'fun':'IC_Voltage_Poloidal_Difference_Q1_left', 'unit':'kV', 'label':'Voltage Pol. Diff. Q1 Left', 'options':{'ylim':(-8, 8)} },
+    'IC_Voltage_Poloidal_Difference_Q1_right': {'name':None, 'fun':'IC_Voltage_Poloidal_Difference_Q1_right', 'unit':'kV', 'label':'Voltage Pol. Diff. Q1 Right', 'options':{'ylim':(-8, 8)}},
+    'IC_Voltage_Poloidal_Difference_Q2_left': {'name':None, 'fun':'IC_Voltage_Poloidal_Difference_Q2_left', 'unit':'kV', 'label':'Voltage Pol. Diff. Q2 Left', 'options':{'ylim':(-8, 8)}},
+    'IC_Voltage_Poloidal_Difference_Q2_right': {'name':None, 'fun':'IC_Voltage_Poloidal_Difference_Q2_right', 'unit':'kV', 'label':'Voltage Pol. Diff. Q2 Right', 'options':{'ylim':(-8, 8)}},
+    'IC_Voltage_Poloidal_Difference_Q4_left': {'name':None, 'fun':'IC_Voltage_Poloidal_Difference_Q4_left', 'unit':'kV', 'label':'Voltage Pol. Diff. Q4 Left', 'options':{'ylim':(-8, 8)}},
+    'IC_Voltage_Poloidal_Difference_Q4_right': {'name':None, 'fun':'IC_Voltage_Poloidal_Difference_Q4_right', 'unit':'kV', 'label':'Voltage Pol. Diff. Q4 Right', 'options':{'ylim':(-8, 8)}},
+    # IC Toroidal Voltage Difference (Top)
+    'IC_Voltage_Toroidal_Difference_Q1': {'name':None, 'fun':'IC_Voltage_Toroidal_Difference_Q1', 'unit':'kV', 'label':'Voltage Tor. Diff. Q1 (Top)', 'options':{'ylim':(-8, 8)}},
+    'IC_Voltage_Toroidal_Difference_Q2': {'name':None, 'fun':'IC_Voltage_Toroidal_Difference_Q2', 'unit':'kV', 'label':'Voltage Tor. Diff. Q2 (Top)', 'options':{'ylim':(-8, 8)}},
+    'IC_Voltage_Toroidal_Difference_Q4': {'name':None, 'fun':'IC_Voltage_Toroidal_Difference_Q4', 'unit':'kV', 'label':'Voltage Tor. Diff. Q4 (Top)', 'options':{'ylim':(-8, 8)}},
     # IC Maximum Current values
     'IC_Current_left_max_Q1': {'name':None, 'fun':'IC_Current_left_max_Q1', 'unit':'kV', 'label': 'left Maximum Current Q1', 'options': {'ylimit':27}},
     'IC_Current_right_max_Q1': {'name':None, 'fun':'IC_Current_right_max_Q1', 'unit':'kV', 'label': 'right Maximum Current Q1', 'options': {'ylimit':27}},
@@ -317,10 +328,10 @@ signals = {
     'Fe': {'name': 'SFE15', 'unit': 'a.u.', 'label': 'Iron'},
     'Ag18': {'name': 'SAG18', 'unit':'a.u.', 'label':'Silver-18'},
     'Ag19': {'name': 'SAG19', 'unit':'a.u.', 'label':'Silver-19'},
-    'Cu_normalized': {'name':None, 'fun':'Cu_normalized', 'unit':'a.u.', 'label':'Copper normalized to central lineic density', 'options': {'ylimit':0, 'ylimit_low':100}},
-    'Fe_normalized': {'name':None, 'fun':'Fe_normalized', 'unit':'a.u.', 'label':'Iron normalized to central lineic density'},
-    'Ag18_normalized': {'name':None, 'fun':'Ag18_normalized', 'unit':'a.u.', 'label':'Silver18 normalized to central lineic density'},
-    'Ag19_normalized': {'name':None, 'fun':'Ag19_normalized', 'unit':'a.u.', 'label':'Silver19 normalized to central lineic density'},
+    'Cu_normalized': {'name':None, 'fun':'Cu_normalized', 'unit':'a.u.', 'label':'Copper normalized to central lineic density', 'options': {'ylim':(0,400)}},
+    'Fe_normalized': {'name':None, 'fun':'Fe_normalized', 'unit':'a.u.', 'label':'Iron normalized to central lineic density', 'options':{'ylim':(0, 50)}},
+    'Ag18_normalized': {'name':None, 'fun':'Ag18_normalized', 'unit':'a.u.', 'label':'Silver18 normalized to central lineic density', 'options':{'ylim':(0,50)}},
+    'Ag19_normalized': {'name':None, 'fun':'Ag19_normalized', 'unit':'a.u.', 'label':'Silver19 normalized to central lineic density', 'options':{'ylim':(0,50)}},
     
     ## Plasma Temperature
     'Te': {'name':None, 'fun':'get_Te', 'unit':'eV', 'label':'Te Central (IMAS)',  },
@@ -344,11 +355,11 @@ signals = {
     'baro_Q4': {'name':'GBARDB8%9', 'unit': '--', 'label':'barometry Q4 raw'},
     
     ## Bolometry
-    'Prad': {'name': None, 'fun':'Prad_pradwest', 'unit':'MW', 'label':'Total Radiated Power'},
-    'Prad_bulk': {'name': None, 'fun':'Prad_bulk_pradwest', 'unit':'MW', 'label':'Bulk Radiated Power'},    
-    'Prad_imas': {'name': None, 'fun':'Prad_imas', 'unit':'MW', 'label':'Total Radiated Power (imas)'},
-    'Prad_bulk_imas': {'name': None, 'fun':'Prad_bulk_imas', 'unit':'MW', 'label':'Bulk Radiated Power (imas)'},
-    'frad_imas': {'name':None, 'fun':'frad_imas', 'unit':'%', 'label':'Radiated Power Fraction (imas)'},
+    'Prad': {'name': None, 'fun':'Prad_pradwest', 'unit':'MW', 'label':'Total Radiated Power', 'options':{'ymin':0}},
+    'Prad_bulk': {'name': None, 'fun':'Prad_bulk_pradwest', 'unit':'MW', 'label':'Bulk Radiated Power', 'options':{'ymin':0}},    
+    'Prad_imas': {'name': None, 'fun':'Prad_imas', 'unit':'MW', 'label':'Total Radiated Power (imas)', 'options':{'ymin':0}},
+    'Prad_bulk_imas': {'name': None, 'fun':'Prad_bulk_imas', 'unit':'MW', 'label':'Bulk Radiated Power (imas)', 'options':{'ymin':0}},
+    'frad_imas': {'name':None, 'fun':'frad_imas', 'unit':'%', 'label':'Radiated Power Fraction (imas)', 'options':{'ylim':(0,150)}},
     
     # Divertor current
     'Divertor_lower_current_cons': {'name':'GPOLO_IDC2%1', 'unit':'kA', 'label':'Lower divertor current consigne'},
@@ -598,6 +609,40 @@ def IC_Current_right_max_Q2(pulse):
 def IC_Current_right_max_Q4(pulse):
     return IC_VI_max_Qi(pulse, i=4, side='right', sig='Current')
 
+"""
+Poloidal Difference of the Voltages
+"""
+def IC_Voltage_Poloidal_Difference(pulse, antenna, side):
+    V_top, t_top = get_sig(pulse, signals[f'IC_Voltage_{side}_upper_{antenna}'])
+    V_bot, t_bot = get_sig(pulse, signals[f'IC_Voltage_{side}_lower_{antenna}'])
+    return V_top - V_bot, t_top
+
+def IC_Voltage_Poloidal_Difference_Q1_left(pulse):
+    return IC_Voltage_Poloidal_Difference(pulse, antenna='Q1', side='left')
+def IC_Voltage_Poloidal_Difference_Q1_right(pulse):
+    return IC_Voltage_Poloidal_Difference(pulse, antenna='Q1', side='right')
+def IC_Voltage_Poloidal_Difference_Q2_left(pulse):
+    return IC_Voltage_Poloidal_Difference(pulse, antenna='Q2', side='left')
+def IC_Voltage_Poloidal_Difference_Q2_right(pulse):
+    return IC_Voltage_Poloidal_Difference(pulse, antenna='Q2', side='right')
+def IC_Voltage_Poloidal_Difference_Q4_left(pulse):
+    return IC_Voltage_Poloidal_Difference(pulse, antenna='Q4', side='left')
+def IC_Voltage_Poloidal_Difference_Q4_right(pulse):
+    return IC_Voltage_Poloidal_Difference(pulse, antenna='Q4', side='right')
+"""
+Toroidal Difference of the Voltages
+"""
+def IC_Voltage_Toroidal_Difference(pulse, antenna):
+    V_left, t_left = get_sig(pulse, signals[f'IC_Voltage_left_upper_{antenna}'])
+    V_right, t_right = get_sig(pulse, signals[f'IC_Voltage_right_upper_{antenna}'])
+    return V_left - V_right, t_left
+
+def IC_Voltage_Toroidal_Difference_Q1(pulse):
+    return IC_Voltage_Toroidal_Difference(pulse, antenna='Q1')
+def IC_Voltage_Toroidal_Difference_Q2(pulse):
+    return IC_Voltage_Toroidal_Difference(pulse, antenna='Q2')
+def IC_Voltage_Toroidal_Difference_Q4(pulse):
+    return IC_Voltage_Toroidal_Difference(pulse, antenna='Q4')
 """
 Forward power at generator. 
 Available signals concern transmitted and reflected, so fwd is reconstructed
@@ -897,7 +942,7 @@ def mean_std_in_between(y, t, t_start=0, t_end=1000):
 
 def scope(pulses, signames, 
           do_smooth=False, style_label='default', cycling_mode='ls',
-          window_loc=(0,0), **kwargs):
+          window_loc=(0,0), figsize=(7, 8), **kwargs):
     """
     Generate a scope for the list of pulses and the list of signal names.
 
@@ -917,6 +962,8 @@ def scope(pulses, signames,
         'ls' (linestyle) or 'color'. The default is 'ls'.
     window_loc : tuple of 2 integer, optional
         Default location of the window. The default is (0,0).
+    figsize : tuple
+        Default figure size. The default is (7, 8)
 
     Returns
     -------
@@ -928,7 +975,7 @@ def scope(pulses, signames,
     with plt.style.context(style_label):
     
         t_fin_acq = []
-        fig, axes = plt.subplots(len(signames), 1, sharex=True, figsize=(7, 9))
+        fig, axes = plt.subplots(len(signames), 1, sharex=True, figsize=figsize)
         # if not isinstance(axes, list):
         #     axes = [axes]   
         # move the figure 
@@ -967,7 +1014,7 @@ def scope(pulses, signames,
                     
                     _legend += f"{sig['label']}, "
                 ax.set_ylabel(f"[{sig['unit']}]")
-                ax.text(0.01, 0.95, _legend, color='gray',
+                ax.text(0.01, 0.85, _legend, color='gray',
                         horizontalalignment='left', transform=ax.transAxes)
                 ax.autoscale(enable=True, axis='y')
                 if 'options' in sig:           
@@ -1018,7 +1065,7 @@ def ECE_4(pulse):
 try:
     import imas_west        
 except ModuleNotFoundError as e:
-    print('IMAS only available on linux machines')
+    print('IMAS lib not available...')
 
 def imas(func):
     """
@@ -1071,11 +1118,11 @@ def frad_imas(pulse):
     Prad, t_Prad = Prad_imas(pulse)
     P_ohmic, t_P_ohmic = get_sig(pulse, signals['Ohmic_P'])
     P_RF, t_P_RF = get_sig(pulse, signals['RF_P_tot'])
-    P_ohmic_interp = np.squeeze(np.interp(t_Prad, t_P_ohmic, np.squeeze(P_ohmic)))
-    P_RF_interp = np.squeeze(np.interp(t_Prad, t_P_RF, np.squeeze(P_RF)))
+    P_ohmic_interp = np.nan_to_num(np.squeeze(np.interp(t_Prad, t_P_ohmic, np.squeeze(P_ohmic))))
+    P_RF_interp = np.nan_to_num(np.squeeze(np.interp(t_Prad, t_P_RF, np.squeeze(P_RF))))
     frad = Prad/(P_ohmic_interp + P_RF_interp)*100
-    # replace nan with 0
-    frad = np.nan_to_num(frad)
+    # replace nan and inf with 0
+    frad = np.nan_to_num(frad, nan=0, posinf=0, neginf=0)
     return frad, t_Prad
 
 
@@ -1094,55 +1141,84 @@ def Rext_outboard_nice(pulse):
     y = np.max(y, axis=1)
     return y, t
 
+@imas
 def Rext_upper_nice(pulse):
     " Return Rext upper @ Z=+250 mm estimated by NICE reconstruction "
-    script_name='save_from_imas.py'  
-    cmd = 'module load tools_dc; python '+script_name+' \'{"pulse":"'+str(pulse)+'", "Z":"0.25"}\''
+#     script_name='save_from_imas.py'  
+#     cmd = 'module load tools_dc; python '+script_name+' \'{"pulse":"'+str(pulse)+'", "Z":"0.25"}\''
 
-    data  = imas_get_remote(pulse, cmd, script_name)
-    r_ext = data['arr_0']
-    t = data['arr_1'] - tignitron(pulse)[0]
-    # z_at_r_ext = data['arr_2']
+#     data  = imas_get_remote(pulse, cmd, script_name)
+#     r_ext = data['arr_0']
+#     t = data['arr_1'] - tignitron(pulse)[0]
+#     # z_at_r_ext = data['arr_2']
+    from imas_west import r_ext
+    out = r_ext([+0.25], pulse, 0, 1)
     
-    return r_ext, t    
+    r_ext = out.r_ext.squeeze()
+    t = out.time - tignitron(pulse)[0]
+    
+    return r_ext, t     
 
+
+@imas
 def Rext_median_nice(pulse):
     " Return Rext lower @ Z=0 mm estimated by NICE reconstruction "
-    script_name='save_from_imas.py'  
-    cmd = 'module load tools_dc; python '+script_name+' \'{"pulse":"'+str(pulse)+'", "Z":"0"}\''
+#     script_name='save_from_imas.py'  
+#     cmd = 'module load tools_dc; python '+script_name+' \'{"pulse":"'+str(pulse)+'", "Z":"0"}\''
 
-    data  = imas_get_remote(pulse, cmd, script_name)
-    r_ext = data['arr_0']
-    t = data['arr_1'] - tignitron(pulse)[0]
-    # z_at_r_ext = data['arr_2']
+#     data  = imas_get_remote(pulse, cmd, script_name)
+    from imas_west import r_ext
+    out = r_ext([0], pulse, 0, 1)
+    
+    r_ext = out.r_ext.squeeze()
+    t = out.time - tignitron(pulse)[0]
     
     return r_ext, t        
 
+@imas
 def Rext_lower_nice(pulse):
     " Return Rext lower @ Z=-250 mm estimated by NICE reconstruction "
-    script_name='save_from_imas.py'  
-    cmd = 'module load tools_dc; python '+script_name+' \'{"pulse":"'+str(pulse)+'", "Z":"-0.25"}\''
+#     script_name='save_from_imas.py'  
+#     cmd = 'module load tools_dc; python '+script_name+' \'{"pulse":"'+str(pulse)+'", "Z":"-0.25"}\''
 
-    data  = imas_get_remote(pulse, cmd, script_name)
-    r_ext = data['arr_0']
-    t = data['arr_1'] - tignitron(pulse)[0]
+#     data  = imas_get_remote(pulse, cmd, script_name)
+#     r_ext = data['arr_0']
+#     t = data['arr_1'] - tignitron(pulse)[0]
     # z_at_r_ext = data['arr_2']
     
-    return r_ext, t    
-
-
-def z_at_r_ext_nice(pulse):
-    " Return Rext lower @ Z=-250 mm estimated by NICE reconstruction "
-    script_name='save_from_imas.py'  
-    cmd = 'module load tools_dc; python '+script_name+' \'{"pulse":"'+str(pulse)+'", "Z":"0"}\''
-
-    data  = imas_get_remote(pulse, cmd, script_name)
-    # r_ext = data['arr_0']
-    t = data['arr_1'] - tignitron(pulse)[0]
-    z_at_r_ext = data['arr_2']
+    from imas_west import r_ext
+    out = r_ext([-0.25], pulse, 0, 1)
     
-    return z_at_r_ext, t  
+    r_ext = out.r_ext.squeeze()
+    t = out.time - tignitron(pulse)[0]
+    
+    return r_ext, t      
 
+@imas
+def Rext_max(pulse):
+    """
+    Returns the maximum Rext vs time for a given pulse estimated by NICE reconstruction
+    """
+    from imas_west import r_ext_max
+    out = r_ext_max(pulse)
+    return out.r_ext_max, out.time - tignitron(pulse)[0]
+
+@imas
+def z_at_r_ext_nice(pulse):
+    " Return Z for the corresponding Rext estimated by NICE reconstruction "
+#     script_name='save_from_imas.py'  
+#     cmd = 'module load tools_dc; python '+script_name+' \'{"pulse":"'+str(pulse)+'", "Z":"0"}\''
+# 
+#     data  = imas_get_remote(pulse, cmd, script_name)
+#     # r_ext = data['arr_0']
+#     t = data['arr_1'] - tignitron(pulse)[0]
+#     z_at_r_ext = data['arr_2']
+#     
+#     return z_at_r_ext, t 
+
+    from imas_west import r_ext_max
+    out = r_ext_max(pulse)
+    return out.z_at_r_ext_max, out.time - tignitron(pulse)[0]
     
 def sum_power(pulse):
     P1, t1 = pw.tsmat(pulse, 'SICHPQ1', nargout=2)
