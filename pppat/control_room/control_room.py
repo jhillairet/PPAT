@@ -310,6 +310,7 @@ class Panel(QSplitter):
                                     self.p.setLogMode(y=True)
                                 if 'ylim' in signals[signame]['options']:
                                     self.p.vb.setRange(yRange=signals[signame]['options']['ylim'])
+                                    #self.p.setYRange(min=signals[signame]['options']['ylim'][0], max=signals[signame]['options']['ylim'][1])
 
 
                     else:
