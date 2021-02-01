@@ -1154,7 +1154,7 @@ def Rext_upper_nice(pulse):
     from imas_west import r_ext
     out = r_ext([+0.25], pulse, 0, 1)
     
-    r_ext = out.r_ext.squeeze()
+    r_ext = out.r_ext.squeeze()*1000
     t = out.time - tignitron(pulse)[0]
     
     return r_ext, t     
@@ -1170,7 +1170,7 @@ def Rext_median_nice(pulse):
     from imas_west import r_ext
     out = r_ext([0], pulse, 0, 1)
     
-    r_ext = out.r_ext.squeeze()
+    r_ext = out.r_ext.squeeze()*1000
     t = out.time - tignitron(pulse)[0]
     
     return r_ext, t        
@@ -1189,7 +1189,7 @@ def Rext_lower_nice(pulse):
     from imas_west import r_ext
     out = r_ext([-0.25], pulse, 0, 1)
     
-    r_ext = out.r_ext.squeeze()
+    r_ext = out.r_ext.squeeze()*1000
     t = out.time - tignitron(pulse)[0]
     
     return r_ext, t      
@@ -1201,7 +1201,7 @@ def Rext_max(pulse):
     """
     from imas_west import r_ext_max
     out = r_ext_max(pulse)
-    return out.r_ext_max, out.time - tignitron(pulse)[0]
+    return out.r_ext_max*1000, out.time - tignitron(pulse)[0]
 
 @imas
 def z_at_r_ext_nice(pulse):
